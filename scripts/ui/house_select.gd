@@ -3,8 +3,6 @@ extends Control
 ## Merchant House selection screen.
 ## Demo locks the player to a single available house.
 
-signal house_selected(house_id: String)
-
 const HOUSES := [
 	{
 		"id": "A",
@@ -41,7 +39,6 @@ const HOUSES := [
 @onready var cards_container: HBoxContainer = %CardsContainer
 @onready var confirm_button: Button = %ConfirmButton
 @onready var back_button: Button = %BackButton
-@onready var subtitle_label: Label = %SubtitleLabel
 
 var selected_house_id: String = ""
 var card_buttons: Array[Button] = []
@@ -70,9 +67,7 @@ func _create_card(house: Dictionary) -> Button:
 	var btn := Button.new()
 	btn.custom_minimum_size = Vector2(160, 220)
 	btn.toggle_mode = true
-	btn.button_group = null  # we manage selection ourselves
 
-	# Visual style
 	var style_normal := StyleBoxFlat.new()
 	style_normal.bg_color = Color(0.18, 0.12, 0.08, 1)
 	style_normal.border_color = Color(0.45, 0.32, 0.18, 1)
@@ -102,14 +97,12 @@ func _create_card(house: Dictionary) -> Button:
 	btn.add_theme_stylebox_override("disabled", style_disabled)
 	btn.add_theme_stylebox_override("focus", style_pressed)
 
-	# Content
 	var vbox := VBoxContainer.new()
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
 	vbox.add_theme_constant_override("separation", 10)
 	vbox.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	btn.add_child(vbox)
 
-	# Big letter
 	var letter := Label.new()
 	letter.text = house.id
 	letter.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -118,7 +111,6 @@ func _create_card(house: Dictionary) -> Button:
 	letter.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_child(letter)
 
-	# Name
 	var name_label := Label.new()
 	name_label.text = house.name
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -127,7 +119,6 @@ func _create_card(house: Dictionary) -> Button:
 	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_child(name_label)
 
-	# Flavour
 	var flavour := Label.new()
 	flavour.text = house.flavour
 	flavour.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
@@ -137,7 +128,6 @@ func _create_card(house: Dictionary) -> Button:
 	flavour.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_child(flavour)
 
-	# Status
 	var status := Label.new()
 	if house.available:
 		status.text = "Available"
@@ -150,7 +140,6 @@ func _create_card(house: Dictionary) -> Button:
 	status.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_child(status)
 
-	# Behaviour
 	if house.available:
 		btn.pressed.connect(_on_card_pressed.bind(house.id, btn))
 	else:
@@ -163,8 +152,6 @@ func _create_card(house: Dictionary) -> Button:
 func _on_card_pressed(house_id: String, card: Button) -> void:
 	selected_house_id = house_id
 	confirm_button.disabled = false
-
-	# Visual selection: only one pressed at a time
 	for b in card_buttons:
 		b.button_pressed = (b == card)
 
@@ -172,10 +159,8 @@ func _on_card_pressed(house_id: String, card: Button) -> void:
 func _on_confirm_pressed() -> void:
 	if selected_house_id.is_empty():
 		return
-	# For now we just store it in a simple autoload-friendly way via meta or a temporary global.
-	# Later this will feed into a proper GameState.
-	print("Selected House: ", selected_house_id)
-	get_tree().change_scene_to_file("res://scenes/main/main_game.tscn")
+	GameState.start_new_run(selected_house_id)
+	get_tree().change_scene_to_file("res://scenes/main/city_hub.tscn")
 
 
 func _on_back_pressed() -> void:

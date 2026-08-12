@@ -1,0 +1,153 @@
+[gd_scene load_steps=2 format=3 uid="uid://ccity_hub01"]
+
+[ext_resource type="Script" path="res://scripts/main/city_hub.gd" id="1_hub"]
+
+[node name="CityHub" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_hub")
+
+[node name="Background" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+color = Color(0.12, 0.08, 0.05, 1)
+
+[node name="MainVBox" type="VBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 0
+
+[node name="TopBar" type="PanelContainer" parent="MainVBox"]
+layout_mode = 2
+custom_minimum_size = Vector2(0, 48)
+
+[node name="TopMargin" type="MarginContainer" parent="MainVBox/TopBar"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 8
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 8
+
+[node name="TopHBox" type="HBoxContainer" parent="MainVBox/TopBar/TopMargin"]
+layout_mode = 2
+theme_override_constants/separation = 24
+
+[node name="CityLabel" type="Label" parent="MainVBox/TopBar/TopMargin/TopHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.92, 0.78, 0.45, 1)
+theme_override_font_sizes/font_size = 20
+text = "City A"
+
+[node name="HouseLabel" type="Label" parent="MainVBox/TopBar/TopMargin/TopHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.75, 0.65, 0.5, 1)
+theme_override_font_sizes/font_size = 16
+text = "House A"
+
+[node name="Spacer" type="Control" parent="MainVBox/TopBar/TopMargin/TopHBox"]
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="GoldLabel" type="Label" parent="MainVBox/TopBar/TopMargin/TopHBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.9, 0.85, 0.55, 1)
+theme_override_font_sizes/font_size = 18
+text = "Gold: 500"
+
+[node name="TabContainer" type="TabContainer" parent="MainVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_colors/font_selected_color = Color(0.92, 0.78, 0.45, 1)
+theme_override_colors/font_unselected_color = Color(0.6, 0.5, 0.4, 1)
+
+[node name="Market" type="MarginContainer" parent="MainVBox/TabContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
+
+[node name="MarketVBox" type="VBoxContainer" parent="MainVBox/TabContainer/Market"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="MarketHeader" type="Label" parent="MainVBox/TabContainer/Market/MarketVBox"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.75, 0.55, 1)
+theme_override_font_sizes/font_size = 16
+text = "Local Market"
+
+[node name="MarketList" type="VBoxContainer" parent="MainVBox/TabContainer/Market/MarketVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="Caravan" type="MarginContainer" parent="MainVBox/TabContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
+
+[node name="CaravanLabel" type="Label" parent="MainVBox/TabContainer/Caravan"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.6, 0.45, 1)
+text = "Caravan management will live here.\nPrepare loads, assign guards, and send them into the desert."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="Intelligence" type="MarginContainer" parent="MainVBox/TabContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
+
+[node name="IntelLabel" type="Label" parent="MainVBox/TabContainer/Intelligence"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.7, 0.6, 0.45, 1)
+text = "Agents, rumours, and information edges will live here."
+horizontal_alignment = 1
+vertical_alignment = 1
+
+[node name="City" type="MarginContainer" parent="MainVBox/TabContainer"]
+layout_mode = 2
+theme_override_constants/margin_left = 20
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 20
+theme_override_constants/margin_bottom = 16
+
+[node name="CityVBox" type="VBoxContainer" parent="MainVBox/TabContainer/City"]
+layout_mode = 2
+theme_override_constants/separation = 16
+
+[node name="CityDescLabel" type="Label" parent="MainVBox/TabContainer/City/CityVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.85, 0.75, 0.55, 1)
+theme_override_font_sizes/font_size = 16
+text = "City description"
+autowrap_mode = 2
+
+[node name="NewsLabel" type="Label" parent="MainVBox/TabContainer/City/CityVBox"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.65, 0.55, 0.4, 1)
+text = "Local news placeholder"
+autowrap_mode = 2
