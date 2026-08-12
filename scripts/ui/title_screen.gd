@@ -1,7 +1,7 @@
 extends Control
 
 ## Title screen for Trader of the Cutting Sands.
-## Handles Start (loads main scene), Options (placeholder), and Exit.
+## Handles Start (loads house select), Options (placeholder), and Exit.
 
 @onready var start_button: Button = %StartButton
 @onready var options_button: Button = %OptionsButton
@@ -18,8 +18,8 @@ func _ready() -> void:
 
 
 func _on_start_pressed() -> void:
-	# Transition to the first main scene
-	get_tree().change_scene_to_file("res://scenes/main/main_game.tscn")
+	# Go to merchant house selection
+	get_tree().change_scene_to_file("res://scenes/ui/house_select.tscn")
 
 
 func _on_options_pressed() -> void:
