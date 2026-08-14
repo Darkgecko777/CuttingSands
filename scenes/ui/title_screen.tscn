@@ -1,14 +1,63 @@
-[gd_scene format=3 uid="uid://bp70cnvppqvye"]
+[gd_scene load_steps=13 format=3 uid="uid://bp70cnvppqvye"]
 
-[ext_resource type="Script" uid="uid://dal6q650mhoxr" path="res://scripts/ui/title_screen.gd" id="1_title"]
-[ext_resource type="Texture2D" uid="uid://q0lsh154nxwg" path="res://Assets/UI/title_screen.png" id="2_bg"]
-[ext_resource type="Texture2D" uid="uid://huj4jyanj24r" path="res://Assets/UI/menu_frame.png" id="3_frame"]
-[ext_resource type="Texture2D" uid="uid://disijnmh05wqd" path="res://Assets/UI/new_game_button.png" id="4_new_game"]
-[ext_resource type="Texture2D" uid="uid://c4whl81vqsc6a" path="res://Assets/UI/continue_button.png" id="5_continue"]
-[ext_resource type="Texture2D" uid="uid://n2ut1wsd527v" path="res://Assets/UI/options_button.png" id="6_options"]
-[ext_resource type="Texture2D" uid="uid://d7hknbicw7x4" path="res://Assets/UI/exit_button.png" id="7_exit"]
+[ext_resource type="Script" path="res://scripts/ui/title_screen.gd" id="1_title"]
+[ext_resource type="Texture2D" path="res://Assets/UI/title_screen.png" id="2_bg"]
+[ext_resource type="Texture2D" path="res://Assets/UI/menu_frame.png" id="3_frame"]
+[ext_resource type="Texture2D" path="res://Assets/UI/new_game_button.png" id="4_new_game"]
+[ext_resource type="Texture2D" path="res://Assets/UI/continue_button.png" id="5_continue"]
+[ext_resource type="Texture2D" path="res://Assets/UI/options_button.png" id="6_options"]
+[ext_resource type="Texture2D" path="res://Assets/UI/exit_button.png" id="7_exit"]
 
-[node name="TitleScreen" type="Control" unique_id=152939456]
+[sub_resource type="Gradient" id="Gradient_soft"]
+offsets = PackedFloat32Array(0, 0.4, 1)
+colors = PackedColorArray(1, 1, 1, 1, 1, 1, 1, 0.7, 1, 1, 1, 0)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_particle"]
+gradient = SubResource("Gradient_soft")
+width = 16
+height = 16
+fill = 1
+fill_from = Vector2(0.5, 0.5)
+fill_to = Vector2(0.5, 0)
+
+[sub_resource type="Gradient" id="Gradient_lifetime"]
+offsets = PackedFloat32Array(0, 0.65, 1)
+colors = PackedColorArray(0.88, 0.74, 0.48, 0.65, 0.8, 0.66, 0.42, 0.45, 0.7, 0.55, 0.32, 0)
+
+[sub_resource type="GradientTexture1D" id="GradientTexture1D_lifetime"]
+gradient = SubResource("Gradient_lifetime")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_sand"]
+particle_flag_disable_z = true
+emission_shape = 3
+emission_box_extents = Vector3(40, 540, 1)
+direction = Vector3(1, 0.08, 0)
+spread = 28.0
+initial_velocity_min = 55.0
+initial_velocity_max = 130.0
+angular_velocity_min = -40.0
+angular_velocity_max = 40.0
+gravity = Vector3(0, 12, 0)
+scale_min = 0.5
+scale_max = 2.2
+color = Color(1, 1, 1, 1)
+color_ramp = SubResource("GradientTexture1D_lifetime")
+
+[sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_dust"]
+particle_flag_disable_z = true
+emission_shape = 3
+emission_box_extents = Vector3(960, 540, 1)
+direction = Vector3(1, 0.05, 0)
+spread = 35.0
+initial_velocity_min = 20.0
+initial_velocity_max = 55.0
+gravity = Vector3(0, 4, 0)
+scale_min = 0.3
+scale_max = 1.1
+color = Color(1, 1, 1, 1)
+color_ramp = SubResource("GradientTexture1D_lifetime")
+
+[node name="TitleScreen" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -17,7 +66,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_title")
 
-[node name="Background" type="TextureRect" parent="." unique_id=1728018355]
+[node name="Background" type="TextureRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -27,7 +76,31 @@ grow_vertical = 2
 texture = ExtResource("2_bg")
 stretch_mode = 6
 
-[node name="CenterRoot" type="CenterContainer" parent="." unique_id=822084300]
+[node name="SandParticles" type="GPUParticles2D" parent="."]
+z_index = 1
+position = Vector2(-20, 540)
+amount = 140
+process_material = SubResource("ParticleProcessMaterial_sand")
+texture = SubResource("GradientTexture2D_particle")
+lifetime = 7.0
+preprocess = 4.0
+visibility_rect = Rect2(-50, -600, 2100, 1300)
+local_coords = false
+
+[node name="DustHaze" type="GPUParticles2D" parent="."]
+modulate = Color(1, 1, 1, 0.55)
+z_index = 1
+position = Vector2(960, 540)
+amount = 80
+process_material = SubResource("ParticleProcessMaterial_dust")
+texture = SubResource("GradientTexture2D_particle")
+lifetime = 9.0
+preprocess = 5.0
+visibility_rect = Rect2(-1000, -600, 2100, 1300)
+local_coords = false
+
+[node name="CenterRoot" type="CenterContainer" parent="."]
+z_index = 2
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -35,12 +108,12 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="MainColumn" type="VBoxContainer" parent="CenterRoot" unique_id=1140825423]
+[node name="MainColumn" type="VBoxContainer" parent="CenterRoot"]
 layout_mode = 2
 theme_override_constants/separation = 12
 alignment = 1
 
-[node name="TitleLabel" type="Label" parent="CenterRoot/MainColumn" unique_id=1263468630]
+[node name="TitleLabel" type="Label" parent="CenterRoot/MainColumn"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.85, 0.55, 1)
 theme_override_colors/font_shadow_color = Color(0.1, 0.06, 0.03, 0.85)
@@ -50,7 +123,7 @@ theme_override_font_sizes/font_size = 36
 text = "Trader of the Cutting Sands"
 horizontal_alignment = 1
 
-[node name="SubtitleLabel" type="Label" parent="CenterRoot/MainColumn" unique_id=243294545]
+[node name="SubtitleLabel" type="Label" parent="CenterRoot/MainColumn"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.72, 0.5, 1)
 theme_override_colors/font_shadow_color = Color(0.1, 0.06, 0.03, 0.7)
@@ -60,12 +133,12 @@ theme_override_font_sizes/font_size = 15
 text = "Buy on knowledge. Risk the journey."
 horizontal_alignment = 1
 
-[node name="MenuPanel" type="Control" parent="CenterRoot/MainColumn" unique_id=314098148]
+[node name="MenuPanel" type="Control" parent="CenterRoot/MainColumn"]
 custom_minimum_size = Vector2(400, 600)
 layout_mode = 2
 size_flags_horizontal = 4
 
-[node name="Frame" type="TextureRect" parent="CenterRoot/MainColumn/MenuPanel" unique_id=33747275]
+[node name="Frame" type="TextureRect" parent="CenterRoot/MainColumn/MenuPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -76,7 +149,7 @@ texture = ExtResource("3_frame")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="ButtonColumn" type="VBoxContainer" parent="CenterRoot/MainColumn/MenuPanel" unique_id=1144338486]
+[node name="ButtonColumn" type="VBoxContainer" parent="CenterRoot/MainColumn/MenuPanel"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -92,7 +165,7 @@ grow_vertical = 2
 theme_override_constants/separation = 14
 alignment = 1
 
-[node name="NewGameButton" type="TextureButton" parent="CenterRoot/MainColumn/MenuPanel/ButtonColumn" unique_id=450856626]
+[node name="NewGameButton" type="TextureButton" parent="CenterRoot/MainColumn/MenuPanel/ButtonColumn"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(260, 92)
 layout_mode = 2
@@ -101,7 +174,7 @@ texture_normal = ExtResource("4_new_game")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="ContinueButton" type="TextureButton" parent="CenterRoot/MainColumn/MenuPanel/ButtonColumn" unique_id=138990276]
+[node name="ContinueButton" type="TextureButton" parent="CenterRoot/MainColumn/MenuPanel/ButtonColumn"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(260, 88)
 layout_mode = 2
@@ -110,7 +183,7 @@ texture_normal = ExtResource("5_continue")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="OptionsButton" type="TextureButton" parent="CenterRoot/MainColumn/MenuPanel/ButtonColumn" unique_id=323629169]
+[node name="OptionsButton" type="TextureButton" parent="CenterRoot/MainColumn/MenuPanel/ButtonColumn"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(260, 92)
 layout_mode = 2
@@ -119,7 +192,7 @@ texture_normal = ExtResource("6_options")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="ExitButton" type="TextureButton" parent="CenterRoot/MainColumn/MenuPanel/ButtonColumn" unique_id=914903588]
+[node name="ExitButton" type="TextureButton" parent="CenterRoot/MainColumn/MenuPanel/ButtonColumn"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(260, 88)
 layout_mode = 2
