@@ -1,25 +1,34 @@
 extends Control
 
 ## Title screen for Trader of the Cutting Sands.
-## Handles Start (loads house select), Options (placeholder), and Exit.
+## Uses custom button sprites. New Game → house select, Exit → quit.
+## Continue and Options are placeholders for now.
 
-@onready var start_button: Button = %StartButton
-@onready var options_button: Button = %OptionsButton
-@onready var exit_button: Button = %ExitButton
+@onready var new_game_button: TextureButton = %NewGameButton
+@onready var continue_button: TextureButton = %ContinueButton
+@onready var options_button: TextureButton = %OptionsButton
+@onready var exit_button: TextureButton = %ExitButton
 
 
 func _ready() -> void:
-	start_button.pressed.connect(_on_start_pressed)
+	new_game_button.pressed.connect(_on_new_game_pressed)
+	continue_button.pressed.connect(_on_continue_pressed)
 	options_button.pressed.connect(_on_options_pressed)
 	exit_button.pressed.connect(_on_exit_pressed)
+
 	# Ensure mouse is visible and focused on menu
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-	start_button.grab_focus()
+	new_game_button.grab_focus()
 
 
-func _on_start_pressed() -> void:
+func _on_new_game_pressed() -> void:
 	# Go to merchant house selection
 	get_tree().change_scene_to_file("res://scenes/ui/house_select.tscn")
+
+
+func _on_continue_pressed() -> void:
+	# Placeholder — save/load will be implemented later
+	print("Continue pressed (not yet implemented)")
 
 
 func _on_options_pressed() -> void:
