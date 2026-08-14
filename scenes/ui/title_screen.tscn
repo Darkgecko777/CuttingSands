@@ -1,14 +1,14 @@
-[gd_scene load_steps=7 format=3 uid="uid://bp70cnvppqvye"]
+[gd_scene format=3 uid="uid://bp70cnvppqvye"]
 
-[ext_resource type="Script" path="res://scripts/ui/title_screen.gd" id="1_title"]
-[ext_resource type="Texture2D" path="res://Assets/UI/title_screen.png" id="2_bg"]
-[ext_resource type="Texture2D" path="res://Assets/UI/menu_frame.png" id="3_frame"]
-[ext_resource type="Texture2D" path="res://Assets/UI/new_game_button.png" id="4_new_game"]
-[ext_resource type="Texture2D" path="res://Assets/UI/continue_button.png" id="5_continue"]
-[ext_resource type="Texture2D" path="res://Assets/UI/options_button.png" id="6_options"]
-[ext_resource type="Texture2D" path="res://Assets/UI/exit_button.png" id="7_exit"]
+[ext_resource type="Script" uid="uid://dal6q650mhoxr" path="res://scripts/ui/title_screen.gd" id="1_title"]
+[ext_resource type="Texture2D" uid="uid://q0lsh154nxwg" path="res://Assets/UI/title_screen.png" id="2_bg"]
+[ext_resource type="Texture2D" uid="uid://huj4jyanj24r" path="res://Assets/UI/menu_frame.png" id="3_frame"]
+[ext_resource type="Texture2D" uid="uid://disijnmh05wqd" path="res://Assets/UI/new_game_button.png" id="4_new_game"]
+[ext_resource type="Texture2D" uid="uid://c4whl81vqsc6a" path="res://Assets/UI/continue_button.png" id="5_continue"]
+[ext_resource type="Texture2D" uid="uid://n2ut1wsd527v" path="res://Assets/UI/options_button.png" id="6_options"]
+[ext_resource type="Texture2D" uid="uid://d7hknbicw7x4" path="res://Assets/UI/exit_button.png" id="7_exit"]
 
-[node name="TitleScreen" type="Control"]
+[node name="TitleScreen" type="Control" unique_id=152939456]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -17,7 +17,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_title")
 
-[node name="Background" type="TextureRect" parent="."]
+[node name="Background" type="TextureRect" parent="." unique_id=1728018355]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -25,10 +25,9 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 texture = ExtResource("2_bg")
-expand_mode = 1
 stretch_mode = 6
 
-[node name="CenterRoot" type="CenterContainer" parent="."]
+[node name="CenterRoot" type="CenterContainer" parent="." unique_id=822084300]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -36,12 +35,12 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="MainColumn" type="VBoxContainer" parent="CenterRoot"]
+[node name="MainColumn" type="VBoxContainer" parent="CenterRoot" unique_id=1140825423]
 layout_mode = 2
 theme_override_constants/separation = 12
 alignment = 1
 
-[node name="TitleLabel" type="Label" parent="CenterRoot/MainColumn"]
+[node name="TitleLabel" type="Label" parent="CenterRoot/MainColumn" unique_id=1263468630]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.85, 0.55, 1)
 theme_override_colors/font_shadow_color = Color(0.1, 0.06, 0.03, 0.85)
@@ -51,7 +50,7 @@ theme_override_font_sizes/font_size = 36
 text = "Trader of the Cutting Sands"
 horizontal_alignment = 1
 
-[node name="SubtitleLabel" type="Label" parent="CenterRoot/MainColumn"]
+[node name="SubtitleLabel" type="Label" parent="CenterRoot/MainColumn" unique_id=243294545]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.72, 0.5, 1)
 theme_override_colors/font_shadow_color = Color(0.1, 0.06, 0.03, 0.7)
@@ -61,12 +60,12 @@ theme_override_font_sizes/font_size = 15
 text = "Buy on knowledge. Risk the journey."
 horizontal_alignment = 1
 
-[node name="MenuPanel" type="Control" parent="CenterRoot/MainColumn"]
-custom_minimum_size = Vector2(420, 720)
+[node name="MenuPanel" type="Control" parent="CenterRoot/MainColumn" unique_id=314098148]
+custom_minimum_size = Vector2(400, 600)
 layout_mode = 2
 size_flags_horizontal = 4
 
-[node name="Frame" type="TextureRect" parent="CenterRoot/MainColumn/MenuPanel"]
+[node name="Frame" type="TextureRect" parent="CenterRoot/MainColumn/MenuPanel" unique_id=33747275]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -77,7 +76,7 @@ texture = ExtResource("3_frame")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="ButtonColumn" type="VBoxContainer" parent="CenterRoot/MainColumn/MenuPanel"]
+[node name="ButtonColumn" type="VBoxContainer" parent="CenterRoot/MainColumn/MenuPanel" unique_id=1144338486]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
@@ -93,7 +92,7 @@ grow_vertical = 2
 theme_override_constants/separation = 14
 alignment = 1
 
-[node name="NewGameButton" type="TextureButton" parent="CenterRoot/MainColumn/MenuPanel/ButtonColumn"]
+[node name="NewGameButton" type="TextureButton" parent="CenterRoot/MainColumn/MenuPanel/ButtonColumn" unique_id=450856626]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(260, 92)
 layout_mode = 2
@@ -102,7 +101,7 @@ texture_normal = ExtResource("4_new_game")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="ContinueButton" type="TextureButton" parent="CenterRoot/MainColumn/MenuPanel/ButtonColumn"]
+[node name="ContinueButton" type="TextureButton" parent="CenterRoot/MainColumn/MenuPanel/ButtonColumn" unique_id=138990276]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(260, 88)
 layout_mode = 2
@@ -111,7 +110,7 @@ texture_normal = ExtResource("5_continue")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="OptionsButton" type="TextureButton" parent="CenterRoot/MainColumn/MenuPanel/ButtonColumn"]
+[node name="OptionsButton" type="TextureButton" parent="CenterRoot/MainColumn/MenuPanel/ButtonColumn" unique_id=323629169]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(260, 92)
 layout_mode = 2
@@ -120,7 +119,7 @@ texture_normal = ExtResource("6_options")
 ignore_texture_size = true
 stretch_mode = 5
 
-[node name="ExitButton" type="TextureButton" parent="CenterRoot/MainColumn/MenuPanel/ButtonColumn"]
+[node name="ExitButton" type="TextureButton" parent="CenterRoot/MainColumn/MenuPanel/ButtonColumn" unique_id=914903588]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(260, 88)
 layout_mode = 2
