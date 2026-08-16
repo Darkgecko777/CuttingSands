@@ -10,23 +10,19 @@ extends Control
 @onready var sand_particles: GPUParticles2D = %SandParticles
 @onready var dust_haze: GPUParticles2D = %DustHaze
 
-## Ambient emission when no gust is active (0–1).
-const AMBIENT_RATIO := 0.12
-## Peak emission during a gust (0–1).
-const GUST_PEAK_RATIO := 0.95
-## Base horizontal speeds written into the process material.
-const SAND_SPEED_MIN := 260.0
-const SAND_SPEED_MAX := 420.0
-const DUST_SPEED_MIN := 180.0
-const DUST_SPEED_MAX := 320.0
-## Extra speed multiplier at gust peak.
-const GUST_SPEED_MULT := 1.45
+const AMBIENT_RATIO := 0.25
+const GUST_PEAK_RATIO := 1.0
+const SAND_SPEED_MIN := 220.0
+const SAND_SPEED_MAX := 380.0
+const DUST_SPEED_MIN := 150.0
+const DUST_SPEED_MAX := 280.0
+const GUST_SPEED_MULT := 1.5
 
 var _noise: FastNoiseLite
 var _gust_active: bool = false
 var _gust_elapsed: float = 0.0
 var _gust_duration: float = 1.0
-var _time_to_next_gust: float = 1.5
+var _time_to_next_gust: float = 1.2
 var _sand_mat: ParticleProcessMaterial
 var _dust_mat: ParticleProcessMaterial
 
@@ -40,36 +36,45 @@ func _ready() -> void:
 	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
 	new_game_button.grab_focus()
 
+	if sand_particles == null or dust_haze == null:
+		push_error("TitleScreen: particle nodes missing (%SandParticles / %DustHaze)")
+		return
+
 	_sand_mat = sand_particles.process_material as ParticleProcessMaterial
 	_dust_mat = dust_haze.process_material as ParticleProcessMaterial
+	if _sand_mat == null or _dust_mat == null:
+		push_error("TitleScreen: process_material is not a ParticleProcessMaterial")
+		return
 
 	_noise = FastNoiseLite.new()
 	_noise.seed = randi()
 	_noise.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
 	_noise.frequency = 0.35
 
-	# Start quiet; first gust arrives shortly.
-	sand_particles.amount_ratio = AMBIENT_RATIO
-	dust_haze.amount_ratio = AMBIENT_RATIO * 0.7
-	_time_to_next_gust = randf_range(0.8, 2.2)
+	# Force systems on — editor inactivity does not carry into runtime.
+	sand_particles.emitting = true
+	dust_haze.emitting = true
+	sand_particles.restart()
+	dust_haze.restart()
+
+	_apply_gust_strength(0.0)
+	_time_to_next_gust = randf_range(0.6, 1.8)
 
 
 func _process(delta: float) -> void:
-	# Gentle wind direction wander (shared by both systems).
+	if _sand_mat == null:
+		return
+
 	var t := Time.get_ticks_msec() * 0.001
-	var wind_y := _noise.get_noise_1d(t * 0.4) * 0.12
-	var wind_dir := Vector3(1.0, wind_y, 0.0).normalized()
-	if _sand_mat:
-		_sand_mat.direction = wind_dir
+	var wind_y := _noise.get_noise_1d(t * 0.4) * 0.14
+	_sand_mat.direction = Vector3(1.0, wind_y, 0.0).normalized()
 	if _dust_mat:
-		_dust_mat.direction = Vector3(1.0, wind_y * 1.2, 0.0).normalized()
+		_dust_mat.direction = Vector3(1.0, wind_y * 1.25, 0.0).normalized()
 
 	if _gust_active:
 		_gust_elapsed += delta
 		var u := clampf(_gust_elapsed / _gust_duration, 0.0, 1.0)
-		# Smooth pulse: rise and fall.
-		var envelope := sin(u * PI)
-		_apply_gust_strength(envelope)
+		_apply_gust_strength(sin(u * PI))
 		if _gust_elapsed >= _gust_duration:
 			_end_gust()
 	else:
@@ -81,28 +86,25 @@ func _process(delta: float) -> void:
 func _start_gust() -> void:
 	_gust_active = true
 	_gust_elapsed = 0.0
-	# Short sharp gusts and longer rolling ones.
-	_gust_duration = randf_range(0.7, 1.8)
-	# Slight one-shot bias so some gusts aim more downward (grains fall off bottom).
-	if _sand_mat and randf() < 0.4:
-		_sand_mat.gravity = Vector3(0.0, randf_range(55.0, 90.0), 0.0)
-	elif _sand_mat:
-		_sand_mat.gravity = Vector3(0.0, randf_range(28.0, 48.0), 0.0)
+	_gust_duration = randf_range(0.8, 2.0)
+	if _sand_mat:
+		if randf() < 0.45:
+			_sand_mat.gravity = Vector3(0.0, randf_range(50.0, 85.0), 0.0)
+		else:
+			_sand_mat.gravity = Vector3(0.0, randf_range(30.0, 45.0), 0.0)
 
 
 func _end_gust() -> void:
 	_gust_active = false
 	_apply_gust_strength(0.0)
 	if _sand_mat:
-		_sand_mat.gravity = Vector3(0.0, 36.0, 0.0)
-	# Quiet gap between gusts.
-	_time_to_next_gust = randf_range(1.6, 4.5)
+		_sand_mat.gravity = Vector3(0.0, 38.0, 0.0)
+	_time_to_next_gust = randf_range(1.4, 4.0)
 
 
 func _apply_gust_strength(strength: float) -> void:
-	# strength 0 = ambient, 1 = peak gust
 	sand_particles.amount_ratio = lerpf(AMBIENT_RATIO, GUST_PEAK_RATIO, strength)
-	dust_haze.amount_ratio = lerpf(AMBIENT_RATIO * 0.7, GUST_PEAK_RATIO * 0.85, strength)
+	dust_haze.amount_ratio = lerpf(AMBIENT_RATIO * 0.75, GUST_PEAK_RATIO * 0.9, strength)
 
 	var speed_mult := lerpf(1.0, GUST_SPEED_MULT, strength)
 	if _sand_mat:
