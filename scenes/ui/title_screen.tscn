@@ -21,8 +21,8 @@ fill_from = Vector2(0.5, 0.5)
 fill_to = Vector2(0.5, 0)
 
 [sub_resource type="Gradient" id="Gradient_lifetime"]
-offsets = PackedFloat32Array(0, 0.08, 0.88, 1)
-colors = PackedColorArray(1, 0.9, 0.6, 0.7, 1, 0.92, 0.65, 0.85, 1, 0.88, 0.58, 0.7, 1, 0.85, 0.55, 0)
+offsets = PackedFloat32Array(0, 0.05, 0.92, 1)
+colors = PackedColorArray(1, 0.9, 0.6, 0.75, 1, 0.92, 0.65, 0.9, 1, 0.9, 0.6, 0.75, 1, 0.88, 0.55, 0)
 
 [sub_resource type="GradientTexture1D" id="GradientTexture1D_lifetime"]
 gradient = SubResource("Gradient_lifetime")
@@ -30,12 +30,12 @@ gradient = SubResource("Gradient_lifetime")
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_sand"]
 particle_flag_disable_z = true
 emission_shape = 3
-emission_box_extents = Vector3(16, 540, 1)
-direction = Vector3(1, 0.05, 0)
-spread = 18.0
-initial_velocity_min = 280.0
-initial_velocity_max = 450.0
-gravity = Vector3(0, 35, 0)
+emission_box_extents = Vector3(980, 560, 1)
+direction = Vector3(1, 0.04, 0)
+spread = 15.0
+initial_velocity_min = 180.0
+initial_velocity_max = 320.0
+gravity = Vector3(0, 30, 0)
 scale_min = 0.6
 scale_max = 1.2
 color = Color(1, 0.92, 0.65, 1)
@@ -51,12 +51,12 @@ turbulence_influence_max = 0.14
 [sub_resource type="ParticleProcessMaterial" id="ParticleProcessMaterial_dust"]
 particle_flag_disable_z = true
 emission_shape = 3
-emission_box_extents = Vector3(20, 540, 1)
-direction = Vector3(1, 0.06, 0)
-spread = 22.0
-initial_velocity_min = 200.0
-initial_velocity_max = 350.0
-gravity = Vector3(0, 28, 0)
+emission_box_extents = Vector3(980, 560, 1)
+direction = Vector3(1, 0.05, 0)
+spread = 18.0
+initial_velocity_min = 120.0
+initial_velocity_max = 240.0
+gravity = Vector3(0, 22, 0)
 scale_min = 0.4
 scale_max = 0.9
 color = Color(1, 0.94, 0.7, 1)
@@ -92,32 +92,32 @@ stretch_mode = 6
 [node name="SandParticles" type="GPUParticles2D" parent="."]
 unique_name_in_owner = true
 z_index = 1
-position = Vector2(0, 540)
+position = Vector2(960, 540)
 emitting = true
-amount = 180
+amount = 220
 amount_ratio = 1.0
 process_material = SubResource("ParticleProcessMaterial_sand")
 texture = SubResource("GradientTexture2D_speck")
-lifetime = 6.0
-preprocess = 2.5
+lifetime = 8.0
+preprocess = 4.0
 randomness = 0.4
-visibility_rect = Rect2(-200, -800, 2500, 1800)
+visibility_rect = Rect2(-1100, -700, 2200, 1400)
 local_coords = false
 
 [node name="DustHaze" type="GPUParticles2D" parent="."]
 unique_name_in_owner = true
 modulate = Color(1, 1, 1, 0.75)
 z_index = 1
-position = Vector2(0, 540)
+position = Vector2(960, 540)
 emitting = true
-amount = 100
+amount = 140
 amount_ratio = 1.0
 process_material = SubResource("ParticleProcessMaterial_dust")
 texture = SubResource("GradientTexture2D_speck")
-lifetime = 6.5
-preprocess = 2.5
+lifetime = 9.0
+preprocess = 4.0
 randomness = 0.45
-visibility_rect = Rect2(-200, -800, 2500, 1800)
+visibility_rect = Rect2(-1100, -700, 2200, 1400)
 local_coords = false
 
 [node name="CenterRoot" type="CenterContainer" parent="."]

@@ -11,10 +11,10 @@ extends Control
 
 const AMBIENT_RATIO := 0.45
 const GUST_PEAK_RATIO := 1.0
-const SAND_SPEED_MIN := 280.0
-const SAND_SPEED_MAX := 450.0
-const DUST_SPEED_MIN := 200.0
-const DUST_SPEED_MAX := 350.0
+const SAND_SPEED_MIN := 180.0
+const SAND_SPEED_MAX := 320.0
+const DUST_SPEED_MIN := 120.0
+const DUST_SPEED_MAX := 240.0
 const GUST_SPEED_MULT := 1.3
 
 var _noise: FastNoiseLite
