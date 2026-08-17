@@ -2,7 +2,7 @@ extends Node2D
 ## Persistent sand bed: floor at screen bottom, wind + strong peel/lift.
 ## 1920x1080 scene space. Texture polish deferred.
 
-const COUNT := 200
+const COUNT := 400
 const VIEW_W := 1920.0
 const VIEW_H := 1080.0
 
@@ -53,8 +53,13 @@ func _ready() -> void:
 	_pos.resize(COUNT)
 	_vel.resize(COUNT)
 	for i in COUNT:
-		_pos[i] = Vector2(randf() * VIEW_W, randf_range(BED_SPAWN_TOP, BED_SPAWN_BOTTOM))
-		_vel[i] = Vector2(randf_range(-6.0, 6.0), 0.0)
+		# Mix: half in hidden bed, half pre-seeded across stream heights for immediate left→right flow
+		if i < COUNT // 2:
+			_pos[i] = Vector2(randf() * VIEW_W, randf_range(BED_SPAWN_TOP, BED_SPAWN_BOTTOM))
+			_vel[i] = Vector2(randf_range(-6.0, 6.0), 0.0)
+		else:
+			_pos[i] = Vector2(randf() * VIEW_W, randf_range(120.0, 1000.0))
+			_vel[i] = Vector2(randf_range(40.0, 180.0), randf_range(-40.0, 20.0))
 
 	_setup_multimesh()
 	set_process(true)
@@ -150,14 +155,19 @@ func _simulate(delta: float) -> void:
 		if p.y < 40.0:
 			v.y += 350.0 * delta
 
+		# Stream recycle: stay in the airflow, not reset to the hidden bed
 		if p.x > VIEW_W + 6.0:
 			p.x = randf_range(-6.0, 20.0)
-			p.y = randf_range(BED_SPAWN_TOP, BED_SPAWN_BOTTOM)
-			v = Vector2(randf_range(0.0, 40.0), randf_range(-40.0, 0.0))
+			p.y = clampf(p.y + randf_range(-50.0, 50.0), 40.0, FLOOR_Y)
+			# Keep most horizontal speed so the left edge reads as a continuing stream
+			v.x = maxf(abs(v.x) * 0.75, 80.0)
+			v.y *= 0.85
+			v.y += randf_range(-30.0, 30.0)
 		elif p.x < -50.0:
 			p.x = VIEW_W + randf_range(-20.0, 6.0)
-			p.y = randf_range(BED_SPAWN_TOP, BED_SPAWN_BOTTOM)
-			v *= 0.2
+			p.y = clampf(p.y + randf_range(-50.0, 50.0), 40.0, FLOOR_Y)
+			v.x = -maxf(abs(v.x) * 0.75, 80.0)
+			v.y *= 0.85
 
 		_pos[i] = p
 		_vel[i] = v
