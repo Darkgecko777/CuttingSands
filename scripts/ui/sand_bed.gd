@@ -1,34 +1,32 @@
 extends Node2D
-## Persistent sand bed: floor at screen bottom, balanced gravity vs noise gusts.
+## Persistent sand bed: floor at screen bottom, wind + strong peel/lift.
 ## 1920x1080 scene space. Texture polish deferred.
 
 const COUNT := 200
 const VIEW_W := 1920.0
 const VIEW_H := 1080.0
 
-# Floor = bottom of the view; thin rest/spawn band on that floor
 const FLOOR_Y := 1076.0
 const BED_THICKNESS := 14.0
 const BED_SPAWN_TOP := FLOOR_Y - BED_THICKNESS
 const BED_SPAWN_BOTTOM := FLOOR_Y - 1.0
-# Above this, height-scaled gravity kicks in harder
-const AIR_REF_Y := 900.0
+const AIR_REF_Y := 850.0
 
-# Force balance: gravity must lose to a medium gust for a readable lift time
-const GRAVITY_BASE := 180.0
-const GRAVITY_HEIGHT_SCALE := 1.2
-const AIR_DRAG := 0.35
-const FLOOR_DRAG_CALM := 4.5
-const FLOOR_DRAG_WIND := 0.8
-const FLOOR_FRICTION_CALM := 5.0
+const GRAVITY_BASE := 110.0
+const GRAVITY_HEIGHT_SCALE := 1.4
+const LIFT_MAX := 780.0
+const UNSTICK_IMPULSE := 220.0
+const SWIRL_MAX := 200.0
 
-const WIND_MAX := 640.0
-const LIFT_MAX := 420.0
-const SWIRL_MAX := 160.0
+const WIND_MAX := 580.0
+const AIR_DRAG := 0.25
+const FLOOR_DRAG_CALM := 5.0
+const FLOOR_DRAG_WIND := 0.5
+const FLOOR_FRICTION_CALM := 6.0
 
 const WIND_NOISE_FREQ := 0.07
-const WIND_DETAIL_FREQ := 0.3
-const GUST_THRESHOLD := 0.22
+const WIND_DETAIL_FREQ := 0.28
+const GUST_THRESHOLD := 0.2
 
 var _pos: PackedVector2Array = PackedVector2Array()
 var _vel: PackedVector2Array = PackedVector2Array()
@@ -108,58 +106,54 @@ func _simulate(delta: float) -> void:
 		var v := _vel[i]
 
 		var height_01 := clampf((FLOOR_Y - p.y) / maxf(FLOOR_Y - AIR_REF_Y, 1.0), 0.0, 1.0)
-		var on_floor := p.y >= FLOOR_Y - 2.0
+		var on_floor := p.y >= FLOOR_Y - 2.5
 
-		# Gravity: mild on bed, stronger only when well above
 		var g := GRAVITY_BASE * (1.0 + height_01 * GRAVITY_HEIGHT_SCALE)
 		v.y += g * delta
 
-		# Local variation so the bed peels in patches
 		var local := _detail.get_noise_2d(p.x * 0.012, spatial_t)
 		local = local * 0.5 + 0.5
-		var local_gust := gust * lerpf(0.4, 1.0, local)
+		var local_gust := gust * lerpf(0.35, 1.0, local)
 
-		# Wind + lift: lift strongest near floor (peel the bed)
-		var peel := 1.0 - height_01 * 0.5
 		v.x += WIND_MAX * local_gust * delta
-		v.y -= LIFT_MAX * local_gust * peel * delta
 
-		# Swirl while airborne / gusty
-		if local_gust > 0.05:
+		if local_gust > 0.08:
+			var peel := lerpf(1.0, 0.45, height_01)
+			v.y -= LIFT_MAX * local_gust * peel * delta
+			if on_floor:
+				v.y -= UNSTICK_IMPULSE * local_gust * delta
+				if v.y > -40.0 * local_gust:
+					v.y = -40.0 * local_gust - randf_range(0.0, 30.0) * local_gust
+
 			var swirl := _detail.get_noise_2d(p.x * 0.025 + 40.0, p.y * 0.02 + spatial_t)
-			v.x += swirl * SWIRL_MAX * 0.4 * local_gust * delta
+			v.x += swirl * SWIRL_MAX * 0.45 * local_gust * delta
 			v.y += swirl * SWIRL_MAX * local_gust * delta
 
-		# Drag: calm floor sticks; windy floor can slide; air is light
 		var drag: float
-		if on_floor:
-			if local_gust < 0.12:
-				drag = FLOOR_DRAG_CALM + FLOOR_FRICTION_CALM
-			else:
-				drag = FLOOR_DRAG_WIND
+		if on_floor and local_gust < 0.1:
+			drag = FLOOR_DRAG_CALM + FLOOR_FRICTION_CALM
+		elif on_floor:
+			drag = FLOOR_DRAG_WIND
 		else:
 			drag = AIR_DRAG
 		v *= maxf(0.0, 1.0 - drag * delta)
 
 		p += v * delta
 
-		# Floor constraint (true bottom band)
 		if p.y > FLOOR_Y:
 			p.y = FLOOR_Y
 			if v.y > 0.0:
 				v.y = 0.0
-			if local_gust < 0.12:
-				v.x *= 0.9
+			if local_gust < 0.1:
+				v.x *= 0.88
 
-		# Soft ceiling bias only near top of frame
-		if p.y < 120.0:
-			v.y += 400.0 * delta
+		if p.y < 100.0:
+			v.y += 500.0 * delta
 
-		# Wrap right → left into thin bed band
 		if p.x > VIEW_W + 6.0:
 			p.x = randf_range(-6.0, 20.0)
 			p.y = randf_range(BED_SPAWN_TOP, BED_SPAWN_BOTTOM)
-			v = Vector2(randf_range(0.0, 30.0), randf_range(-20.0, 5.0))
+			v = Vector2(randf_range(0.0, 40.0), randf_range(-40.0, 0.0))
 		elif p.x < -50.0:
 			p.x = VIEW_W + randf_range(-20.0, 6.0)
 			p.y = randf_range(BED_SPAWN_TOP, BED_SPAWN_BOTTOM)
@@ -177,8 +171,7 @@ func _gust_strength(t: float) -> float:
 	if s < GUST_THRESHOLD:
 		return 0.0
 	var u := (s - GUST_THRESHOLD) / (1.0 - GUST_THRESHOLD)
-	# Slightly punchier peaks so lift visibly beats gravity
-	return clampf(u * u * 1.25, 0.0, 1.0)
+	return clampf(u * u * 1.35, 0.0, 1.0)
 
 
 func _update_perf_label() -> void:
