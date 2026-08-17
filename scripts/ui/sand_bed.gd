@@ -6,20 +6,20 @@ const COUNT := 200
 const VIEW_W := 1920.0
 const VIEW_H := 1080.0
 
-const FLOOR_Y := 1076.0
-const BED_THICKNESS := 14.0
+const FLOOR_Y := 1180.0  # below visible 1080 — resting bed off-screen
+const BED_THICKNESS := 24.0
 const BED_SPAWN_TOP := FLOOR_Y - BED_THICKNESS
 const BED_SPAWN_BOTTOM := FLOOR_Y - 1.0
-const AIR_REF_Y := 850.0
+const AIR_REF_Y := 700.0
 
-const GRAVITY_BASE := 110.0
-const GRAVITY_HEIGHT_SCALE := 1.4
-const LIFT_MAX := 780.0
-const UNSTICK_IMPULSE := 220.0
-const SWIRL_MAX := 200.0
+const GRAVITY_BASE := 55.0
+const GRAVITY_HEIGHT_SCALE := 1.0
+const LIFT_MAX := 920.0
+const UNSTICK_IMPULSE := 320.0
+const SWIRL_MAX := 240.0
 
-const WIND_MAX := 580.0
-const AIR_DRAG := 0.25
+const WIND_MAX := 920.0
+const AIR_DRAG := 0.18
 const FLOOR_DRAG_CALM := 5.0
 const FLOOR_DRAG_WIND := 0.5
 const FLOOR_FRICTION_CALM := 6.0
@@ -147,8 +147,8 @@ func _simulate(delta: float) -> void:
 			if local_gust < 0.1:
 				v.x *= 0.88
 
-		if p.y < 100.0:
-			v.y += 500.0 * delta
+		if p.y < 40.0:
+			v.y += 350.0 * delta
 
 		if p.x > VIEW_W + 6.0:
 			p.x = randf_range(-6.0, 20.0)
