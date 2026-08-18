@@ -47,6 +47,8 @@ class Layer:
 	var bed_fraction: float  # 0..1 start in hidden bed
 	var height_bias: float  # shift stream spawn upward (-) or down (+)
 	var shimmer: bool = false  # sun-reflection shimmer on this layer
+	var y_prefer_min: float  # soft band — particles pulled back if outside
+	var y_prefer_max: float
 
 
 var _layers: Array[Layer] = []
@@ -95,51 +97,57 @@ func _ready() -> void:
 		"name": "heavy",
 		"count": 220,
 		"wind_mul": 0.70,
-		"lift_mul": 0.75,
-		"gravity_mul": 1.35,
+		"lift_mul": 0.45,   # stays low — only modest peel
+		"gravity_mul": 1.45,
 		"swirl_mul": 0.55,
-		"gust_mul": 0.70,   # needs stronger gust before it fully engages
+		"gust_mul": 0.70,
 		"quad_size": 5.0,
 		"modulate": Color(1.0, 0.15, 0.1, 1.0),  # TEMP debug: solid red
-		"air_drag": 0.16,   # reduced so once lifted it still travels
+		"air_drag": 0.16,
 		"bed_fraction": 0.65,
 		"height_bias": 60.0,
 		"seed_off": 11,
 		"shimmer": false,
+		"y_prefer_min": 720.0,
+		"y_prefer_max": 1180.0,
 	}))
 	# Main: primary stream — strong when gusting, settles when calm
 	_layers.append(_make_layer({
 		"name": "main",
 		"count": 400,
 		"wind_mul": 1.05,
-		"lift_mul": 1.0,
-		"gravity_mul": 1.0,
+		"lift_mul": 0.75,   # mid band, not full rise
+		"gravity_mul": 1.05,
 		"swirl_mul": 1.05,
 		"gust_mul": 1.0,
-		"quad_size": 3.8,  # enlarged for readability
+		"quad_size": 3.8,
 		"modulate": Color(0.2, 1.0, 0.25, 1.0),  # TEMP debug: solid lime
 		"air_drag": 0.11,
 		"bed_fraction": 0.40,
 		"height_bias": 0.0,
 		"seed_off": 29,
 		"shimmer": true,
+		"y_prefer_min": 380.0,
+		"y_prefer_max": 880.0,
 	}))
 	# Fine: still the highest/curliest, but no longer perpetual top streak
 	_layers.append(_make_layer({
 		"name": "fine",
 		"count": 280,
-		"wind_mul": 1.20,
-		"lift_mul": 1.15,
-		"gravity_mul": 0.75,   # can fall during calm
+		"wind_mul": 1.15,
+		"lift_mul": 1.05,
+		"gravity_mul": 0.80,
 		"swirl_mul": 1.55,
-		"gust_mul": 1.05,      # closer to shared envelope, not over-driven
-		"quad_size": 3.4,  # enlarged so soft grains remain visible
+		"gust_mul": 1.05,
+		"quad_size": 3.4,
 		"modulate": Color(0.15, 0.75, 1.0, 1.0),  # TEMP debug: solid cyan
-		"air_drag": 0.08,      # a bit more drag so streaks die when gust drops
+		"air_drag": 0.08,
 		"bed_fraction": 0.20,
-		"height_bias": -80.0,  # less extreme top bias
+		"height_bias": -40.0,
 		"seed_off": 47,
 		"shimmer": false,
+		"y_prefer_min": 120.0,
+		"y_prefer_max": 720.0,
 	}))
 
 	for layer in _layers:
@@ -165,6 +173,8 @@ func _make_layer(cfg: Dictionary) -> Layer:
 	L.bed_fraction = cfg["bed_fraction"]
 	L.height_bias = cfg["height_bias"]
 	L.shimmer = cfg.get("shimmer", false)
+	L.y_prefer_min = cfg.get("y_prefer_min", 200.0)
+	L.y_prefer_max = cfg.get("y_prefer_max", 1100.0)
 	L.detail = FastNoiseLite.new()
 	L.detail.seed = randi() + int(cfg["seed_off"])
 	L.detail.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
@@ -322,19 +332,32 @@ func _simulate_layer(L: Layer, delta: float, gust: float) -> void:
 		v.x += wind_max * local_gust * delta
 
 		if local_gust > 0.06:
-			var peel := lerpf(1.15, 0.50, height_01)  # stronger peel near floor
+			# Lift only while at or below preferred band; zero lift if already above it
+			var band_span := maxf(L.y_prefer_max - L.y_prefer_min, 1.0)
+			var band_t := 0.0
+			if p.y >= L.y_prefer_min:
+				# 1 at bottom of band / floor, 0 at top of band
+				band_t = clampf((p.y - L.y_prefer_min) / band_span, 0.0, 1.0)
+			# Extra attenuation with screen height
+			var peel := band_t * lerpf(1.1, 0.35, height_01)
 			v.y -= lift_max * local_gust * peel * delta
 			if on_floor:
 				v.y -= unstick * local_gust * delta
 				if v.y > -55.0 * local_gust:
 					v.y = -55.0 * local_gust - randf_range(0.0, 40.0) * local_gust
 
-			# Stronger, more rotational swirl (two noise samples for better eddy feel)
 			var swirl1 := L.detail.get_noise_2d(p.x * 0.022 + 40.0, p.y * 0.018 + spatial_t)
 			var swirl2 := L.detail.get_noise_2d(p.x * 0.035 - 17.0, p.y * 0.028 + spatial_t * 1.3)
 			var swirl := (swirl1 * 0.65 + swirl2 * 0.35)
 			v.x += swirl * swirl_max * 0.55 * local_gust * delta
-			v.y += swirl * swirl_max * 1.15 * local_gust * delta
+			# Vertical swirl scaled by band_t so high particles don't keep being tossed up
+			v.y += swirl * swirl_max * (0.55 + 0.6 * band_t) * local_gust * delta
+
+		# Soft ceiling / floor of preferred band (y-down coordinate system)
+		if p.y < L.y_prefer_min:
+			v.y += 220.0 * delta  # above band → push down the screen
+		elif p.y > L.y_prefer_max:
+			v.y -= 55.0 * delta   # below band → gentle lift back into band
 
 		var drag: float
 		if on_floor and local_gust < 0.1:
@@ -357,18 +380,19 @@ func _simulate_layer(L: Layer, delta: float, gust: float) -> void:
 		if p.y < 40.0:
 			v.y += 350.0 * delta
 
-		# Stream recycle
+		# Stream recycle — wide vertical scatter, stay inside layer band
 		if p.x > VIEW_W + 6.0:
 			p.x = randf_range(-6.0, 20.0)
-			p.y = clampf(p.y + randf_range(-50.0, 50.0), 40.0, FLOOR_Y)
+			p.y = clampf(p.y + randf_range(-140.0, 140.0), L.y_prefer_min, L.y_prefer_max)
 			v.x = maxf(abs(v.x) * 0.75, 80.0 * L.wind_mul)
-			v.y *= 0.85
-			v.y += randf_range(-30.0, 30.0)
+			v.y *= 0.7
+			v.y += randf_range(-50.0, 50.0)
 		elif p.x < -50.0:
 			p.x = VIEW_W + randf_range(-20.0, 6.0)
-			p.y = clampf(p.y + randf_range(-50.0, 50.0), 40.0, FLOOR_Y)
+			p.y = clampf(p.y + randf_range(-140.0, 140.0), L.y_prefer_min, L.y_prefer_max)
 			v.x = -maxf(abs(v.x) * 0.75, 80.0 * L.wind_mul)
-			v.y *= 0.85
+			v.y *= 0.7
+			v.y += randf_range(-50.0, 50.0)
 
 		L.pos[i] = p
 		L.vel[i] = v
