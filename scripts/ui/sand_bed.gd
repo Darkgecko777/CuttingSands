@@ -10,7 +10,7 @@ const BED_THICKNESS := 24.0
 const BED_SPAWN_TOP := FLOOR_Y - BED_THICKNESS
 const BED_SPAWN_BOTTOM := FLOOR_Y - 1.0
 
-const WIND_NOISE_FREQ := 0.065
+const WIND_NOISE_FREQ := 0.032  # ~half previous rate — longer holds at each strength
 const GUST_THRESHOLD := 0.12  # lower threshold → gusts engage more often / wider range
 
 # Shared base forces; each layer multiplies these
@@ -72,7 +72,7 @@ func _ready() -> void:
 		"swirl_mul": 0.55,
 		"gust_mul": 0.70,   # needs stronger gust before it fully engages
 		"quad_size": 5.0,
-		"modulate": Color(0.92, 0.78, 0.48, 0.92),
+		"modulate": Color(1.0, 0.15, 0.1, 1.0),  # TEMP debug: solid red
 		"air_drag": 0.16,   # reduced so once lifted it still travels
 		"bed_fraction": 0.65,
 		"height_bias": 60.0,
@@ -89,7 +89,7 @@ func _ready() -> void:
 		"swirl_mul": 1.10,
 		"gust_mul": 1.0,
 		"quad_size": 3.2,
-		"modulate": Color(1.0, 0.90, 0.60, 0.88),
+		"modulate": Color(0.2, 1.0, 0.25, 1.0),  # TEMP debug: solid lime
 		"air_drag": 0.09,
 		"bed_fraction": 0.40,
 		"height_bias": 0.0,
@@ -106,7 +106,7 @@ func _ready() -> void:
 		"swirl_mul": 1.85,
 		"gust_mul": 1.25,  # over-responds → rises first and highest
 		"quad_size": 2.2,
-		"modulate": Color(1.0, 0.95, 0.75, 0.50),
+		"modulate": Color(0.15, 0.75, 1.0, 1.0),  # TEMP debug: solid cyan
 		"air_drag": 0.05,
 		"bed_fraction": 0.15,
 		"height_bias": -140.0,
@@ -249,26 +249,9 @@ func _setup_layer_mesh(L: Layer) -> void:
 func _write_instance(L: Layer, i: int) -> void:
 	L.multi.multimesh.set_instance_transform_2d(i, Transform2D(0.0, L.pos[i]))
 
-	var height_01 := clampf((FLOOR_Y - L.pos[i].y) / maxf(FLOOR_Y - 700.0, 1.0), 0.0, 1.0)
-	# Base alpha falls off with height so high grains are more translucent
-	var a := lerpf(0.95, 0.38, height_01)
-
-	var r := 1.0
-	var g := 0.92
-	var b := 0.65
-
-	# Subtle sun shimmer on the main layer — slow moving bright patches
-	if L.shimmer:
-		var sn := _shimmer_noise.get_noise_2d(L.pos[i].x * 0.008 + _time * 12.0, L.pos[i].y * 0.006)
-		# Only positive peaks create a bright glint
-		var glint := maxf(0.0, sn)
-		glint = glint * glint * 0.55  # keep it subtle
-		r = minf(1.0, r + glint * 0.35)
-		g = minf(1.0, g + glint * 0.28)
-		b = minf(1.0, b + glint * 0.12)
-		a = minf(1.0, a + glint * 0.15)
-
-	L.multi.multimesh.set_instance_color(i, Color(r, g, b, a))
+	# TEMP debug: full opacity, pure white instance color so layer modulate shows cleanly
+	# (Heavy=red, Main=lime, Fine=cyan via L.multi.modulate)
+	L.multi.multimesh.set_instance_color(i, Color(1.0, 1.0, 1.0, 1.0))
 
 
 func _process(delta: float) -> void:
@@ -361,8 +344,9 @@ func _simulate_layer(L: Layer, delta: float, gust: float) -> void:
 
 
 func _gust_strength(t: float) -> float:
-	var n := _noise.get_noise_1d(t * 10.0)
-	var d := _noise.get_noise_1d(t * 22.0 + 100.0) * 0.25
+	# Time scales halved vs previous so strength holds longer between changes
+	var n := _noise.get_noise_1d(t * 5.0)
+	var d := _noise.get_noise_1d(t * 11.0 + 100.0) * 0.25
 	var s := (n + d + 1.0) * 0.5
 	if s < GUST_THRESHOLD:
 		return 0.0
