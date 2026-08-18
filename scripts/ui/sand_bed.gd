@@ -92,35 +92,35 @@ func _ready() -> void:
 	_layers.append(_make_layer({
 		"name": "heavy_low", "count": 180,
 		"wind_mul": 0.55, "lift_mul": 0.35, "gravity_mul": 1.55, "swirl_mul": 0.70, "gust_mul": 0.65,
-		"quad_size": 5.2, "modulate": Color(0.92, 0.72, 0.42, 1.0),
+		"quad_size": 6.50, "modulate": Color(1.0, 0.92, 0.35, 1.0),
 		"air_drag": 0.18, "bed_fraction": 0.75, "height_bias": 80.0, "seed_off": 11, "shimmer": false,
 		"y_prefer_min": 820.0, "y_prefer_max": 1180.0,
 	}))
 	_layers.append(_make_layer({
 		"name": "heavy_mid", "count": 170,
 		"wind_mul": 0.72, "lift_mul": 0.55, "gravity_mul": 1.30, "swirl_mul": 0.95, "gust_mul": 0.80,
-		"quad_size": 4.6, "modulate": Color(0.94, 0.76, 0.46, 1.0),
+		"quad_size": 5.75, "modulate": Color(1.0, 0.93, 0.38, 1.0),
 		"air_drag": 0.14, "bed_fraction": 0.55, "height_bias": 40.0, "seed_off": 19, "shimmer": false,
 		"y_prefer_min": 620.0, "y_prefer_max": 1000.0,
 	}))
 	_layers.append(_make_layer({
 		"name": "main", "count": 220,
 		"wind_mul": 1.00, "lift_mul": 0.70, "gravity_mul": 1.05, "swirl_mul": 1.25, "gust_mul": 1.0,
-		"quad_size": 3.8, "modulate": Color(0.96, 0.80, 0.50, 1.0),
+		"quad_size": 4.75, "modulate": Color(1.0, 0.94, 0.40, 1.0),
 		"air_drag": 0.11, "bed_fraction": 0.40, "height_bias": 0.0, "seed_off": 29, "shimmer": true,
 		"y_prefer_min": 400.0, "y_prefer_max": 860.0,
 	}))
 	_layers.append(_make_layer({
 		"name": "main_high", "count": 180,
 		"wind_mul": 1.10, "lift_mul": 0.90, "gravity_mul": 0.90, "swirl_mul": 1.55, "gust_mul": 1.05,
-		"quad_size": 3.4, "modulate": Color(0.97, 0.84, 0.55, 1.0),
+		"quad_size": 4.25, "modulate": Color(1.0, 0.95, 0.42, 1.0),
 		"air_drag": 0.09, "bed_fraction": 0.30, "height_bias": -30.0, "seed_off": 37, "shimmer": false,
 		"y_prefer_min": 260.0, "y_prefer_max": 700.0,
 	}))
 	_layers.append(_make_layer({
 		"name": "fine", "count": 190,
 		"wind_mul": 1.20, "lift_mul": 1.10, "gravity_mul": 0.70, "swirl_mul": 2.10, "gust_mul": 1.10,
-		"quad_size": 3.2, "modulate": Color(0.98, 0.88, 0.62, 1.0),
+		"quad_size": 4.00, "modulate": Color(1.0, 0.96, 0.45, 1.0),
 		"air_drag": 0.07, "bed_fraction": 0.18, "height_bias": -50.0, "seed_off": 47, "shimmer": false,
 		"y_prefer_min": 100.0, "y_prefer_max": 580.0,
 	}))
@@ -237,8 +237,8 @@ func _write_instance(L: Layer, i: int) -> void:
 	var height_01 := clampf((FLOOR_Y - L.pos[i].y) / maxf(FLOOR_Y - 700.0, 1.0), 0.0, 1.0)
 	var a := lerpf(0.95, 0.45, height_01)
 	var r := 1.0
-	var g := 0.90
-	var b := 0.62
+	var g := 0.94
+	var b := 0.42
 	if L.shimmer:
 		var sn := _shimmer_noise.get_noise_2d(L.pos[i].x * 0.008 + _time * 12.0, L.pos[i].y * 0.006)
 		var glint := maxf(0.0, sn)
