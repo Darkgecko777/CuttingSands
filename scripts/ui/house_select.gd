@@ -36,10 +36,10 @@ const HOUSES := [
 	}
 ]
 
-@onready var cards_container: HBoxContainer = %CardsContainer
-@onready var confirm_button: TextureButton = %ConfirmButton
-@onready var back_button: Button = %BackButton
-@onready var subtitle_label: Label = %SubtitleLabel
+@onready var cards_container: HBoxContainer = $Margin/VBox/CardsContainer
+@onready var confirm_button: TextureButton = $Margin/VBox/ConfirmButton
+@onready var back_button: Button = $Margin/VBox/BackButton
+@onready var subtitle_label: Label = $Margin/VBox/SubtitleLabel
 
 var selected_house_id: String = ""
 var card_buttons: Array[Button] = []

@@ -4,10 +4,10 @@ extends Control
 ## Sand bed is handled by SandBed child (persistent CPU pool).
 ## Menu buttons are MenuButton instances (panel + Bona Nova SC text).
 
-@onready var new_game_button: TextureButton = %NewGameButton
-@onready var continue_button: TextureButton = %ContinueButton
-@onready var options_button: TextureButton = %OptionsButton
-@onready var exit_button: TextureButton = %ExitButton
+@onready var new_game_button: TextureButton = $CenterRoot/MainColumn/MenuPanel/ButtonColumn/NewGameButton
+@onready var continue_button: TextureButton = $CenterRoot/MainColumn/MenuPanel/ButtonColumn/ContinueButton
+@onready var options_button: TextureButton = $CenterRoot/MainColumn/MenuPanel/ButtonColumn/OptionsButton
+@onready var exit_button: TextureButton = $CenterRoot/MainColumn/MenuPanel/ButtonColumn/ExitButton
 
 
 func _ready() -> void:
