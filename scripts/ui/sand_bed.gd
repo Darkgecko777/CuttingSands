@@ -10,15 +10,15 @@ const BED_THICKNESS := 24.0
 const BED_SPAWN_TOP := FLOOR_Y - BED_THICKNESS
 const BED_SPAWN_BOTTOM := FLOOR_Y - 1.0
 
-const WIND_NOISE_FREQ := 0.07
-const GUST_THRESHOLD := 0.2
+const WIND_NOISE_FREQ := 0.065
+const GUST_THRESHOLD := 0.12  # lower threshold → gusts engage more often / wider range
 
 # Shared base forces; each layer multiplies these
-const BASE_GRAVITY := 55.0
-const BASE_WIND := 920.0
-const BASE_LIFT := 920.0
-const BASE_UNSTICK := 320.0
-const BASE_SWIRL := 320.0  # raised from 240 for more swirl character
+const BASE_GRAVITY := 42.0     # reduced so particles rise higher and hang longer
+const BASE_WIND := 1280.0      # stronger horizontal drive for longer streaks
+const BASE_LIFT := 1180.0      # more vertical lift from the shared gust
+const BASE_UNSTICK := 420.0    # stronger peel off the floor on gust onset
+const BASE_SWIRL := 380.0      # more rotational energy
 
 class Layer:
 	var name: String
@@ -62,54 +62,54 @@ func _ready() -> void:
 	_shimmer_noise.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
 	_shimmer_noise.frequency = 0.045
 
-	# Heavy: lower, slower, larger, lags the storm slightly — denser, less translucent
+	# Heavy: same shared gust, but lags, denser, only rises on stronger gusts
 	_layers.append(_make_layer({
 		"name": "heavy",
 		"count": 220,
-		"wind_mul": 0.55,
-		"lift_mul": 0.65,
-		"gravity_mul": 1.25,
-		"swirl_mul": 0.65,
-		"gust_mul": 0.85,
+		"wind_mul": 0.70,
+		"lift_mul": 0.75,
+		"gravity_mul": 1.35,
+		"swirl_mul": 0.55,
+		"gust_mul": 0.70,   # needs stronger gust before it fully engages
 		"quad_size": 5.0,
 		"modulate": Color(0.92, 0.78, 0.48, 0.92),
-		"air_drag": 0.28,
-		"bed_fraction": 0.7,
-		"height_bias": 80.0,
+		"air_drag": 0.16,   # reduced so once lifted it still travels
+		"bed_fraction": 0.65,
+		"height_bias": 60.0,
 		"seed_off": 11,
 		"shimmer": false,
 	}))
-	# Main: core stream + subtle sun shimmer
+	# Main: primary continuous streak + shimmer — strongest horizontal response
 	_layers.append(_make_layer({
 		"name": "main",
 		"count": 400,
-		"wind_mul": 1.0,
-		"lift_mul": 1.0,
-		"gravity_mul": 1.0,
-		"swirl_mul": 1.15,
+		"wind_mul": 1.15,
+		"lift_mul": 1.05,
+		"gravity_mul": 0.95,
+		"swirl_mul": 1.10,
 		"gust_mul": 1.0,
 		"quad_size": 3.2,
 		"modulate": Color(1.0, 0.90, 0.60, 0.88),
-		"air_drag": 0.18,
-		"bed_fraction": 0.45,
+		"air_drag": 0.09,
+		"bed_fraction": 0.40,
 		"height_bias": 0.0,
 		"seed_off": 29,
 		"shimmer": true,
 	}))
-	# Fine: high, fast, faint wisps — softer, more translucent
+	# Fine: same gust, highest rise, strongest curl, longest hang
 	_layers.append(_make_layer({
 		"name": "fine",
 		"count": 280,
-		"wind_mul": 1.35,
-		"lift_mul": 1.25,
-		"gravity_mul": 0.7,
-		"swirl_mul": 1.7,
-		"gust_mul": 1.15,
+		"wind_mul": 1.45,
+		"lift_mul": 1.45,
+		"gravity_mul": 0.55,
+		"swirl_mul": 1.85,
+		"gust_mul": 1.25,  # over-responds → rises first and highest
 		"quad_size": 2.2,
 		"modulate": Color(1.0, 0.95, 0.75, 0.50),
-		"air_drag": 0.12,
-		"bed_fraction": 0.2,
-		"height_bias": -120.0,
+		"air_drag": 0.05,
+		"bed_fraction": 0.15,
+		"height_bias": -140.0,
 		"seed_off": 47,
 		"shimmer": false,
 	}))
@@ -306,13 +306,13 @@ func _simulate_layer(L: Layer, delta: float, gust: float) -> void:
 
 		v.x += wind_max * local_gust * delta
 
-		if local_gust > 0.08:
-			var peel := lerpf(1.0, 0.45, height_01)
+		if local_gust > 0.06:
+			var peel := lerpf(1.15, 0.50, height_01)  # stronger peel near floor
 			v.y -= lift_max * local_gust * peel * delta
 			if on_floor:
 				v.y -= unstick * local_gust * delta
-				if v.y > -40.0 * local_gust:
-					v.y = -40.0 * local_gust - randf_range(0.0, 30.0) * local_gust
+				if v.y > -55.0 * local_gust:
+					v.y = -55.0 * local_gust - randf_range(0.0, 40.0) * local_gust
 
 			# Stronger, more rotational swirl (two noise samples for better eddy feel)
 			var swirl1 := L.detail.get_noise_2d(p.x * 0.022 + 40.0, p.y * 0.018 + spatial_t)
@@ -323,9 +323,9 @@ func _simulate_layer(L: Layer, delta: float, gust: float) -> void:
 
 		var drag: float
 		if on_floor and local_gust < 0.1:
-			drag = 5.0 + 6.0
+			drag = 3.5 + 4.0   # less sticky when calm so they can re-engage
 		elif on_floor:
-			drag = 0.5
+			drag = 0.35
 		else:
 			drag = L.air_drag
 		v *= maxf(0.0, 1.0 - drag * delta)
