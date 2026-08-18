@@ -1,5 +1,5 @@
 extends Node
-## DEBUG — isolate why play() aborts immediately.
+## DEBUG — test generated tone, then wind with stream playback type.
 
 const WIND_STREAM_PATH := "res://Assets/audio/wind_sound.wav"
 
@@ -10,24 +10,17 @@ const SFX_POOL_SIZE := 8
 
 var _wind_active: bool = false
 var _debug_timer: float = 0.0
+var _phase: int = 0  # 0=beep test, 1=wind
 
 
 func _ready() -> void:
-	print("[AudioManager] AudioDriver=", ProjectSettings.get_setting("audio/driver/driver", "(default)"))
 	print("[AudioManager] Mix rate=", AudioServer.get_mix_rate())
-	print("[AudioManager] Output latency=", AudioServer.get_output_latency())
-	print("[AudioManager] Bus count=", AudioServer.bus_count)
-	for i in AudioServer.bus_count:
-		print("  bus[", i, "]=", AudioServer.get_bus_name(i),
-			" mute=", AudioServer.is_bus_mute(i),
-			" vol=", AudioServer.get_bus_volume_db(i))
-
 	_music_player = _make_player("MusicPlayer", "Master")
 	_ambient_player = _make_player("AmbientPlayer", "Master")
 	for i in SFX_POOL_SIZE:
 		_sfx_players.append(_make_player("SFXPlayer%d" % i, "Master"))
 
-	call_deferred("_start_wind")
+	call_deferred("_run_tests")
 	set_process(true)
 
 
@@ -39,66 +32,95 @@ func _make_player(player_name: String, bus_name: String) -> AudioStreamPlayer:
 	return p
 
 
-func _start_wind() -> void:
-	var loaded := load(WIND_STREAM_PATH)
+func _make_beep(duration_sec: float = 1.5, freq: float = 440.0) -> AudioStreamWAV:
+	var rate := 22050
+	var frames := int(rate * duration_sec)
+	var data := PackedByteArray()
+	data.resize(frames * 2)  # 16-bit mono
+	for i in frames:
+		var t := float(i) / rate
+		var env := 1.0
+		if t < 0.02:
+			env = t / 0.02
+		elif t > duration_sec - 0.05:
+			env = maxf(0.0, (duration_sec - t) / 0.05)
+		var sample := int(sin(t * freq * TAU) * env * 20000.0)
+		sample = clampi(sample, -32767, 32767)
+		data[i * 2] = sample & 0xFF
+		data[i * 2 + 1] = (sample >> 8) & 0xFF
+	var wav := AudioStreamWAV.new()
+	wav.format = AudioStreamWAV.FORMAT_16_BITS
+	wav.mix_rate = rate
+	wav.stereo = false
+	wav.data = data
+	wav.loop_mode = AudioStreamWAV.LOOP_DISABLED
+	return wav
+
+
+func _run_tests() -> void:
+	# --- Test 1: generated beep (proves the player + WASAPI path) ---
+	print("[AudioManager] === BEEP TEST ===")
+	var beep := _make_beep(1.5, 523.25)  # C5
+	_ambient_player.stream = beep
+	_ambient_player.volume_db = 0.0
+	_ambient_player.bus = "Master"
+	_ambient_player.play(0.0)
+	print("[AudioManager] beep after play | playing=", _ambient_player.playing,
+		" pos=", _ambient_player.get_playback_position())
+
+	await get_tree().create_timer(0.3).timeout
+	print("[AudioManager] beep +0.3s | playing=", _ambient_player.playing,
+		" pos=", snapped(_ambient_player.get_playback_position(), 0.01))
+
+	await get_tree().create_timer(1.5).timeout
+	print("[AudioManager] beep done | playing=", _ambient_player.playing)
+
+	# --- Test 2: wind file, no duplicate, force stream playback ---
+	print("[AudioManager] === WIND TEST ===")
+	var loaded = load(WIND_STREAM_PATH)
 	if loaded == null:
-		push_error("AudioManager: load() returned null for " + WIND_STREAM_PATH)
+		push_error("Failed to load wind")
 		return
 
-	print("[AudioManager] Loaded type=", loaded.get_class())
-
-	# Duplicate so we never mutate the cached imported resource
-	var stream: AudioStream = loaded.duplicate() as AudioStream
-	if stream == null:
-		push_error("AudioManager: duplicate() failed")
-		return
-
+	var stream: AudioStream = loaded as AudioStream
 	if stream is AudioStreamWAV:
 		var wav := stream as AudioStreamWAV
-		print("[AudioManager] WAV format=", wav.format,
-			" mix_rate=", wav.mix_rate,
-			" stereo=", wav.stereo,
-			" loop_mode=", wav.loop_mode,
-			" data_bytes=", wav.data.size() if wav.data else 0)
-		# Only set loop if import did not
-		if wav.loop_mode == AudioStreamWAV.LOOP_DISABLED:
-			wav.loop_mode = AudioStreamWAV.LOOP_FORWARD
+		print("[AudioManager] wind format=", wav.format, " rate=", wav.mix_rate,
+			" stereo=", wav.stereo, " data=", wav.data.size(), " loop=", wav.loop_mode)
+		wav.loop_mode = AudioStreamWAV.LOOP_FORWARD
 
+	_ambient_player.stop()
 	_ambient_player.stream = stream
 	_ambient_player.volume_db = 0.0
-	_ambient_player.pitch_scale = 1.0
 	_ambient_player.bus = "Master"
-	_ambient_player.stream_paused = false
 
-	var err_hint := ""
+	# Prefer stream playback for long files (Godot 4.3+)
+	if "playback_type" in _ambient_player:
+		_ambient_player.playback_type = 1  # PLAYBACK_TYPE_STREAM
+		print("[AudioManager] set playback_type=STREAM")
+
 	_ambient_player.play(0.0)
 	_wind_active = true
+	_phase = 1
 
-	print("[AudioManager] After play() | playing=", _ambient_player.playing,
-		" paused=", _ambient_player.stream_paused,
-		" pos=", _ambient_player.get_playback_position())
-
-	# Check again next frame
-	await get_tree().process_frame
-	print("[AudioManager] +1 frame | playing=", _ambient_player.playing,
+	print("[AudioManager] wind after play | playing=", _ambient_player.playing,
 		" pos=", _ambient_player.get_playback_position())
 	await get_tree().process_frame
-	print("[AudioManager] +2 frame | playing=", _ambient_player.playing,
+	print("[AudioManager] wind +1f | playing=", _ambient_player.playing,
 		" pos=", _ambient_player.get_playback_position())
+	await get_tree().create_timer(0.5).timeout
+	print("[AudioManager] wind +0.5s | playing=", _ambient_player.playing,
+		" pos=", snapped(_ambient_player.get_playback_position(), 0.01))
 
 
-func _process(delta: float) -> void:
-	if not _wind_active or _ambient_player == null:
+func _process(_delta: float) -> void:
+	if _phase != 1 or not _wind_active:
 		return
-	_debug_timer += delta
+	_debug_timer += _delta
 	if _debug_timer >= 1.0:
 		_debug_timer = 0.0
-		print("[AudioManager] tick playing=", _ambient_player.playing,
-			" pos=", snapped(_ambient_player.get_playback_position(), 0.01),
-			" vol=", _ambient_player.volume_db)
-		if not _ambient_player.playing and _ambient_player.stream:
-			_ambient_player.play(0.0)
-			print("[AudioManager] RESTART")
+		print("[AudioManager] wind tick playing=", _ambient_player.playing,
+			" pos=", snapped(_ambient_player.get_playback_position(), 0.01))
 
 
 func set_wind_intensity(_gust: float) -> void:
@@ -106,7 +128,7 @@ func set_wind_intensity(_gust: float) -> void:
 
 
 func stop_wind() -> void:
-	if _ambient_player and _ambient_player.playing:
+	if _ambient_player:
 		_ambient_player.stop()
 	_wind_active = false
 
@@ -121,20 +143,11 @@ func play_music(stream: AudioStream, fade_in := 0.0) -> void:
 	if stream == null:
 		return
 	_music_player.stream = stream
-	_music_player.volume_db = 0.0 if fade_in <= 0.0 else -40.0
 	_music_player.play()
-	if fade_in > 0.0:
-		var tw := create_tween()
-		tw.tween_property(_music_player, "volume_db", 0.0, fade_in)
 
 
-func stop_music(fade_out := 0.0) -> void:
-	if fade_out <= 0.0:
-		_music_player.stop()
-		return
-	var tw := create_tween()
-	tw.tween_property(_music_player, "volume_db", -40.0, fade_out)
-	tw.tween_callback(_music_player.stop)
+func stop_music(_fade_out := 0.0) -> void:
+	_music_player.stop()
 
 
 func play_sfx(stream: AudioStream, volume_db := 0.0, pitch_scale := 1.0) -> void:
@@ -147,8 +160,3 @@ func play_sfx(stream: AudioStream, volume_db := 0.0, pitch_scale := 1.0) -> void
 			p.pitch_scale = pitch_scale
 			p.play()
 			return
-	var p := _sfx_players[0]
-	p.stream = stream
-	p.volume_db = volume_db
-	p.pitch_scale = pitch_scale
-	p.play()
