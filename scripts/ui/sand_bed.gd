@@ -14,7 +14,7 @@ const WIND_NOISE_FREQ := 0.028  # slow variance — longer holds
 const GUST_THRESHOLD := 0.28  # higher → longer true-zero calm stretches
 
 # Shared base forces; each layer multiplies these
-const BASE_GRAVITY := 48.0     # slightly firmer fall so layers can settle
+const BASE_GRAVITY := 28.0     # lowered alone — slower settle during zero-wind so calm feels less dead
 const BASE_WIND := 980.0       # dialed back from 1280 — less perpetual streaking
 const BASE_LIFT := 900.0       # matched step down
 const BASE_UNSTICK := 360.0
