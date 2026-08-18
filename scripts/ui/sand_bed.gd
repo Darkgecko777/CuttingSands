@@ -27,13 +27,6 @@ const BASE_LIFT := 900.0
 const BASE_UNSTICK := 360.0
 const BASE_SWIRL := 520.0
 
-# Wind audio (baseline white-noise modulated by the same gust envelope)
-const WIND_STREAM_PATH := "res://Assets/audio/wind_sound.wav"
-const WIND_BASE_DB := -18.0
-const WIND_GUST_DB_RANGE := 16.0   # max additional volume at full gust
-const WIND_PITCH_MIN := 0.96
-const WIND_PITCH_RANGE := 0.10     # slight pitch rise on strong gusts
-
 class Layer:
 	var name: String
 	var count: int
@@ -70,7 +63,6 @@ var _macro_from: float = 0.0
 var _macro_hold_left: float = 0.0
 var _macro_lerp_t: float = 1.0
 var _micro_noise: FastNoiseLite
-var _wind_player: AudioStreamPlayer
 
 @onready var _perf_label: Label = get_parent().get_node_or_null("SandPerfLabel") as Label
 
@@ -137,8 +129,6 @@ func _ready() -> void:
 		_total_count += layer.count
 		_init_layer_particles(layer)
 		_setup_layer_mesh(layer)
-
-	_setup_wind_audio()
 	set_process(true)
 
 
@@ -260,7 +250,7 @@ func _process(delta: float) -> void:
 	var t1 := Time.get_ticks_usec()
 	_sim_ms = (t1 - t0) / 1000.0
 	_update_perf_label(gust)
-	_update_wind_audio(gust)
+	AudioManager.set_wind_intensity(gust)
 
 
 func _simulate_layer(L: Layer, delta: float, gust: float) -> void:
@@ -331,37 +321,6 @@ func _simulate_layer(L: Layer, delta: float, gust: float) -> void:
 		L.pos[i] = p
 		L.vel[i] = v
 		_write_instance(L, i)
-
-
-func _setup_wind_audio() -> void:
-	_wind_player = AudioStreamPlayer.new()
-	_wind_player.name = "WindBaseline"
-	_wind_player.bus = "Master"
-	add_child(_wind_player)
-
-	var stream := load(WIND_STREAM_PATH) as AudioStream
-	if stream == null:
-		push_warning("Wind audio stream not found at %s" % WIND_STREAM_PATH)
-		return
-
-	# Ensure seamless looping for WAV
-	if stream is AudioStreamWAV:
-		var wav := stream as AudioStreamWAV
-		wav.loop_mode = AudioStreamWAV.LOOP_FORWARD
-
-	_wind_player.stream = stream
-	_wind_player.volume_db = WIND_BASE_DB
-	_wind_player.pitch_scale = 1.0
-	_wind_player.play()
-
-
-func _update_wind_audio(gust: float) -> void:
-	if _wind_player == null or not _wind_player.playing:
-		return
-	# Volume follows the shared macro+micro gust envelope
-	_wind_player.volume_db = WIND_BASE_DB + gust * WIND_GUST_DB_RANGE
-	# Subtle pitch lift on stronger wind (keeps the noise from feeling static)
-	_wind_player.pitch_scale = WIND_PITCH_MIN + gust * WIND_PITCH_RANGE
 
 
 func _pick_macro_target() -> float:
