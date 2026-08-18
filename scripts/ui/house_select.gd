@@ -37,65 +37,30 @@ const HOUSES := [
 ]
 
 @onready var cards_container: HBoxContainer = %CardsContainer
-@onready var confirm_button: Button = %ConfirmButton
+@onready var confirm_button: TextureButton = %ConfirmButton
 @onready var back_button: Button = %BackButton
+@onready var subtitle_label: Label = %SubtitleLabel
 
 var selected_house_id: String = ""
 var card_buttons: Array[Button] = []
 
 
 func _ready() -> void:
-	_build_cards()
-	confirm_button.pressed.connect(_on_confirm_pressed)
-	back_button.pressed.connect(_on_back_pressed)
-	confirm_button.disabled = true
-	Input.set_mouse_mode(Input.MOUSE_MODE_VISIBLE)
-
-
-func _build_cards() -> void:
-	for child in cards_container.get_children():
-		child.queue_free()
-	card_buttons.clear()
-
 	for house in HOUSES:
-		var card := _create_card(house)
+		var card := _make_house_card(house)
 		cards_container.add_child(card)
 		card_buttons.append(card)
 
+	confirm_button.pressed.connect(_on_confirm_pressed)
+	back_button.pressed.connect(_on_back_pressed)
+	confirm_button.disabled = true
 
-func _create_card(house: Dictionary) -> Button:
+
+func _make_house_card(house: Dictionary) -> Button:
 	var btn := Button.new()
-	btn.custom_minimum_size = Vector2(160, 220)
 	btn.toggle_mode = true
-
-	var style_normal := StyleBoxFlat.new()
-	style_normal.bg_color = Color(0.18, 0.12, 0.08, 1)
-	style_normal.border_color = Color(0.45, 0.32, 0.18, 1)
-	style_normal.set_border_width_all(2)
-	style_normal.set_corner_radius_all(6)
-	style_normal.content_margin_left = 12
-	style_normal.content_margin_right = 12
-	style_normal.content_margin_top = 16
-	style_normal.content_margin_bottom = 16
-
-	var style_hover := style_normal.duplicate()
-	style_hover.bg_color = Color(0.25, 0.17, 0.10, 1)
-	style_hover.border_color = Color(0.7, 0.5, 0.28, 1)
-
-	var style_pressed := style_normal.duplicate()
-	style_pressed.bg_color = Color(0.32, 0.22, 0.12, 1)
-	style_pressed.border_color = Color(0.9, 0.7, 0.35, 1)
-	style_pressed.set_border_width_all(3)
-
-	var style_disabled := style_normal.duplicate()
-	style_disabled.bg_color = Color(0.12, 0.10, 0.09, 1)
-	style_disabled.border_color = Color(0.25, 0.22, 0.18, 1)
-
-	btn.add_theme_stylebox_override("normal", style_normal)
-	btn.add_theme_stylebox_override("hover", style_hover)
-	btn.add_theme_stylebox_override("pressed", style_pressed)
-	btn.add_theme_stylebox_override("disabled", style_disabled)
-	btn.add_theme_stylebox_override("focus", style_pressed)
+	btn.custom_minimum_size = Vector2(200, 260)
+	btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
 	var vbox := VBoxContainer.new()
 	vbox.alignment = BoxContainer.ALIGNMENT_CENTER
