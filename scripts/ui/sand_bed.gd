@@ -1,5 +1,6 @@
 extends Node2D
 ## Three-layer sandstorm: heavy / main / fine. Shared gust envelope, independent pools.
+## Procedural soft grain textures + per-layer variation + subtle sun shimmer on main layer.
 ## 1920x1080. Stream wrap keeps grains in the airflow.
 
 const VIEW_W := 1920.0
@@ -17,7 +18,7 @@ const BASE_GRAVITY := 55.0
 const BASE_WIND := 920.0
 const BASE_LIFT := 920.0
 const BASE_UNSTICK := 320.0
-const BASE_SWIRL := 240.0
+const BASE_SWIRL := 320.0  # raised from 240 for more swirl character
 
 class Layer:
 	var name: String
@@ -37,6 +38,7 @@ class Layer:
 	var air_drag: float
 	var bed_fraction: float  # 0..1 start in hidden bed
 	var height_bias: float  # shift stream spawn upward (-) or down (+)
+	var shimmer: bool = false  # sun-reflection shimmer on this layer
 
 
 var _layers: Array[Layer] = []
@@ -44,6 +46,7 @@ var _noise: FastNoiseLite
 var _time: float = 0.0
 var _sim_ms: float = 0.0
 var _total_count: int = 0
+var _shimmer_noise: FastNoiseLite
 
 @onready var _perf_label: Label = get_parent().get_node_or_null("SandPerfLabel") as Label
 
@@ -54,53 +57,61 @@ func _ready() -> void:
 	_noise.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
 	_noise.frequency = WIND_NOISE_FREQ
 
-	# Heavy: lower, slower, larger, lags the storm slightly
+	_shimmer_noise = FastNoiseLite.new()
+	_shimmer_noise.seed = 91
+	_shimmer_noise.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+	_shimmer_noise.frequency = 0.045
+
+	# Heavy: lower, slower, larger, lags the storm slightly — denser, less translucent
 	_layers.append(_make_layer({
 		"name": "heavy",
 		"count": 220,
 		"wind_mul": 0.55,
 		"lift_mul": 0.65,
 		"gravity_mul": 1.25,
-		"swirl_mul": 0.55,
+		"swirl_mul": 0.65,
 		"gust_mul": 0.85,
-		"quad_size": 4.5,
-		"modulate": Color(0.95, 0.82, 0.52, 0.9),
+		"quad_size": 5.0,
+		"modulate": Color(0.92, 0.78, 0.48, 0.92),
 		"air_drag": 0.28,
 		"bed_fraction": 0.7,
 		"height_bias": 80.0,
 		"seed_off": 11,
+		"shimmer": false,
 	}))
-	# Main: core stream (current character)
+	# Main: core stream + subtle sun shimmer
 	_layers.append(_make_layer({
 		"name": "main",
 		"count": 400,
 		"wind_mul": 1.0,
 		"lift_mul": 1.0,
 		"gravity_mul": 1.0,
-		"swirl_mul": 1.0,
+		"swirl_mul": 1.15,
 		"gust_mul": 1.0,
-		"quad_size": 3.0,
-		"modulate": Color(1.0, 0.9, 0.62, 0.85),
+		"quad_size": 3.2,
+		"modulate": Color(1.0, 0.90, 0.60, 0.88),
 		"air_drag": 0.18,
 		"bed_fraction": 0.45,
 		"height_bias": 0.0,
 		"seed_off": 29,
+		"shimmer": true,
 	}))
-	# Fine: high, fast, faint wisps
+	# Fine: high, fast, faint wisps — softer, more translucent
 	_layers.append(_make_layer({
 		"name": "fine",
 		"count": 280,
 		"wind_mul": 1.35,
 		"lift_mul": 1.25,
 		"gravity_mul": 0.7,
-		"swirl_mul": 1.5,
+		"swirl_mul": 1.7,
 		"gust_mul": 1.15,
-		"quad_size": 2.0,
-		"modulate": Color(1.0, 0.94, 0.72, 0.55),
+		"quad_size": 2.2,
+		"modulate": Color(1.0, 0.95, 0.75, 0.50),
 		"air_drag": 0.12,
 		"bed_fraction": 0.2,
 		"height_bias": -120.0,
 		"seed_off": 47,
+		"shimmer": false,
 	}))
 
 	for layer in _layers:
@@ -125,6 +136,7 @@ func _make_layer(cfg: Dictionary) -> Layer:
 	L.air_drag = cfg["air_drag"]
 	L.bed_fraction = cfg["bed_fraction"]
 	L.height_bias = cfg["height_bias"]
+	L.shimmer = cfg.get("shimmer", false)
 	L.detail = FastNoiseLite.new()
 	L.detail.seed = randi() + int(cfg["seed_off"])
 	L.detail.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
@@ -149,6 +161,51 @@ func _init_layer_particles(L: Layer) -> void:
 			L.vel[i] = Vector2(randf_range(40.0, 180.0) * L.wind_mul, randf_range(-40.0, 20.0))
 
 
+## Procedural soft irregular grain texture.
+## softness: 0 = hard edge, 1 = very soft falloff
+## irregularity: 0 = perfect circle, higher = more organic shape
+func _make_grain_texture(size: int, softness: float, irregularity: float) -> ImageTexture:
+	var img := Image.create(size, size, false, Image.FORMAT_RGBA8)
+	var cx := (size - 1) * 0.5
+	var cy := (size - 1) * 0.5
+	var max_r := cx * 0.92
+
+	var n := FastNoiseLite.new()
+	n.seed = randi()
+	n.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+	n.frequency = 0.22
+
+	for y in size:
+		for x in size:
+			var dx := (x - cx) / max_r
+			var dy := (y - cy) / max_r
+			var dist := sqrt(dx * dx + dy * dy)
+
+			# Irregular radius modulation
+			var angle := atan2(dy, dx)
+			var nval := n.get_noise_2d(cos(angle) * 3.0, sin(angle) * 3.0)
+			var radius_mod := 1.0 + nval * irregularity * 0.45
+			var effective_dist := dist / maxf(radius_mod, 0.55)
+
+			# Soft alpha falloff
+			var edge := lerpf(0.55, 0.15, softness)
+			var a := 0.0
+			if effective_dist < 1.0:
+				var t := clampf((1.0 - effective_dist) / maxf(1.0 - edge, 0.05), 0.0, 1.0)
+				# Smooth falloff curve
+				a = t * t * (3.0 - 2.0 * t)
+				# Extra softness curve
+				a = pow(a, lerpf(0.7, 1.6, softness))
+
+			# Slight warm sand tint variation inside the grain
+			var warm := 0.92 + n.get_noise_2d(x * 0.4, y * 0.4) * 0.08
+			var col := Color(1.0, warm, warm * 0.72, a)
+			img.set_pixel(x, y, col)
+
+	var tex := ImageTexture.create_from_image(img)
+	return tex
+
+
 func _setup_layer_mesh(L: Layer) -> void:
 	var mesh := QuadMesh.new()
 	mesh.size = Vector2(L.quad_size, L.quad_size)
@@ -163,6 +220,26 @@ func _setup_layer_mesh(L: Layer) -> void:
 	L.multi.multimesh = mm
 	L.multi.z_index = 1
 	L.multi.modulate = L.modulate
+
+	# Generate and assign procedural grain texture for this layer
+	var tex_size: int = 20
+	var soft: float = 0.7
+	var irreg: float = 0.25
+	match L.name:
+		"heavy":
+			tex_size = 24
+			soft = 0.55
+			irreg = 0.35
+		"main":
+			tex_size = 20
+			soft = 0.70
+			irreg = 0.28
+		"fine":
+			tex_size = 16
+			soft = 0.85
+			irreg = 0.18
+	L.multi.texture = _make_grain_texture(tex_size, soft, irreg)
+
 	add_child(L.multi)
 
 	for i in L.count:
@@ -171,9 +248,27 @@ func _setup_layer_mesh(L: Layer) -> void:
 
 func _write_instance(L: Layer, i: int) -> void:
 	L.multi.multimesh.set_instance_transform_2d(i, Transform2D(0.0, L.pos[i]))
+
 	var height_01 := clampf((FLOOR_Y - L.pos[i].y) / maxf(FLOOR_Y - 700.0, 1.0), 0.0, 1.0)
-	var a := lerpf(0.95, 0.4, height_01)
-	L.multi.multimesh.set_instance_color(i, Color(1.0, 0.92, 0.65, a))
+	# Base alpha falls off with height so high grains are more translucent
+	var a := lerpf(0.95, 0.38, height_01)
+
+	var r := 1.0
+	var g := 0.92
+	var b := 0.65
+
+	# Subtle sun shimmer on the main layer — slow moving bright patches
+	if L.shimmer:
+		var sn := _shimmer_noise.get_noise_2d(L.pos[i].x * 0.008 + _time * 12.0, L.pos[i].y * 0.006)
+		# Only positive peaks create a bright glint
+		var glint := maxf(0.0, sn)
+		glint = glint * glint * 0.55  # keep it subtle
+		r = minf(1.0, r + glint * 0.35)
+		g = minf(1.0, g + glint * 0.28)
+		b = minf(1.0, b + glint * 0.12)
+		a = minf(1.0, a + glint * 0.15)
+
+	L.multi.multimesh.set_instance_color(i, Color(r, g, b, a))
 
 
 func _process(delta: float) -> void:
@@ -219,9 +314,12 @@ func _simulate_layer(L: Layer, delta: float, gust: float) -> void:
 				if v.y > -40.0 * local_gust:
 					v.y = -40.0 * local_gust - randf_range(0.0, 30.0) * local_gust
 
-			var swirl := L.detail.get_noise_2d(p.x * 0.025 + 40.0, p.y * 0.02 + spatial_t)
-			v.x += swirl * swirl_max * 0.45 * local_gust * delta
-			v.y += swirl * swirl_max * local_gust * delta
+			# Stronger, more rotational swirl (two noise samples for better eddy feel)
+			var swirl1 := L.detail.get_noise_2d(p.x * 0.022 + 40.0, p.y * 0.018 + spatial_t)
+			var swirl2 := L.detail.get_noise_2d(p.x * 0.035 - 17.0, p.y * 0.028 + spatial_t * 1.3)
+			var swirl := (swirl1 * 0.65 + swirl2 * 0.35)
+			v.x += swirl * swirl_max * 0.55 * local_gust * delta
+			v.y += swirl * swirl_max * 1.15 * local_gust * delta
 
 		var drag: float
 		if on_floor and local_gust < 0.1:
