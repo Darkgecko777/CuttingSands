@@ -1,6 +1,9 @@
-[gd_scene load_steps=2 format=3 uid="uid://chouse_select01"]
+[gd_scene load_steps=5 format=3 uid="uid://chouse_select01"]
 
 [ext_resource type="Script" path="res://scripts/ui/house_select.gd" id="1_house"]
+[ext_resource type="PackedScene" path="res://scenes/ui/menu_button.tscn" id="2_menu_btn"]
+[ext_resource type="FontFile" uid="uid://clk4e22kckcsl" path="res://Assets/fonts/BonaNovaSC-Bold.ttf" id="3_font_bold"]
+[ext_resource type="FontFile" uid="uid://d0d68ldqhciwo" path="res://Assets/fonts/BonaNovaSC-Regular.ttf" id="4_font_reg"]
 
 [node name="HouseSelect" type="Control"]
 layout_mode = 3
@@ -40,7 +43,11 @@ alignment = 1
 [node name="TitleLabel" type="Label" parent="Margin/VBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.92, 0.78, 0.45, 1)
-theme_override_font_sizes/font_size = 36
+theme_override_colors/font_shadow_color = Color(0.1, 0.06, 0.03, 0.85)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/font = ExtResource("3_font_bold")
+theme_override_font_sizes/font_size = 40
 text = "Choose Your House"
 horizontal_alignment = 1
 
@@ -48,6 +55,7 @@ horizontal_alignment = 1
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.7, 0.55, 0.35, 1)
+theme_override_fonts/font = ExtResource("4_font_reg")
 theme_override_font_sizes/font_size = 16
 text = "The market does not forgive the uncommitted."
 horizontal_alignment = 1
@@ -67,21 +75,19 @@ alignment = 1
 custom_minimum_size = Vector2(0, 16)
 layout_mode = 2
 
-[node name="ConfirmButton" type="Button" parent="Margin/VBox"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(220, 48)
+[node name="ConfirmButton" parent="Margin/VBox" unique_name_in_owner=true instance=ExtResource("2_menu_btn")]
+custom_minimum_size = Vector2(280, 84)
 layout_mode = 2
-size_flags_horizontal = 4
-theme_override_colors/font_color = Color(0.95, 0.9, 0.8, 1)
-theme_override_font_sizes/font_size = 18
 disabled = true
-text = "Confirm"
+button_text = "CONFIRM"
+font_size = 28
 
 [node name="BackButton" type="Button" parent="Margin/VBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 4
 theme_override_colors/font_color = Color(0.65, 0.55, 0.4, 1)
-theme_override_font_sizes/font_size = 14
+theme_override_fonts/font = ExtResource("4_font_reg")
+theme_override_font_sizes/font_size = 16
 flat = true
 text = "Back"

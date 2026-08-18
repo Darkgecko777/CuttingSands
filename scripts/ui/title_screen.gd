@@ -1,7 +1,8 @@
 extends Control
 
-## Title screen for Trader of the Cutting Sands.
+## Title screen for Caravans of the Cutting Sands.
 ## Sand bed is handled by SandBed child (persistent CPU pool).
+## Menu buttons are MenuButton instances (panel + Bona Nova SC text).
 
 @onready var new_game_button: TextureButton = %NewGameButton
 @onready var continue_button: TextureButton = %ContinueButton

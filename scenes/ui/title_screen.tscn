@@ -1,15 +1,14 @@
-[gd_scene format=3 uid="uid://bp70cnvppqvye"]
+[gd_scene load_steps=8 format=3 uid="uid://bp70cnvppqvye"]
 
 [ext_resource type="Script" uid="uid://dal6q650mhoxr" path="res://scripts/ui/title_screen.gd" id="1_title"]
 [ext_resource type="Texture2D" uid="uid://q0lsh154nxwg" path="res://Assets/UI/title_screen.png" id="2_bg"]
 [ext_resource type="Texture2D" uid="uid://huj4jyanj24r" path="res://Assets/UI/menu_frame.png" id="3_frame"]
-[ext_resource type="Texture2D" uid="uid://disijnmh05wqd" path="res://Assets/UI/new_game_button.png" id="4_new_game"]
-[ext_resource type="Texture2D" uid="uid://c4whl81vqsc6a" path="res://Assets/UI/continue_button.png" id="5_continue"]
-[ext_resource type="Texture2D" uid="uid://n2ut1wsd527v" path="res://Assets/UI/options_button.png" id="6_options"]
-[ext_resource type="Texture2D" uid="uid://d7hknbicw7x4" path="res://Assets/UI/exit_button.png" id="7_exit"]
 [ext_resource type="Script" uid="uid://dsdcfyxv4nhxm" path="res://scripts/ui/sand_bed.gd" id="8_sand"]
+[ext_resource type="PackedScene" path="res://scenes/ui/menu_button.tscn" id="9_menu_btn"]
+[ext_resource type="FontFile" uid="uid://clk4e22kckcsl" path="res://Assets/fonts/BonaNovaSC-Bold.ttf" id="10_font_bold"]
+[ext_resource type="FontFile" uid="uid://d0d68ldqhciwo" path="res://Assets/fonts/BonaNovaSC-Regular.ttf" id="11_font_reg"]
 
-[node name="TitleScreen" type="Control" unique_id=227696525]
+[node name="TitleScreen" type="Control"]
 layout_mode = 3
 anchors_preset = 15
 anchor_right = 1.0
@@ -18,7 +17,7 @@ grow_horizontal = 2
 grow_vertical = 2
 script = ExtResource("1_title")
 
-[node name="Background" type="TextureRect" parent="." unique_id=1765451794]
+[node name="Background" type="TextureRect" parent="."]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -29,23 +28,23 @@ mouse_filter = 2
 texture = ExtResource("2_bg")
 stretch_mode = 6
 
-[node name="SandBed" type="Node2D" parent="." unique_id=136411704]
+[node name="SandBed" type="Node2D" parent="."]
 z_index = 1
 script = ExtResource("8_sand")
 
-[node name="SandPerfLabel" type="Label" parent="." unique_id=1412987132]
+[node name="SandPerfLabel" type="Label" parent="."]
 unique_name_in_owner = true
 z_index = 3
 layout_mode = 0
 offset_left = 12.0
 offset_top = 8.0
-offset_right = 420.0
+offset_right = 480.0
 offset_bottom = 32.0
 theme_override_colors/font_color = Color(0.9, 0.85, 0.7, 0.75)
 theme_override_font_sizes/font_size = 14
 text = "sand: —"
 
-[node name="CenterRoot" type="CenterContainer" parent="." unique_id=1286885323]
+[node name="CenterRoot" type="CenterContainer" parent="."]
 z_index = 2
 layout_mode = 1
 anchors_preset = 15
@@ -55,37 +54,39 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 2
 
-[node name="MainColumn" type="VBoxContainer" parent="CenterRoot" unique_id=216581752]
+[node name="MainColumn" type="VBoxContainer" parent="CenterRoot"]
 layout_mode = 2
 theme_override_constants/separation = 12
 alignment = 1
 
-[node name="TitleLabel" type="Label" parent="CenterRoot/MainColumn" unique_id=826011177]
+[node name="TitleLabel" type="Label" parent="CenterRoot/MainColumn"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.95, 0.85, 0.55, 1)
 theme_override_colors/font_shadow_color = Color(0.1, 0.06, 0.03, 0.85)
 theme_override_constants/shadow_offset_x = 2
 theme_override_constants/shadow_offset_y = 2
-theme_override_font_sizes/font_size = 36
+theme_override_fonts/font = ExtResource("10_font_bold")
+theme_override_font_sizes/font_size = 42
 text = "Caravans of the Cutting Sands"
 horizontal_alignment = 1
 
-[node name="SubtitleLabel" type="Label" parent="CenterRoot/MainColumn" unique_id=287673461]
+[node name="SubtitleLabel" type="Label" parent="CenterRoot/MainColumn"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.72, 0.5, 1)
 theme_override_colors/font_shadow_color = Color(0.1, 0.06, 0.03, 0.7)
 theme_override_constants/shadow_offset_x = 1
 theme_override_constants/shadow_offset_y = 1
-theme_override_font_sizes/font_size = 15
+theme_override_fonts/font = ExtResource("11_font_reg")
+theme_override_font_sizes/font_size = 16
 text = "Buy on knowledge. Risk the journey."
 horizontal_alignment = 1
 
-[node name="MenuPanel" type="Control" parent="CenterRoot/MainColumn" unique_id=1834784909]
-custom_minimum_size = Vector2(400, 600)
+[node name="MenuPanel" type="Control" parent="CenterRoot/MainColumn"]
+custom_minimum_size = Vector2(400, 520)
 layout_mode = 2
 size_flags_horizontal = 4
 
-[node name="Frame" type="TextureRect" parent="CenterRoot/MainColumn/MenuPanel" unique_id=1462026536]
+[node name="Frame" type="TextureRect" parent="CenterRoot/MainColumn/MenuPanel"]
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -97,54 +98,42 @@ texture = ExtResource("3_frame")
 expand_mode = 1
 stretch_mode = 5
 
-[node name="ButtonColumn" type="VBoxContainer" parent="CenterRoot/MainColumn/MenuPanel" unique_id=636766649]
+[node name="ButtonColumn" type="VBoxContainer" parent="CenterRoot/MainColumn/MenuPanel"]
 layout_mode = 1
 anchors_preset = 8
 anchor_left = 0.5
 anchor_top = 0.5
 anchor_right = 0.5
 anchor_bottom = 0.5
-offset_left = -140.0
-offset_top = -230.0
-offset_right = 140.0
-offset_bottom = 230.0
+offset_left = -150.0
+offset_top = -200.0
+offset_right = 150.0
+offset_bottom = 200.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 14
+theme_override_constants/separation = 16
 alignment = 1
 
-[node name="NewGameButton" type="TextureButton" parent="CenterRoot/MainColumn/MenuPanel/ButtonColumn" unique_id=1979386107]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(260, 92)
+[node name="NewGameButton" parent="CenterRoot/MainColumn/MenuPanel/ButtonColumn" unique_name_in_owner=true instance=ExtResource("9_menu_btn")]
+custom_minimum_size = Vector2(280, 84)
 layout_mode = 2
-size_flags_horizontal = 4
-texture_normal = ExtResource("4_new_game")
-ignore_texture_size = true
-stretch_mode = 5
+button_text = "NEW GAME"
+font_size = 28
 
-[node name="ContinueButton" type="TextureButton" parent="CenterRoot/MainColumn/MenuPanel/ButtonColumn" unique_id=510968028]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(260, 88)
+[node name="ContinueButton" parent="CenterRoot/MainColumn/MenuPanel/ButtonColumn" unique_name_in_owner=true instance=ExtResource("9_menu_btn")]
+custom_minimum_size = Vector2(280, 84)
 layout_mode = 2
-size_flags_horizontal = 4
-texture_normal = ExtResource("5_continue")
-ignore_texture_size = true
-stretch_mode = 5
+button_text = "CONTINUE"
+font_size = 28
 
-[node name="OptionsButton" type="TextureButton" parent="CenterRoot/MainColumn/MenuPanel/ButtonColumn" unique_id=760212732]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(260, 92)
+[node name="OptionsButton" parent="CenterRoot/MainColumn/MenuPanel/ButtonColumn" unique_name_in_owner=true instance=ExtResource("9_menu_btn")]
+custom_minimum_size = Vector2(280, 84)
 layout_mode = 2
-size_flags_horizontal = 4
-texture_normal = ExtResource("6_options")
-ignore_texture_size = true
-stretch_mode = 5
+button_text = "OPTIONS"
+font_size = 28
 
-[node name="ExitButton" type="TextureButton" parent="CenterRoot/MainColumn/MenuPanel/ButtonColumn" unique_id=1441517542]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(260, 88)
+[node name="ExitButton" parent="CenterRoot/MainColumn/MenuPanel/ButtonColumn" unique_name_in_owner=true instance=ExtResource("9_menu_btn")]
+custom_minimum_size = Vector2(280, 84)
 layout_mode = 2
-size_flags_horizontal = 4
-texture_normal = ExtResource("7_exit")
-ignore_texture_size = true
-stretch_mode = 5
+button_text = "EXIT"
+font_size = 28
