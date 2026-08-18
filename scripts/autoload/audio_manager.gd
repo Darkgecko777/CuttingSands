@@ -1,6 +1,5 @@
 extends Node
-## DEBUG BUILD — minimal ambient path to prove audio output works.
-## Wind plays on Master at a fixed 0 dB. No modulation until we hear something.
+## DEBUG — isolate why play() aborts immediately.
 
 const WIND_STREAM_PATH := "res://Assets/audio/wind_sound.wav"
 
@@ -14,10 +13,17 @@ var _debug_timer: float = 0.0
 
 
 func _ready() -> void:
-	# Everything on Master for this diagnostic
+	print("[AudioManager] AudioDriver=", ProjectSettings.get_setting("audio/driver/driver", "(default)"))
+	print("[AudioManager] Mix rate=", AudioServer.get_mix_rate())
+	print("[AudioManager] Output latency=", AudioServer.get_output_latency())
+	print("[AudioManager] Bus count=", AudioServer.bus_count)
+	for i in AudioServer.bus_count:
+		print("  bus[", i, "]=", AudioServer.get_bus_name(i),
+			" mute=", AudioServer.is_bus_mute(i),
+			" vol=", AudioServer.get_bus_volume_db(i))
+
 	_music_player = _make_player("MusicPlayer", "Master")
 	_ambient_player = _make_player("AmbientPlayer", "Master")
-
 	for i in SFX_POOL_SIZE:
 		_sfx_players.append(_make_player("SFXPlayer%d" % i, "Master"))
 
@@ -34,47 +40,67 @@ func _make_player(player_name: String, bus_name: String) -> AudioStreamPlayer:
 
 
 func _start_wind() -> void:
-	var stream := load(WIND_STREAM_PATH) as AudioStream
+	var loaded := load(WIND_STREAM_PATH)
+	if loaded == null:
+		push_error("AudioManager: load() returned null for " + WIND_STREAM_PATH)
+		return
+
+	print("[AudioManager] Loaded type=", loaded.get_class())
+
+	# Duplicate so we never mutate the cached imported resource
+	var stream: AudioStream = loaded.duplicate() as AudioStream
 	if stream == null:
-		push_error("AudioManager: FAILED to load " + WIND_STREAM_PATH)
+		push_error("AudioManager: duplicate() failed")
 		return
 
 	if stream is AudioStreamWAV:
 		var wav := stream as AudioStreamWAV
-		wav.loop_mode = AudioStreamWAV.LOOP_FORWARD
+		print("[AudioManager] WAV format=", wav.format,
+			" mix_rate=", wav.mix_rate,
+			" stereo=", wav.stereo,
+			" loop_mode=", wav.loop_mode,
+			" data_bytes=", wav.data.size() if wav.data else 0)
+		# Only set loop if import did not
+		if wav.loop_mode == AudioStreamWAV.LOOP_DISABLED:
+			wav.loop_mode = AudioStreamWAV.LOOP_FORWARD
 
 	_ambient_player.stream = stream
-	_ambient_player.volume_db = 0.0          # fixed, loud, no modulation
+	_ambient_player.volume_db = 0.0
 	_ambient_player.pitch_scale = 1.0
 	_ambient_player.bus = "Master"
 	_ambient_player.stream_paused = false
-	_ambient_player.play()
+
+	var err_hint := ""
+	_ambient_player.play(0.0)
 	_wind_active = true
 
-	print("[AudioManager] START playing=", _ambient_player.playing,
-		" bus=", _ambient_player.bus,
-		" vol=", _ambient_player.volume_db,
+	print("[AudioManager] After play() | playing=", _ambient_player.playing,
 		" paused=", _ambient_player.stream_paused,
-		" length=", stream.get_length())
+		" pos=", _ambient_player.get_playback_position())
+
+	# Check again next frame
+	await get_tree().process_frame
+	print("[AudioManager] +1 frame | playing=", _ambient_player.playing,
+		" pos=", _ambient_player.get_playback_position())
+	await get_tree().process_frame
+	print("[AudioManager] +2 frame | playing=", _ambient_player.playing,
+		" pos=", _ambient_player.get_playback_position())
 
 
 func _process(delta: float) -> void:
 	if not _wind_active or _ambient_player == null:
 		return
-
-	# Hard restart every second if it is not playing
 	_debug_timer += delta
 	if _debug_timer >= 1.0:
 		_debug_timer = 0.0
-		if not _ambient_player.playing:
-			_ambient_player.play()
-			print("[AudioManager] RESTART play() — was stopped")
-		else:
-			print("[AudioManager] OK playing=true vol=", _ambient_player.volume_db,
-				" pos=", snapped(_ambient_player.get_playback_position(), 0.1))
+		print("[AudioManager] tick playing=", _ambient_player.playing,
+			" pos=", snapped(_ambient_player.get_playback_position(), 0.01),
+			" vol=", _ambient_player.volume_db)
+		if not _ambient_player.playing and _ambient_player.stream:
+			_ambient_player.play(0.0)
+			print("[AudioManager] RESTART")
 
 
-## Kept so SandBed does not error. No-op while debugging.
 func set_wind_intensity(_gust: float) -> void:
 	pass
 
