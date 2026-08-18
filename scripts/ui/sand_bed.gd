@@ -26,7 +26,7 @@ const BASE_GRAVITY := 28.0
 const BASE_WIND := 980.0
 const BASE_LIFT := 900.0
 const BASE_UNSTICK := 360.0
-const BASE_SWIRL := 320.0
+const BASE_SWIRL := 520.0  # stronger rotational energy for visible eddies
 
 class Layer:
 	var name: String
@@ -92,62 +92,100 @@ func _ready() -> void:
 	_macro_hold_left = randf_range(MACRO_HOLD_MIN, MACRO_HOLD_MAX)
 	_macro_lerp_t = 1.0
 
-	# Heavy: same shared gust, but lags, denser, only rises on stronger gusts
+	# 1) Heavy-low: densest grit, lowest band
 	_layers.append(_make_layer({
-		"name": "heavy",
-		"count": 220,
-		"wind_mul": 0.70,
-		"lift_mul": 0.45,   # stays low — only modest peel
-		"gravity_mul": 1.45,
-		"swirl_mul": 0.55,
-		"gust_mul": 0.70,
-		"quad_size": 5.0,
-		"modulate": Color(1.0, 0.15, 0.1, 1.0),  # TEMP debug: solid red
-		"air_drag": 0.16,
-		"bed_fraction": 0.65,
-		"height_bias": 60.0,
+		"name": "heavy_low",
+		"count": 180,
+		"wind_mul": 0.55,
+		"lift_mul": 0.35,
+		"gravity_mul": 1.55,
+		"swirl_mul": 0.70,
+		"gust_mul": 0.65,
+		"quad_size": 5.2,
+		"modulate": Color(1.0, 0.12, 0.08, 1.0),  # TEMP debug: deep red
+		"air_drag": 0.18,
+		"bed_fraction": 0.75,
+		"height_bias": 80.0,
 		"seed_off": 11,
 		"shimmer": false,
-		"y_prefer_min": 720.0,
+		"y_prefer_min": 820.0,
 		"y_prefer_max": 1180.0,
 	}))
-	# Main: primary stream — strong when gusting, settles when calm
+	# 2) Heavy-mid: same family, slightly higher, more swirl
+	_layers.append(_make_layer({
+		"name": "heavy_mid",
+		"count": 170,
+		"wind_mul": 0.72,
+		"lift_mul": 0.55,
+		"gravity_mul": 1.30,
+		"swirl_mul": 0.95,
+		"gust_mul": 0.80,
+		"quad_size": 4.6,
+		"modulate": Color(1.0, 0.35, 0.12, 1.0),  # TEMP debug: orange-red
+		"air_drag": 0.14,
+		"bed_fraction": 0.55,
+		"height_bias": 40.0,
+		"seed_off": 19,
+		"shimmer": false,
+		"y_prefer_min": 620.0,
+		"y_prefer_max": 1000.0,
+	}))
+	# 3) Main: primary mid stream
 	_layers.append(_make_layer({
 		"name": "main",
-		"count": 400,
-		"wind_mul": 1.05,
-		"lift_mul": 0.75,   # mid band, not full rise
+		"count": 220,
+		"wind_mul": 1.00,
+		"lift_mul": 0.70,
 		"gravity_mul": 1.05,
-		"swirl_mul": 1.05,
+		"swirl_mul": 1.25,
 		"gust_mul": 1.0,
 		"quad_size": 3.8,
-		"modulate": Color(0.2, 1.0, 0.25, 1.0),  # TEMP debug: solid lime
+		"modulate": Color(0.15, 1.0, 0.22, 1.0),  # TEMP debug: lime
 		"air_drag": 0.11,
 		"bed_fraction": 0.40,
 		"height_bias": 0.0,
 		"seed_off": 29,
 		"shimmer": true,
-		"y_prefer_min": 380.0,
-		"y_prefer_max": 880.0,
+		"y_prefer_min": 400.0,
+		"y_prefer_max": 860.0,
 	}))
-	# Fine: still the highest/curliest, but no longer perpetual top streak
+	# 4) Main-high: mid-upper, more curl / less gravity
 	_layers.append(_make_layer({
-		"name": "fine",
-		"count": 280,
-		"wind_mul": 1.15,
-		"lift_mul": 1.05,
-		"gravity_mul": 0.80,
+		"name": "main_high",
+		"count": 180,
+		"wind_mul": 1.10,
+		"lift_mul": 0.90,
+		"gravity_mul": 0.90,
 		"swirl_mul": 1.55,
 		"gust_mul": 1.05,
 		"quad_size": 3.4,
-		"modulate": Color(0.15, 0.75, 1.0, 1.0),  # TEMP debug: solid cyan
-		"air_drag": 0.08,
-		"bed_fraction": 0.20,
-		"height_bias": -40.0,
+		"modulate": Color(0.4, 1.0, 0.55, 1.0),  # TEMP debug: light green
+		"air_drag": 0.09,
+		"bed_fraction": 0.30,
+		"height_bias": -30.0,
+		"seed_off": 37,
+		"shimmer": false,
+		"y_prefer_min": 260.0,
+		"y_prefer_max": 700.0,
+	}))
+	# 5) Fine: highest wisps, strongest swirl
+	_layers.append(_make_layer({
+		"name": "fine",
+		"count": 190,
+		"wind_mul": 1.20,
+		"lift_mul": 1.10,
+		"gravity_mul": 0.70,
+		"swirl_mul": 2.10,
+		"gust_mul": 1.10,
+		"quad_size": 3.2,
+		"modulate": Color(0.15, 0.75, 1.0, 1.0),  # TEMP debug: cyan
+		"air_drag": 0.07,
+		"bed_fraction": 0.18,
+		"height_bias": -50.0,
 		"seed_off": 47,
 		"shimmer": false,
-		"y_prefer_min": 120.0,
-		"y_prefer_max": 720.0,
+		"y_prefer_min": 100.0,
+		"y_prefer_max": 580.0,
 	}))
 
 	for layer in _layers:
@@ -264,21 +302,31 @@ func _setup_layer_mesh(L: Layer) -> void:
 	var soft: float = 0.7
 	var irreg: float = 0.25
 	match L.name:
-		"heavy":
+		"heavy_low":
 			tex_size = 24
-			soft = 0.55
-			irreg = 0.35
+			soft = 0.52
+			irreg = 0.38
 			L.multi.z_index = 1
+		"heavy_mid":
+			tex_size = 22
+			soft = 0.55
+			irreg = 0.34
+			L.multi.z_index = 2
 		"main":
 			tex_size = 22
-			soft = 0.62
+			soft = 0.60
 			irreg = 0.28
-			L.multi.z_index = 2
-		"fine":
+			L.multi.z_index = 3
+		"main_high":
 			tex_size = 20
-			soft = 0.58  # hardened so core stays visible
+			soft = 0.62
+			irreg = 0.26
+			L.multi.z_index = 4
+		"fine":
+			tex_size = 18
+			soft = 0.58
 			irreg = 0.22
-			L.multi.z_index = 3  # draw on top of denser layers
+			L.multi.z_index = 5
 	L.multi.texture = _make_grain_texture(tex_size, soft, irreg)
 
 	add_child(L.multi)
@@ -346,12 +394,17 @@ func _simulate_layer(L: Layer, delta: float, gust: float) -> void:
 				if v.y > -55.0 * local_gust:
 					v.y = -55.0 * local_gust - randf_range(0.0, 40.0) * local_gust
 
-			var swirl1 := L.detail.get_noise_2d(p.x * 0.022 + 40.0, p.y * 0.018 + spatial_t)
-			var swirl2 := L.detail.get_noise_2d(p.x * 0.035 - 17.0, p.y * 0.028 + spatial_t * 1.3)
-			var swirl := (swirl1 * 0.65 + swirl2 * 0.35)
-			v.x += swirl * swirl_max * 0.55 * local_gust * delta
-			# Vertical swirl scaled by band_t so high particles don't keep being tossed up
-			v.y += swirl * swirl_max * (0.55 + 0.6 * band_t) * local_gust * delta
+			# Large-scale eddy (shared spatial field) + fine turbulence
+			var eddy := L.detail.get_noise_2d(p.x * 0.008 + 12.0, p.y * 0.007 + spatial_t * 0.55)
+			var turb := L.detail.get_noise_2d(p.x * 0.028 - 17.0, p.y * 0.024 + spatial_t * 1.2)
+			var swirl := eddy * 0.72 + turb * 0.28
+			# Tangential-ish push: horizontal and vertical both get real weight
+			var swirl_force := swirl_max * local_gust * (0.65 + 0.45 * band_t)
+			v.x += swirl * swirl_force * 0.70 * delta
+			v.y += swirl * swirl_force * 1.25 * delta
+			# Slight cross-coupling so eddies curve instead of only jitter
+			v.x += turb * swirl_force * 0.35 * delta
+			v.y -= eddy * swirl_force * 0.40 * delta
 
 		# Soft ceiling / floor of preferred band (y-down coordinate system)
 		if p.y < L.y_prefer_min:
@@ -432,7 +485,7 @@ func _gust_strength(t: float) -> float:
 func _update_perf_label(gust: float) -> void:
 	if _perf_label == null:
 		return
-	_perf_label.text = "sand: %d (3 layers) | sim: %.2f ms | fps: %d | gust: %.2f" % [
+	_perf_label.text = "sand: %d (5 layers) | sim: %.2f ms | fps: %d | gust: %.2f" % [
 		_total_count,
 		_sim_ms,
 		Engine.get_frames_per_second(),
