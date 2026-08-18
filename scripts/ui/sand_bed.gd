@@ -27,6 +27,13 @@ const BASE_LIFT := 900.0
 const BASE_UNSTICK := 360.0
 const BASE_SWIRL := 520.0
 
+# Wind audio (baseline white-noise modulated by the same gust envelope)
+const WIND_STREAM_PATH := "res://Assets/audio/wind_sound.wav"
+const WIND_BASE_DB := -18.0
+const WIND_GUST_DB_RANGE := 16.0   # max additional volume at full gust
+const WIND_PITCH_MIN := 0.96
+const WIND_PITCH_RANGE := 0.10     # slight pitch rise on strong gusts
+
 class Layer:
 	var name: String
 	var count: int
@@ -63,6 +70,7 @@ var _macro_from: float = 0.0
 var _macro_hold_left: float = 0.0
 var _macro_lerp_t: float = 1.0
 var _micro_noise: FastNoiseLite
+var _wind_player: AudioStreamPlayer
 
 @onready var _perf_label: Label = get_parent().get_node_or_null("SandPerfLabel") as Label
 
@@ -129,6 +137,8 @@ func _ready() -> void:
 		_total_count += layer.count
 		_init_layer_particles(layer)
 		_setup_layer_mesh(layer)
+
+	_setup_wind_audio()
 	set_process(true)
 
 
@@ -218,35 +228,25 @@ func _setup_layer_mesh(L: Layer) -> void:
 	mm.instance_count = L.count
 	L.multi = MultiMeshInstance2D.new()
 	L.multi.multimesh = mm
-	L.multi.z_index = 1
-	L.multi.modulate = L.modulate
-	match L.name:
-		"heavy_low": L.multi.z_index = 1
-		"heavy_mid": L.multi.z_index = 2
-		"main": L.multi.z_index = 3
-		"main_high": L.multi.z_index = 4
-		"fine": L.multi.z_index = 5
 	L.multi.texture = _shared_grain_texture()
+	L.multi.modulate = L.modulate
+	L.multi.z_index = 1
 	add_child(L.multi)
 	for i in L.count:
 		_write_instance(L, i)
 
 
 func _write_instance(L: Layer, i: int) -> void:
-	L.multi.multimesh.set_instance_transform_2d(i, Transform2D(0.0, L.pos[i]))
-	var height_01 := clampf((FLOOR_Y - L.pos[i].y) / maxf(FLOOR_Y - 700.0, 1.0), 0.0, 1.0)
-	var a := lerpf(0.95, 0.45, height_01)
-	var r := 1.0
-	var g := 0.94
-	var b := 0.42
+	var p := L.pos[i]
+	var xform := Transform2D(0.0, p)
+	L.multi.multimesh.set_instance_transform_2d(i, xform)
+	var a := 1.0
 	if L.shimmer:
-		var sn := _shimmer_noise.get_noise_2d(L.pos[i].x * 0.008 + _time * 12.0, L.pos[i].y * 0.006)
-		var glint := maxf(0.0, sn)
-		glint = glint * glint * 0.50
-		r = minf(1.0, r + glint * 0.30)
-		g = minf(1.0, g + glint * 0.22)
-		b = minf(1.0, b + glint * 0.10)
-		a = minf(1.0, a + glint * 0.12)
+		var s := _shimmer_noise.get_noise_2d(p.x * 0.04, p.y * 0.03 + _time * 0.7)
+		a = clampf(0.55 + s * 0.45, 0.35, 1.0)
+	var r := L.modulate.r
+	var g := L.modulate.g
+	var b := L.modulate.b
 	L.multi.multimesh.set_instance_color(i, Color(r, g, b, a))
 
 
@@ -260,6 +260,7 @@ func _process(delta: float) -> void:
 	var t1 := Time.get_ticks_usec()
 	_sim_ms = (t1 - t0) / 1000.0
 	_update_perf_label(gust)
+	_update_wind_audio(gust)
 
 
 func _simulate_layer(L: Layer, delta: float, gust: float) -> void:
@@ -278,27 +279,25 @@ func _simulate_layer(L: Layer, delta: float, gust: float) -> void:
 		v.y += grav * (1.0 + height_01) * delta
 		var local := L.detail.get_noise_2d(p.x * 0.012, spatial_t)
 		local = local * 0.5 + 0.5
-		var local_gust := layer_gust * lerpf(0.35, 1.0, local)
-		v.x += wind_max * local_gust * delta
-		if local_gust > 0.06:
-			var band_span := maxf(L.y_prefer_max - L.y_prefer_min, 1.0)
-			var band_t := 0.0
-			if p.y >= L.y_prefer_min:
-				band_t = clampf((p.y - L.y_prefer_min) / band_span, 0.0, 1.0)
-			var peel := band_t * lerpf(1.1, 0.35, height_01)
-			v.y -= lift_max * local_gust * peel * delta
-			if on_floor:
-				v.y -= unstick * local_gust * delta
-				if v.y > -55.0 * local_gust:
-					v.y = -55.0 * local_gust - randf_range(0.0, 40.0) * local_gust
-			var eddy := L.detail.get_noise_2d(p.x * 0.008 + 12.0, p.y * 0.007 + spatial_t * 0.55)
-			var turb := L.detail.get_noise_2d(p.x * 0.028 - 17.0, p.y * 0.024 + spatial_t * 1.2)
-			var swirl := eddy * 0.72 + turb * 0.28
-			var swirl_force := swirl_max * local_gust * (0.65 + 0.45 * band_t)
-			v.x += swirl * swirl_force * 0.70 * delta
-			v.y += swirl * swirl_force * 1.25 * delta
-			v.x += turb * swirl_force * 0.35 * delta
-			v.y -= eddy * swirl_force * 0.40 * delta
+		var local_gust := layer_gust * (0.55 + 0.45 * local)
+		var band_t := clampf((p.y - 200.0) / 900.0, 0.0, 1.0)
+		var wind_force := wind_max * local_gust * (0.7 + 0.3 * (1.0 - band_t))
+		v.x += wind_force * delta
+		if on_floor:
+			var lift_chance := local_gust * 0.55
+			if randf() < lift_chance * delta * 8.0:
+				v.y -= unstick * (0.6 + randf() * 0.8)
+				v.x += randf_range(40.0, 120.0) * L.wind_mul
+		else:
+			v.y -= lift_max * local_gust * (0.4 + 0.6 * height_01) * delta
+		var eddy := L.detail.get_noise_2d(p.x * 0.028 - 17.0, p.y * 0.024 + spatial_t * 1.2)
+		var turb := L.detail.get_noise_2d(p.x * 0.041 + 9.0, p.y * 0.033 - spatial_t * 0.9)
+		var swirl := eddy * 0.72 + turb * 0.28
+		var swirl_force := swirl_max * local_gust * (0.65 + 0.45 * band_t)
+		v.x += swirl * swirl_force * 0.70 * delta
+		v.y += swirl * swirl_force * 1.25 * delta
+		v.x += turb * swirl_force * 0.35 * delta
+		v.y -= eddy * swirl_force * 0.40 * delta
 		if p.y < L.y_prefer_min:
 			v.y += 220.0 * delta
 		elif p.y > L.y_prefer_max:
@@ -332,6 +331,37 @@ func _simulate_layer(L: Layer, delta: float, gust: float) -> void:
 		L.pos[i] = p
 		L.vel[i] = v
 		_write_instance(L, i)
+
+
+func _setup_wind_audio() -> void:
+	_wind_player = AudioStreamPlayer.new()
+	_wind_player.name = "WindBaseline"
+	_wind_player.bus = "Master"
+	add_child(_wind_player)
+
+	var stream := load(WIND_STREAM_PATH) as AudioStream
+	if stream == null:
+		push_warning("Wind audio stream not found at %s" % WIND_STREAM_PATH)
+		return
+
+	# Ensure seamless looping for WAV
+	if stream is AudioStreamWAV:
+		var wav := stream as AudioStreamWAV
+		wav.loop_mode = AudioStreamWAV.LOOP_FORWARD
+
+	_wind_player.stream = stream
+	_wind_player.volume_db = WIND_BASE_DB
+	_wind_player.pitch_scale = 1.0
+	_wind_player.play()
+
+
+func _update_wind_audio(gust: float) -> void:
+	if _wind_player == null or not _wind_player.playing:
+		return
+	# Volume follows the shared macro+micro gust envelope
+	_wind_player.volume_db = WIND_BASE_DB + gust * WIND_GUST_DB_RANGE
+	# Subtle pitch lift on stronger wind (keeps the noise from feeling static)
+	_wind_player.pitch_scale = WIND_PITCH_MIN + gust * WIND_PITCH_RANGE
 
 
 func _pick_macro_target() -> float:
