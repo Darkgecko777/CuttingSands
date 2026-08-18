@@ -1,0 +1,36 @@
+[gd_scene load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/autoload/audio_manager.gd" id="1_script"]
+
+[node name="AudioManager" type="Node"]
+script = ExtResource("1_script")
+
+[node name="MusicPlayer" type="AudioStreamPlayer" parent="."]
+bus = &"Music"
+
+[node name="AmbientPlayer" type="AudioStreamPlayer" parent="."]
+bus = &"Ambient"
+
+[node name="SFXPlayer0" type="AudioStreamPlayer" parent="."]
+bus = &"SFX"
+
+[node name="SFXPlayer1" type="AudioStreamPlayer" parent="."]
+bus = &"SFX"
+
+[node name="SFXPlayer2" type="AudioStreamPlayer" parent="."]
+bus = &"SFX"
+
+[node name="SFXPlayer3" type="AudioStreamPlayer" parent="."]
+bus = &"SFX"
+
+[node name="SFXPlayer4" type="AudioStreamPlayer" parent="."]
+bus = &"SFX"
+
+[node name="SFXPlayer5" type="AudioStreamPlayer" parent="."]
+bus = &"SFX"
+
+[node name="SFXPlayer6" type="AudioStreamPlayer" parent="."]
+bus = &"SFX"
+
+[node name="SFXPlayer7" type="AudioStreamPlayer" parent="."]
+bus = &"SFX"

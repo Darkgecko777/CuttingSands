@@ -22,7 +22,7 @@ buses/default_bus_layout="res://default_bus_layout.tres"
 [autoload]
 
 GameState="*res://scripts/autoload/game_state.gd"
-AudioManager="*res://scripts/autoload/audio_manager.gd"
+AudioManager="*res://scenes/autoload/audio_manager.tscn"
 
 [display]
 
