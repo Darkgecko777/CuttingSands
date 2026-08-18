@@ -5,8 +5,8 @@ extends Node
 
 # --- Ambient / Wind ---
 const WIND_STREAM_PATH := "res://Assets/audio/wind_sound.wav"
-const WIND_BASE_DB := -18.0
-const WIND_GUST_DB_RANGE := 16.0
+const WIND_BASE_DB := -8.0          # louder while debugging (was -18)
+const WIND_GUST_DB_RANGE := 12.0
 const WIND_PITCH_MIN := 0.96
 const WIND_PITCH_RANGE := 0.10
 
@@ -25,14 +25,19 @@ func _ready() -> void:
 	for i in SFX_POOL_SIZE:
 		_sfx_players.append(_make_player("SFXPlayer%d" % i, "SFX"))
 
-	# Start the persistent wind baseline immediately
-	_start_wind()
+	# Defer so the node is fully inside the tree before we play
+	call_deferred("_start_wind")
 
 
 func _make_player(player_name: String, bus_name: String) -> AudioStreamPlayer:
 	var p := AudioStreamPlayer.new()
 	p.name = player_name
-	p.bus = bus_name
+	# Use the named bus if it exists, otherwise fall back to Master
+	if AudioServer.get_bus_index(bus_name) >= 0:
+		p.bus = bus_name
+	else:
+		push_warning("AudioManager: bus '%s' not found, using Master" % bus_name)
+		p.bus = "Master"
 	add_child(p)
 	return p
 
@@ -48,7 +53,10 @@ func _start_wind() -> void:
 		return
 
 	if stream is AudioStreamWAV:
-		(stream as AudioStreamWAV).loop_mode = AudioStreamWAV.LOOP_FORWARD
+		var wav := stream as AudioStreamWAV
+		wav.loop_mode = AudioStreamWAV.LOOP_FORWARD
+		wav.loop_begin = 0
+		wav.loop_end = -1
 
 	_ambient_player.stream = stream
 	_ambient_player.volume_db = WIND_BASE_DB
@@ -56,24 +64,41 @@ func _start_wind() -> void:
 	_ambient_player.play()
 	_wind_active = true
 
+	print("[AudioManager] Wind start | playing=", _ambient_player.playing,
+		" | bus=", _ambient_player.bus,
+		" | vol=", _ambient_player.volume_db,
+		" | stream=", _ambient_player.stream,
+		" | length=", stream.get_length())
+
+	# One more kick a frame later in case the first play was ignored
+	await get_tree().process_frame
+	if not _ambient_player.playing:
+		_ambient_player.play()
+		print("[AudioManager] Wind re-play | playing=", _ambient_player.playing)
+
 
 ## Drive ambient wind from the shared sand-gust envelope (0.0 – 1.0).
 func set_wind_intensity(gust: float) -> void:
 	if not _wind_active:
 		return
+
+	# Keep it playing — if it ever stops, restart
+	if _ambient_player.stream and not _ambient_player.playing:
+		_ambient_player.play()
+
 	gust = clampf(gust, 0.0, 1.0)
 	_ambient_player.volume_db = WIND_BASE_DB + gust * WIND_GUST_DB_RANGE
 	_ambient_player.pitch_scale = WIND_PITCH_MIN + gust * WIND_PITCH_RANGE
 
 
 func stop_wind() -> void:
-	if _ambient_player.playing:
+	if _ambient_player and _ambient_player.playing:
 		_ambient_player.stop()
 	_wind_active = false
 
 
 func resume_wind() -> void:
-	if not _wind_active and _ambient_player.stream:
+	if not _wind_active and _ambient_player and _ambient_player.stream:
 		_ambient_player.play()
 		_wind_active = true
 
