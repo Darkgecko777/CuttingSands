@@ -1,6 +1,7 @@
-[gd_scene load_steps=2 format=3]
+[gd_scene load_steps=3 format=3]
 
 [ext_resource type="Script" path="res://scripts/autoload/audio_manager.gd" id="1_script"]
+[ext_resource type="AudioStream" uid="uid://kljlbkdhue7u" path="res://Assets/audio/wind_sound.wav" id="2_wind"]
 
 [node name="AudioManager" type="Node"]
 script = ExtResource("1_script")
@@ -9,7 +10,10 @@ script = ExtResource("1_script")
 bus = &"Music"
 
 [node name="AmbientPlayer" type="AudioStreamPlayer" parent="."]
-bus = &"Ambient"
+stream = ExtResource("2_wind")
+autoplay = true
+bus = &"Master"
+volume_db = -12.0
 
 [node name="SFXPlayer0" type="AudioStreamPlayer" parent="."]
 bus = &"SFX"

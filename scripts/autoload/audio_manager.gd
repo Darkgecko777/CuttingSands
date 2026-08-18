@@ -1,8 +1,8 @@
 extends Node
 ## Persistent audio manager (scene-based players).
-## Buses: Music, Ambient, SFX. Wind uses Ambient.
+## AmbientPlayer has stream + autoplay set in the .tscn (same path as working TestWind).
+## This script only ensures loop and drives intensity.
 
-const WIND_STREAM_PATH := "res://Assets/audio/wind_sound.wav"
 const WIND_BASE_DB := -12.0
 const WIND_GUST_DB_RANGE := 14.0
 const WIND_PITCH_MIN := 0.96
@@ -21,40 +21,32 @@ func _ready() -> void:
 	for child in get_children():
 		if child is AudioStreamPlayer and child.name.begins_with("SFXPlayer"):
 			_sfx_players.append(child)
+			child.process_mode = Node.PROCESS_MODE_ALWAYS
 
-	# Ensure ambient never pauses with the tree
 	_ambient_player.process_mode = Node.PROCESS_MODE_ALWAYS
 	_music_player.process_mode = Node.PROCESS_MODE_ALWAYS
 
-	_start_wind()
-
-
-func _start_wind() -> void:
-	var stream := load(WIND_STREAM_PATH) as AudioStream
-	if stream == null:
-		push_warning("AudioManager: wind stream not found at %s" % WIND_STREAM_PATH)
-		return
-
+	# Ensure loop on the stream resource
+	var stream := _ambient_player.stream
 	if stream is AudioStreamWAV:
 		var wav := stream as AudioStreamWAV
-		if wav.loop_mode == AudioStreamWAV.LOOP_DISABLED:
-			wav.loop_mode = AudioStreamWAV.LOOP_FORWARD
+		wav.loop_mode = AudioStreamWAV.LOOP_FORWARD
 
-	_ambient_player.stream = stream
-	_ambient_player.volume_db = WIND_BASE_DB
-	_ambient_player.pitch_scale = 1.0
-	_ambient_player.bus = "Ambient"
-	_ambient_player.autoplay = false
-	_ambient_player.play()
-	_wind_active = true
-	print("[AudioManager] wind play | playing=", _ambient_player.playing,
-		" bus=", _ambient_player.bus, " vol=", _ambient_player.volume_db)
+	# Autoplay should already have started it; force play if needed
+	if _ambient_player.stream and not _ambient_player.playing:
+		_ambient_player.play()
+
+	_wind_active = _ambient_player.stream != null
+	print("[AudioManager] ready | playing=", _ambient_player.playing,
+		" autoplay=", _ambient_player.autoplay,
+		" bus=", _ambient_player.bus,
+		" stream=", _ambient_player.stream)
 
 
 func set_wind_intensity(gust: float) -> void:
 	if not _wind_active or _ambient_player == null:
 		return
-	if not _ambient_player.playing and _ambient_player.stream:
+	if _ambient_player.stream and not _ambient_player.playing:
 		_ambient_player.play()
 	gust = clampf(gust, 0.0, 1.0)
 	_ambient_player.volume_db = WIND_BASE_DB + gust * WIND_GUST_DB_RANGE
