@@ -88,7 +88,7 @@ func _ready() -> void:
 		"gravity_mul": 0.95,
 		"swirl_mul": 1.10,
 		"gust_mul": 1.0,
-		"quad_size": 3.2,
+		"quad_size": 3.8,  # enlarged for readability
 		"modulate": Color(0.2, 1.0, 0.25, 1.0),  # TEMP debug: solid lime
 		"air_drag": 0.09,
 		"bed_fraction": 0.40,
@@ -105,7 +105,7 @@ func _ready() -> void:
 		"gravity_mul": 0.55,
 		"swirl_mul": 1.85,
 		"gust_mul": 1.25,  # over-responds → rises first and highest
-		"quad_size": 2.2,
+		"quad_size": 3.4,  # enlarged so soft grains remain visible
 		"modulate": Color(0.15, 0.75, 1.0, 1.0),  # TEMP debug: solid cyan
 		"air_drag": 0.05,
 		"bed_fraction": 0.15,
@@ -218,7 +218,7 @@ func _setup_layer_mesh(L: Layer) -> void:
 
 	L.multi = MultiMeshInstance2D.new()
 	L.multi.multimesh = mm
-	L.multi.z_index = 1
+	L.multi.z_index = 1  # overridden per-layer in match below
 	L.multi.modulate = L.modulate
 
 	# Generate and assign procedural grain texture for this layer
@@ -230,14 +230,17 @@ func _setup_layer_mesh(L: Layer) -> void:
 			tex_size = 24
 			soft = 0.55
 			irreg = 0.35
+			L.multi.z_index = 1
 		"main":
-			tex_size = 20
-			soft = 0.70
+			tex_size = 22
+			soft = 0.62
 			irreg = 0.28
+			L.multi.z_index = 2
 		"fine":
-			tex_size = 16
-			soft = 0.85
-			irreg = 0.18
+			tex_size = 20
+			soft = 0.58  # hardened so core stays visible
+			irreg = 0.22
+			L.multi.z_index = 3  # draw on top of denser layers
 	L.multi.texture = _make_grain_texture(tex_size, soft, irreg)
 
 	add_child(L.multi)
