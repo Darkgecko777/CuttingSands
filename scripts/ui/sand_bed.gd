@@ -10,15 +10,15 @@ const BED_THICKNESS := 24.0
 const BED_SPAWN_TOP := FLOOR_Y - BED_THICKNESS
 const BED_SPAWN_BOTTOM := FLOOR_Y - 1.0
 
-const WIND_NOISE_FREQ := 0.032  # ~half previous rate — longer holds at each strength
-const GUST_THRESHOLD := 0.12  # lower threshold → gusts engage more often / wider range
+const WIND_NOISE_FREQ := 0.028  # slow variance — longer holds
+const GUST_THRESHOLD := 0.28  # higher → longer true-zero calm stretches
 
 # Shared base forces; each layer multiplies these
-const BASE_GRAVITY := 42.0     # reduced so particles rise higher and hang longer
-const BASE_WIND := 1280.0      # stronger horizontal drive for longer streaks
-const BASE_LIFT := 1180.0      # more vertical lift from the shared gust
-const BASE_UNSTICK := 420.0    # stronger peel off the floor on gust onset
-const BASE_SWIRL := 380.0      # more rotational energy
+const BASE_GRAVITY := 48.0     # slightly firmer fall so layers can settle
+const BASE_WIND := 980.0       # dialed back from 1280 — less perpetual streaking
+const BASE_LIFT := 900.0       # matched step down
+const BASE_UNSTICK := 360.0
+const BASE_SWIRL := 320.0
 
 class Layer:
 	var name: String
@@ -79,37 +79,37 @@ func _ready() -> void:
 		"seed_off": 11,
 		"shimmer": false,
 	}))
-	# Main: primary continuous streak + shimmer — strongest horizontal response
+	# Main: primary stream — strong when gusting, settles when calm
 	_layers.append(_make_layer({
 		"name": "main",
 		"count": 400,
-		"wind_mul": 1.15,
-		"lift_mul": 1.05,
-		"gravity_mul": 0.95,
-		"swirl_mul": 1.10,
+		"wind_mul": 1.05,
+		"lift_mul": 1.0,
+		"gravity_mul": 1.0,
+		"swirl_mul": 1.05,
 		"gust_mul": 1.0,
 		"quad_size": 3.8,  # enlarged for readability
 		"modulate": Color(0.2, 1.0, 0.25, 1.0),  # TEMP debug: solid lime
-		"air_drag": 0.09,
+		"air_drag": 0.11,
 		"bed_fraction": 0.40,
 		"height_bias": 0.0,
 		"seed_off": 29,
 		"shimmer": true,
 	}))
-	# Fine: same gust, highest rise, strongest curl, longest hang
+	# Fine: still the highest/curliest, but no longer perpetual top streak
 	_layers.append(_make_layer({
 		"name": "fine",
 		"count": 280,
-		"wind_mul": 1.45,
-		"lift_mul": 1.45,
-		"gravity_mul": 0.55,
-		"swirl_mul": 1.85,
-		"gust_mul": 1.25,  # over-responds → rises first and highest
+		"wind_mul": 1.20,
+		"lift_mul": 1.15,
+		"gravity_mul": 0.75,   # can fall during calm
+		"swirl_mul": 1.55,
+		"gust_mul": 1.05,      # closer to shared envelope, not over-driven
 		"quad_size": 3.4,  # enlarged so soft grains remain visible
 		"modulate": Color(0.15, 0.75, 1.0, 1.0),  # TEMP debug: solid cyan
-		"air_drag": 0.05,
-		"bed_fraction": 0.15,
-		"height_bias": -140.0,
+		"air_drag": 0.08,      # a bit more drag so streaks die when gust drops
+		"bed_fraction": 0.20,
+		"height_bias": -80.0,  # less extreme top bias
 		"seed_off": 47,
 		"shimmer": false,
 	}))
@@ -347,14 +347,15 @@ func _simulate_layer(L: Layer, delta: float, gust: float) -> void:
 
 
 func _gust_strength(t: float) -> float:
-	# Time scales halved vs previous so strength holds longer between changes
-	var n := _noise.get_noise_1d(t * 5.0)
-	var d := _noise.get_noise_1d(t * 11.0 + 100.0) * 0.25
+	# Slow time scales + higher threshold → longer true-zero calm, then clear gust pulses
+	var n := _noise.get_noise_1d(t * 4.0)
+	var d := _noise.get_noise_1d(t * 9.0 + 100.0) * 0.22
 	var s := (n + d + 1.0) * 0.5
 	if s < GUST_THRESHOLD:
 		return 0.0
 	var u := (s - GUST_THRESHOLD) / (1.0 - GUST_THRESHOLD)
-	return clampf(u * u * 1.35, 0.0, 1.0)
+	# Slightly steeper curve so gusts feel like distinct events, not constant haze
+	return clampf(u * u * u * 1.5, 0.0, 1.0)
 
 
 func _update_perf_label(gust: float) -> void:
