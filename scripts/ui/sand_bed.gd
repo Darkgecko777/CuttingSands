@@ -10,13 +10,21 @@ const BED_THICKNESS := 24.0
 const BED_SPAWN_TOP := FLOOR_Y - BED_THICKNESS
 const BED_SPAWN_BOTTOM := FLOOR_Y - 1.0
 
-const WIND_NOISE_FREQ := 0.028  # slow variance — longer holds
-const GUST_THRESHOLD := 0.28  # higher → longer true-zero calm stretches
+# Macro/micro wind (option 1): multi-second held targets + small flutter
+const MACRO_HOLD_MIN := 4.0
+const MACRO_HOLD_MAX := 7.0
+const MACRO_LERP_TIME := 1.2
+const MACRO_TARGET_MIN := 0.28
+const MACRO_TARGET_MAX := 0.85
+const MACRO_DEEP_CALM_CHANCE := 0.12   # rare true lulls
+const MACRO_DEEP_CALM_MAX := 0.08
+const MICRO_AMP := 0.15               # ±15% flutter around macro
+const MICRO_NOISE_FREQ := 0.11
 
 # Shared base forces; each layer multiplies these
-const BASE_GRAVITY := 28.0     # lowered alone — slower settle during zero-wind so calm feels less dead
-const BASE_WIND := 980.0       # dialed back from 1280 — less perpetual streaking
-const BASE_LIFT := 900.0       # matched step down
+const BASE_GRAVITY := 28.0
+const BASE_WIND := 980.0
+const BASE_LIFT := 900.0
 const BASE_UNSTICK := 360.0
 const BASE_SWIRL := 320.0
 
@@ -48,6 +56,14 @@ var _sim_ms: float = 0.0
 var _total_count: int = 0
 var _shimmer_noise: FastNoiseLite
 
+# Macro wind state
+var _macro_current: float = 0.45
+var _macro_target: float = 0.45
+var _macro_from: float = 0.45
+var _macro_hold_left: float = 0.0
+var _macro_lerp_t: float = 1.0  # 1 = done lerping
+var _micro_noise: FastNoiseLite
+
 @onready var _perf_label: Label = get_parent().get_node_or_null("SandPerfLabel") as Label
 
 
@@ -55,12 +71,24 @@ func _ready() -> void:
 	_noise = FastNoiseLite.new()
 	_noise.seed = randi()
 	_noise.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
-	_noise.frequency = WIND_NOISE_FREQ
+	_noise.frequency = 0.05
+
+	_micro_noise = FastNoiseLite.new()
+	_micro_noise.seed = randi() + 3
+	_micro_noise.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
+	_micro_noise.frequency = MICRO_NOISE_FREQ
 
 	_shimmer_noise = FastNoiseLite.new()
 	_shimmer_noise.seed = 91
 	_shimmer_noise.noise_type = FastNoiseLite.TYPE_SIMPLEX_SMOOTH
 	_shimmer_noise.frequency = 0.045
+
+	# Start mid-range so title isn't dead on load
+	_macro_target = randf_range(MACRO_TARGET_MIN, MACRO_TARGET_MAX)
+	_macro_from = _macro_target
+	_macro_current = _macro_target
+	_macro_hold_left = randf_range(MACRO_HOLD_MIN, MACRO_HOLD_MAX)
+	_macro_lerp_t = 1.0
 
 	# Heavy: same shared gust, but lags, denser, only rises on stronger gusts
 	_layers.append(_make_layer({
@@ -260,6 +288,7 @@ func _write_instance(L: Layer, i: int) -> void:
 func _process(delta: float) -> void:
 	var t0 := Time.get_ticks_usec()
 	_time += delta
+	_update_macro(delta)
 	var gust := _gust_strength(_time)
 	for layer in _layers:
 		_simulate_layer(layer, delta, gust)
@@ -346,16 +375,34 @@ func _simulate_layer(L: Layer, delta: float, gust: float) -> void:
 		_write_instance(L, i)
 
 
+func _pick_macro_target() -> float:
+	if randf() < MACRO_DEEP_CALM_CHANCE:
+		return randf_range(0.0, MACRO_DEEP_CALM_MAX)
+	return randf_range(MACRO_TARGET_MIN, MACRO_TARGET_MAX)
+
+
+func _update_macro(delta: float) -> void:
+	if _macro_lerp_t < 1.0:
+		_macro_lerp_t = minf(1.0, _macro_lerp_t + delta / MACRO_LERP_TIME)
+		# Smoothstep
+		var u := _macro_lerp_t
+		u = u * u * (3.0 - 2.0 * u)
+		_macro_current = lerpf(_macro_from, _macro_target, u)
+		return
+
+	_macro_hold_left -= delta
+	if _macro_hold_left <= 0.0:
+		_macro_from = _macro_current
+		_macro_target = _pick_macro_target()
+		_macro_lerp_t = 0.0
+		_macro_hold_left = randf_range(MACRO_HOLD_MIN, MACRO_HOLD_MAX)
+
+
 func _gust_strength(t: float) -> float:
-	# Slow time scales + higher threshold → longer true-zero calm, then clear gust pulses
-	var n := _noise.get_noise_1d(t * 4.0)
-	var d := _noise.get_noise_1d(t * 9.0 + 100.0) * 0.22
-	var s := (n + d + 1.0) * 0.5
-	if s < GUST_THRESHOLD:
-		return 0.0
-	var u := (s - GUST_THRESHOLD) / (1.0 - GUST_THRESHOLD)
-	# Slightly steeper curve so gusts feel like distinct events, not constant haze
-	return clampf(u * u * u * 1.5, 0.0, 1.0)
+	# Macro already advanced in _process; micro adds ±MICRO_AMP flutter
+	var micro := _micro_noise.get_noise_1d(t * 8.0)
+	var flutter := 1.0 + micro * MICRO_AMP
+	return clampf(_macro_current * flutter, 0.0, 1.0)
 
 
 func _update_perf_label(gust: float) -> void:
