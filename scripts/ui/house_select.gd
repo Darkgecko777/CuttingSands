@@ -1,40 +1,7 @@
 extends Control
 
 ## Merchant House selection screen.
-## Demo locks the player to a single available house.
-
-const HOUSES := [
-	{
-		"id": "A",
-		"name": "House A",
-		"flavour": "Steel, contracts, quiet leverage",
-		"available": true
-	},
-	{
-		"id": "B",
-		"name": "House B",
-		"flavour": "Water rights and long memory",
-		"available": false
-	},
-	{
-		"id": "C",
-		"name": "House C",
-		"flavour": "Spice routes and soft power",
-		"available": false
-	},
-	{
-		"id": "D",
-		"name": "House D",
-		"flavour": "Salvage, secrets, second chances",
-		"available": false
-	},
-	{
-		"id": "E",
-		"name": "House E",
-		"flavour": "Old blood, older debts",
-		"available": false
-	}
-]
+## Demo locks the player to House Kharûn; other houses show as locked.
 
 @onready var cards_container: HBoxContainer = $Margin/VBox/CardsContainer
 @onready var confirm_button: TextureButton = $Margin/VBox/ConfirmButton
@@ -46,7 +13,9 @@ var card_buttons: Array[Button] = []
 
 
 func _ready() -> void:
-	for house in HOUSES:
+	for house_id in GameState.HOUSES.keys():
+		var house: Dictionary = GameState.HOUSES[house_id].duplicate()
+		house["id"] = house_id
 		var card := _make_house_card(house)
 		cards_container.add_child(card)
 		card_buttons.append(card)
@@ -59,7 +28,7 @@ func _ready() -> void:
 func _make_house_card(house: Dictionary) -> Button:
 	var btn := Button.new()
 	btn.toggle_mode = true
-	btn.custom_minimum_size = Vector2(200, 260)
+	btn.custom_minimum_size = Vector2(210, 270)
 	btn.size_flags_vertical = Control.SIZE_SHRINK_CENTER
 
 	var vbox := VBoxContainer.new()
@@ -69,7 +38,7 @@ func _make_house_card(house: Dictionary) -> Button:
 	btn.add_child(vbox)
 
 	var letter := Label.new()
-	letter.text = house.id
+	letter.text = str(house.get("mark", "?"))
 	letter.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	letter.add_theme_font_size_override("font_size", 48)
 	letter.add_theme_color_override("font_color", Color(0.92, 0.78, 0.45, 1) if house.available else Color(0.4, 0.35, 0.3, 1))

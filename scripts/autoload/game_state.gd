@@ -7,8 +7,8 @@ signal gold_changed(new_amount: int)
 signal inventory_changed
 
 # --- Player / Run data ---
-var selected_house_id: String = "A"
-var current_city_id: String = "A"
+var selected_house_id: String = "house_kharun"
+var current_city_id: String = "kharun"
 var gold: int = 500
 
 # Inventory: good_id -> quantity
@@ -21,21 +21,51 @@ var inventory: Dictionary = {
 	"cloth": 0,
 }
 
-# --- Static data (placeholders) ---
+# --- Static data (locked world names) ---
 const HOUSES := {
-	"A": {"name": "House A", "home_city": "A", "flavour": "Steel, contracts, quiet leverage"},
-	"B": {"name": "House B", "home_city": "B", "flavour": "Water rights and long memory"},
-	"C": {"name": "House C", "home_city": "C", "flavour": "Spice routes and soft power"},
-	"D": {"name": "House D", "home_city": "D", "flavour": "Salvage, secrets, second chances"},
-	"E": {"name": "House E", "home_city": "E", "flavour": "Old blood, older debts"},
+	"house_kharun": {
+		"name": "House Kharûn",
+		"home_city": "kharun",
+		"flavour": "Scrubstone, contracts, quiet leverage.",
+		"mark": "K",
+		"available": true,
+	},
+	"house_zamath": {
+		"name": "House Zamath",
+		"home_city": "zamath",
+		"flavour": "Forest, witching rods, pragmatic deals.",
+		"mark": "Z",
+		"available": false,
+	},
+	"house_thalor": {
+		"name": "House Thalor",
+		"home_city": "thalor",
+		"flavour": "Proud, formal, dependent on the west.",
+		"mark": "T",
+		"available": false,
+	},
+	"house_veythar": {
+		"name": "House Veythar",
+		"home_city": "veythar",
+		"flavour": "Isolationist, militant, agrarian.",
+		"mark": "V",
+		"available": false,
+	},
+	"house_ghorath": {
+		"name": "House Ghorath",
+		"home_city": "ghorath",
+		"flavour": "Debts, secrets, second chances.",
+		"mark": "G",
+		"available": false,
+	},
 }
 
 const CITIES := {
-	"A": {"name": "City A", "desc": "A hard place of forges and ledgers."},
-	"B": {"name": "City B", "desc": "Built around deep cisterns and older claims."},
-	"C": {"name": "City C", "desc": "Caravan roads meet here under a thin veil of spice."},
-	"D": {"name": "City D", "desc": "Salvage yards and whispered second chances."},
-	"E": {"name": "City E", "desc": "Old stone, older debts, careful smiles."},
+	"kharun": {"name": "Kharûn", "desc": "The scrubstone city. Turns brine into power."},
+	"zamath": {"name": "Zamath", "desc": "Western lake city. Forest, salt, and pragmatic deals."},
+	"thalor": {"name": "Thalor", "desc": "Northern mountain city. Proud and dependent."},
+	"veythar": {"name": "Veythar", "desc": "Southern mountain city. Isolationist and militant."},
+	"ghorath": {"name": "Ghorath", "desc": "The Stronghold. Neutral ground for debts and secrets."},
 }
 
 # Goods definition: id -> {name, base_price}
