@@ -183,7 +183,7 @@ curve = SubResource("Curve2D_mrjnl")
 [node name="Route_Brineford_Moraq" type="Path2D" parent="." unique_id=2073709634]
 curve = SubResource("Curve2D_rqo2c")
 
-[node name="Route_Brineford_Torven" type="Path2D" parent="." unique_id=1530577295]
+[node name="Route_Brineford_Torvern" type="Path2D" parent="." unique_id=1530577295]
 curve = SubResource("Curve2D_e07uo")
 
 [node name="Route_Ridgewatch_Moraq" type="Path2D" parent="." unique_id=1586257142]
