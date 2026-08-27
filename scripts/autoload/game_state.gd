@@ -5,6 +5,7 @@ extends Node
 
 signal scrubstone_changed(new_amount: int)
 signal inventory_changed
+signal location_changed(city_id: String)
 
 const DATA_HOUSES := "res://data/world/houses.json"
 const DATA_GOODS := "res://data/world/goods.json"
@@ -18,23 +19,16 @@ const PRICE_PER_HOP := 3
 const STOCK_TARGET := 16
 const STOCK_BASE := 20
 
-# --- Player / Run data ---
 var selected_house_id: String = "house_kharun"
 var current_city_id: String = "kharun"
 var scrubstone: int = STARTING_SCRUBSTONE
 var caravan_capacity: int = STARTING_CAPACITY
-
-# Inventory: good_id -> quantity
 var inventory: Dictionary = {}
-
-# Runtime market stock: city_id -> { good_id -> qty }
 var market_stock: Dictionary = {}
-
-# --- Loaded world tables ---
 var HOUSES: Dictionary = {}
 var CITIES: Dictionary = {}
 var GOODS: Dictionary = {}
-var ROUTES: Dictionary = {} # from -> Array[String]
+var ROUTES: Dictionary = {}
 
 
 func _ready() -> void:
@@ -48,16 +42,8 @@ func _load_world() -> void:
 	GOODS = _load_json_dict(DATA_GOODS)
 	CITIES = _load_json_dict(DATA_SETTLEMENTS)
 	ROUTES = _build_route_graph(_load_json_dict(DATA_ROUTES).get("links", []))
-
 	if HOUSES.is_empty():
-		HOUSES = {
-			"house_kharun": {
-				"name": "House Kharûn",
-				"home": "kharun",
-				"short_desc": "Scrubstone, contracts, quiet leverage.",
-				"available": true,
-			}
-		}
+		HOUSES = {"house_kharun": {"name": "House Kharûn", "home": "kharun", "short_desc": "Scrubstone, contracts, quiet leverage.", "available": true}}
 	if GOODS.is_empty():
 		GOODS = {
 			"water": {"name": "Water", "base_price": 12, "producer": "sarns_rest", "weight": 1},
@@ -75,13 +61,9 @@ func _load_json_dict(path: String) -> Dictionary:
 		return {}
 	var file := FileAccess.open(path, FileAccess.READ)
 	if file == null:
-		push_warning("Could not open world data: %s" % path)
 		return {}
 	var parsed: Variant = JSON.parse_string(file.get_as_text())
-	if typeof(parsed) != TYPE_DICTIONARY:
-		push_warning("World data is not an object: %s" % path)
-		return {}
-	return parsed
+	return parsed if typeof(parsed) == TYPE_DICTIONARY else {}
 
 
 func _build_route_graph(links: Array) -> Dictionary:
@@ -119,8 +101,7 @@ func _seed_all_markets() -> void:
 			continue
 		var stocks: Dictionary = {}
 		for good_id in GOODS.keys():
-			var hops := hops_to_producer(city_id, good_id)
-			stocks[good_id] = max(2, STOCK_BASE - hops * 3)
+			stocks[good_id] = max(2, STOCK_BASE - hops_to_producer(city_id, good_id) * 3)
 		market_stock[city_id] = stocks
 
 
@@ -144,8 +125,7 @@ func settlement_has_market(city_id: String) -> bool:
 
 
 func hops_to_producer(city_id: String, good_id: String) -> int:
-	var producer := str(GOODS.get(good_id, {}).get("producer", city_id))
-	return hops_between(city_id, producer)
+	return hops_between(city_id, str(GOODS.get(good_id, {}).get("producer", city_id)))
 
 
 func hops_between(from_id: String, to_id: String) -> int:
@@ -173,9 +153,7 @@ func hops_between(from_id: String, to_id: String) -> int:
 func cargo_used() -> int:
 	var used := 0
 	for good_id in inventory.keys():
-		var qty: int = int(inventory[good_id])
-		var weight: int = int(GOODS.get(good_id, {}).get("weight", 1))
-		used += qty * weight
+		used += int(inventory[good_id]) * int(GOODS.get(good_id, {}).get("weight", 1))
 	return used
 
 
@@ -188,7 +166,20 @@ func get_house_name() -> String:
 
 
 func get_city_name() -> String:
-	return str(CITIES.get(current_city_id, {}).get("name", "Unknown City"))
+	return get_settlement_name(current_city_id)
+
+
+func get_settlement_name(city_id: String) -> String:
+	return str(CITIES.get(city_id, {}).get("name", city_id.capitalize()))
+
+
+func travel_to(city_id: String) -> bool:
+	if city_id.is_empty() or city_id == current_city_id or not CITIES.has(city_id):
+		return false
+	current_city_id = city_id
+	location_changed.emit(city_id)
+	inventory_changed.emit()
+	return true
 
 
 func get_city_desc() -> String:
@@ -208,10 +199,7 @@ func get_market_stock(good_id: String, city_id: String = "") -> int:
 func get_local_price(good_id: String, city_id: String = "") -> int:
 	var cid := current_city_id if city_id.is_empty() else city_id
 	var base: int = int(GOODS.get(good_id, {}).get("base_price", 10))
-	var hops := hops_to_producer(cid, good_id)
-	var stock := get_market_stock(good_id, cid)
-	var stock_mod := STOCK_TARGET - stock
-	return max(1, base + hops * PRICE_PER_HOP + stock_mod)
+	return max(1, base + hops_to_producer(cid, good_id) * PRICE_PER_HOP + (STOCK_TARGET - get_market_stock(good_id, cid)))
 
 
 func get_sell_price(good_id: String, city_id: String = "") -> int:
@@ -219,9 +207,7 @@ func get_sell_price(good_id: String, city_id: String = "") -> int:
 
 
 func can_buy(good_id: String, amount: int = 1) -> bool:
-	if amount <= 0:
-		return false
-	if not settlement_has_market(current_city_id):
+	if amount <= 0 or not settlement_has_market(current_city_id):
 		return false
 	if get_market_stock(good_id) < amount:
 		return false
@@ -233,8 +219,7 @@ func can_buy(good_id: String, amount: int = 1) -> bool:
 func buy(good_id: String, amount: int = 1) -> bool:
 	if not can_buy(good_id, amount):
 		return false
-	var price := get_local_price(good_id) * amount
-	scrubstone -= price
+	scrubstone -= get_local_price(good_id) * amount
 	inventory[good_id] = inventory.get(good_id, 0) + amount
 	market_stock[current_city_id][good_id] = get_market_stock(good_id) - amount
 	scrubstone_changed.emit(scrubstone)
@@ -243,18 +228,13 @@ func buy(good_id: String, amount: int = 1) -> bool:
 
 
 func can_sell(good_id: String, amount: int = 1) -> bool:
-	if amount <= 0:
-		return false
-	if not settlement_has_market(current_city_id):
-		return false
-	return inventory.get(good_id, 0) >= amount
+	return amount > 0 and settlement_has_market(current_city_id) and inventory.get(good_id, 0) >= amount
 
 
 func sell(good_id: String, amount: int = 1) -> bool:
 	if not can_sell(good_id, amount):
 		return false
-	var price := get_sell_price(good_id) * amount
-	scrubstone += price
+	scrubstone += get_sell_price(good_id) * amount
 	inventory[good_id] = inventory.get(good_id, 0) - amount
 	if not market_stock.has(current_city_id):
 		market_stock[current_city_id] = {}
