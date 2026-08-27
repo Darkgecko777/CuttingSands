@@ -6,7 +6,10 @@
     "short_desc": "Scrubstone, contracts, quiet leverage.",
     "lore": "The house that sits on the scrubstone fields. Controls the materials that make efficient desalination possible. Player's starting house. Prefers contracts, leverage, and structural advantage over open confrontation.",
     "tags": ["industrial", "contracts", "scrubstone", "player_default"],
-    "starting_house": true
+    "starting_house": true,
+    "mark": "K",
+    "available": true,
+    "flavour": "Scrubstone, contracts, quiet leverage."
   },
   "house_zamath": {
     "id": "house_zamath",
@@ -15,7 +18,10 @@
     "short_desc": "Forest, witching rods, pragmatic deals.",
     "lore": "Holds the only remaining forest and the craftsmen who produce witching rods. Closest of the great houses to the Shore Clans. Pragmatic, salt-stained, and willing to deal with people the others prefer to ignore.",
     "tags": ["forest", "witching_rods", "pragmatic", "lake"],
-    "starting_house": false
+    "starting_house": false,
+    "mark": "Z",
+    "available": false,
+    "flavour": "Forest, witching rods, pragmatic deals."
   },
   "house_thalor": {
     "id": "house_thalor",
@@ -24,7 +30,10 @@
     "short_desc": "Proud, formal, dependent on the west.",
     "lore": "Northern mountain house. Survives on runoff and purchased scrubstone. Proud of its old forms and quietly resentful of the leverage Kharûn holds over its water supply.",
     "tags": ["mountain", "proud", "dependent", "formal"],
-    "starting_house": false
+    "starting_house": false,
+    "mark": "T",
+    "available": false,
+    "flavour": "Proud, formal, dependent on the west."
   },
   "house_veythar": {
     "id": "house_veythar",
@@ -33,7 +42,10 @@
     "short_desc": "Isolationist, militant, agrarian.",
     "lore": "Southern mountain house. Deliberately keeps its distance from the main political game. Maintains a militant agrarian order, uses its own water where possible, and prefers to buy what it must from Ghorath rather than Kharûn.",
     "tags": ["isolationist", "militant", "agrarian", "self_reliant"],
-    "starting_house": false
+    "starting_house": false,
+    "mark": "V",
+    "available": false,
+    "flavour": "Isolationist, militant, agrarian."
   },
   "house_ghorath": {
     "id": "house_ghorath",
@@ -42,6 +54,9 @@
     "short_desc": "Debts, secrets, second chances.",
     "lore": "The house of the Stronghold. Officially neutral. In practice a clearing house for debts, exiles, information, and people who no longer have a place in the four cities. Useful to everyone and trusted by no one completely.",
     "tags": ["neutral", "intrigue", "debts", "exiles"],
-    "starting_house": false
+    "starting_house": false,
+    "mark": "G",
+    "available": false,
+    "flavour": "Debts, secrets, second chances."
   }
 }
