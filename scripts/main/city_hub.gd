@@ -17,22 +17,27 @@ func _ready() -> void:
 	_build_market()
 	_setup_placeholders()
 
-	GameState.gold_changed.connect(_on_gold_changed)
+	GameState.scrubstone_changed.connect(_on_scrubstone_changed)
 	GameState.inventory_changed.connect(_on_inventory_changed)
 
 
 func _refresh_header() -> void:
 	city_label.text = GameState.get_city_name()
 	house_label.text = GameState.get_house_name()
-	gold_label.text = "Gold: %d" % GameState.gold
+	gold_label.text = "Scrubstone: %d   Cargo: %d/%d" % [
+		GameState.scrubstone,
+		GameState.cargo_used(),
+		GameState.caravan_capacity,
+	]
 
 
-func _on_gold_changed(_new_amount: int) -> void:
-	gold_label.text = "Gold: %d" % GameState.gold
+func _on_scrubstone_changed(_new_amount: int) -> void:
+	_refresh_header()
 	_refresh_market_buttons()
 
 
 func _on_inventory_changed() -> void:
+	_refresh_header()
 	_refresh_market_buttons()
 
 
@@ -43,6 +48,7 @@ func _build_market() -> void:
 	for good_id in GameState.GOODS.keys():
 		var row := _create_market_row(good_id)
 		market_list.add_child(row)
+	_refresh_market_buttons()
 
 
 func _create_market_row(good_id: String) -> HBoxContainer:
@@ -58,10 +64,16 @@ func _create_market_row(good_id: String) -> HBoxContainer:
 
 	var price_label := Label.new()
 	price_label.name = "PriceLabel"
-	price_label.text = "%d g" % GameState.get_local_price(good_id)
-	price_label.custom_minimum_size = Vector2(60, 0)
+	price_label.text = "%d s" % GameState.get_local_price(good_id)
+	price_label.custom_minimum_size = Vector2(70, 0)
 	price_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
 	row.add_child(price_label)
+
+	var market_stock_label := Label.new()
+	market_stock_label.name = "MarketStockLabel"
+	market_stock_label.text = "Mkt: %d" % GameState.get_market_stock(good_id)
+	market_stock_label.custom_minimum_size = Vector2(70, 0)
+	row.add_child(market_stock_label)
 
 	var stock_label := Label.new()
 	stock_label.name = "StockLabel"
@@ -83,7 +95,6 @@ func _create_market_row(good_id: String) -> HBoxContainer:
 	sell_btn.pressed.connect(_on_sell.bind(good_id))
 	row.add_child(sell_btn)
 
-	# Store reference for later refresh
 	row.set_meta("good_id", good_id)
 	return row
 
@@ -94,12 +105,15 @@ func _refresh_market_buttons() -> void:
 			continue
 		var good_id: String = row.get_meta("good_id")
 		var price_label: Label = row.get_node_or_null("PriceLabel")
+		var market_stock_label: Label = row.get_node_or_null("MarketStockLabel")
 		var stock_label: Label = row.get_node_or_null("StockLabel")
 		var buy_btn: Button = row.get_node_or_null("BuyButton")
 		var sell_btn: Button = row.get_node_or_null("SellButton")
 
 		if price_label:
-			price_label.text = "%d g" % GameState.get_local_price(good_id)
+			price_label.text = "%d s" % GameState.get_local_price(good_id)
+		if market_stock_label:
+			market_stock_label.text = "Mkt: %d" % GameState.get_market_stock(good_id)
 		if stock_label:
 			stock_label.text = "You: %d" % GameState.inventory.get(good_id, 0)
 		if buy_btn:

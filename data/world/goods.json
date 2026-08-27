@@ -1,0 +1,44 @@
+{
+  "water": {
+    "id": "water",
+    "name": "Water",
+    "base_price": 12,
+    "producer": "sarns_rest",
+    "weight": 1
+  },
+  "grain": {
+    "id": "grain",
+    "name": "Grain",
+    "base_price": 8,
+    "producer": "veythar",
+    "weight": 1
+  },
+  "salt": {
+    "id": "salt",
+    "name": "Salt",
+    "base_price": 15,
+    "producer": "zamath",
+    "weight": 1
+  },
+  "iron": {
+    "id": "iron",
+    "name": "Iron",
+    "base_price": 28,
+    "producer": "kharun",
+    "weight": 1
+  },
+  "spices": {
+    "id": "spices",
+    "name": "Spices",
+    "base_price": 35,
+    "producer": "ghorath",
+    "weight": 1
+  },
+  "cloth": {
+    "id": "cloth",
+    "name": "Cloth",
+    "base_price": 18,
+    "producer": "thalor",
+    "weight": 1
+  }
+}

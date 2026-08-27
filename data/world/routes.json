@@ -1,0 +1,25 @@
+{
+  "links": [
+    ["sarns_rest", "rukh"],
+    ["rukh", "westmark"],
+    ["kethra", "westmark"],
+    ["westmark", "kharun"],
+    ["highmark", "draven"],
+    ["draven", "kharun"],
+    ["neth", "zamath"],
+    ["zamath", "kaleth"],
+    ["kaleth", "kharun"],
+    ["zamath", "southmark"],
+    ["southmark", "sorel"],
+    ["southmark", "ghul"],
+    ["ghul", "ghorath"],
+    ["ghorath", "veythar"],
+    ["kharun", "brineford"],
+    ["brineford", "torven"],
+    ["torven", "thalor"],
+    ["torven", "ridgewatch"],
+    ["ridgewatch", "ashar"],
+    ["brineford", "moraq"],
+    ["moraq", "ghorath"]
+  ]
+}

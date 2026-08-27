@@ -26,6 +26,8 @@ func _ready() -> void:
 
 
 func _make_house_card(house: Dictionary) -> Button:
+	var available := bool(house.get("available", house.get("starting_house", false)))
+	var flavour_text := str(house.get("flavour", house.get("short_desc", "")))
 	var btn := Button.new()
 	btn.toggle_mode = true
 	btn.custom_minimum_size = Vector2(210, 270)
@@ -41,7 +43,7 @@ func _make_house_card(house: Dictionary) -> Button:
 	letter.text = str(house.get("mark", "?"))
 	letter.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	letter.add_theme_font_size_override("font_size", 48)
-	letter.add_theme_color_override("font_color", Color(0.92, 0.78, 0.45, 1) if house.available else Color(0.4, 0.35, 0.3, 1))
+	letter.add_theme_color_override("font_color", Color(0.92, 0.78, 0.45, 1) if available else Color(0.4, 0.35, 0.3, 1))
 	letter.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_child(letter)
 
@@ -49,21 +51,21 @@ func _make_house_card(house: Dictionary) -> Button:
 	name_label.text = house.name
 	name_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	name_label.add_theme_font_size_override("font_size", 16)
-	name_label.add_theme_color_override("font_color", Color(0.9, 0.85, 0.75, 1) if house.available else Color(0.45, 0.4, 0.35, 1))
+	name_label.add_theme_color_override("font_color", Color(0.9, 0.85, 0.75, 1) if available else Color(0.45, 0.4, 0.35, 1))
 	name_label.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_child(name_label)
 
 	var flavour := Label.new()
-	flavour.text = house.flavour
+	flavour.text = flavour_text
 	flavour.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	flavour.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	flavour.add_theme_font_size_override("font_size", 12)
-	flavour.add_theme_color_override("font_color", Color(0.7, 0.6, 0.45, 1) if house.available else Color(0.35, 0.32, 0.28, 1))
+	flavour.add_theme_color_override("font_color", Color(0.7, 0.6, 0.45, 1) if available else Color(0.35, 0.32, 0.28, 1))
 	flavour.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_child(flavour)
 
 	var status := Label.new()
-	if house.available:
+	if available:
 		status.text = "Available"
 		status.add_theme_color_override("font_color", Color(0.55, 0.85, 0.5, 1))
 	else:
@@ -74,7 +76,7 @@ func _make_house_card(house: Dictionary) -> Button:
 	status.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_child(status)
 
-	if house.available:
+	if available:
 		btn.pressed.connect(_on_card_pressed.bind(house.id, btn))
 	else:
 		btn.disabled = true
