@@ -13,12 +13,14 @@ extends Control
 
 
 func _ready() -> void:
+	_ensure_map_button()
 	_refresh_header()
 	_build_market()
 	_setup_placeholders()
 
 	GameState.scrubstone_changed.connect(_on_scrubstone_changed)
 	GameState.inventory_changed.connect(_on_inventory_changed)
+	GameState.location_changed.connect(_on_location_changed)
 
 
 func _refresh_header() -> void:
@@ -39,6 +41,31 @@ func _on_scrubstone_changed(_new_amount: int) -> void:
 func _on_inventory_changed() -> void:
 	_refresh_header()
 	_refresh_market_buttons()
+
+
+func _ensure_map_button() -> void:
+	if has_node("%MapButton"):
+		%MapButton.pressed.connect(_on_map_pressed)
+		return
+	var parent := gold_label.get_parent()
+	var btn := Button.new()
+	btn.name = "MapButton"
+	btn.unique_name_in_owner = true
+	btn.text = "Map"
+	btn.custom_minimum_size = Vector2(72, 0)
+	parent.add_child(btn)
+	parent.move_child(btn, gold_label.get_index())
+	btn.pressed.connect(_on_map_pressed)
+
+
+func _on_map_pressed() -> void:
+	get_tree().change_scene_to_file("res://scenes/map/world_map.tscn")
+
+
+func _on_location_changed(_city_id: String) -> void:
+	_refresh_header()
+	_build_market()
+	_setup_placeholders()
 
 
 func _build_market() -> void:
