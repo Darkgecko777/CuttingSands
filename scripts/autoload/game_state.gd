@@ -1,8 +1,5 @@
 extends Node
 
-## Global run state and early market sim.
-## World tables live in res://data/world/.
-
 signal scrubstone_changed(new_amount: int)
 signal inventory_changed
 signal location_changed(city_id: String)
@@ -12,7 +9,6 @@ const DATA_HOUSES := "res://data/world/houses.json"
 const DATA_GOODS := "res://data/world/goods.json"
 const DATA_SETTLEMENTS := "res://data/world/settlements.json"
 const DATA_ROUTES := "res://data/world/routes.json"
-
 const STARTING_SCRUBSTONE := 500
 const STARTING_CAPACITY := 16
 const SELL_SPREAD := 0.8
@@ -21,6 +17,7 @@ const STOCK_TARGET := 16
 const STOCK_BASE := 20
 const PLAYER_CARAVAN_ID := "player_caravan"
 const PLAYER_CARAVAN_NAME := "House Caravan"
+const CARAVAN_SPEED := 1.0
 
 var selected_house_id: String = "house_kharun"
 var current_city_id: String = "kharun"
@@ -29,6 +26,8 @@ var caravan_capacity: int = STARTING_CAPACITY
 var day: int = 1
 var agents: Array = []
 var reports: Array = []
+var LINK_DAYS: Dictionary = {}
+var transit: Dictionary = {}
 var inventory: Dictionary = {}
 var market_stock: Dictionary = {}
 var HOUSES: Dictionary = {}
@@ -47,7 +46,7 @@ func _load_world() -> void:
 	HOUSES = _load_json_dict(DATA_HOUSES)
 	GOODS = _load_json_dict(DATA_GOODS)
 	CITIES = _load_json_dict(DATA_SETTLEMENTS)
-	ROUTES = _build_route_graph(_load_json_dict(DATA_ROUTES).get("links", []))
+	_load_routes(_load_json_dict(DATA_ROUTES).get("links", []))
 	if HOUSES.is_empty():
 		HOUSES = {"house_kharun": {"name": "House Kharûn", "home": "kharun", "short_desc": "Scrubstone, contracts, quiet leverage.", "available": true}}
 	if GOODS.is_empty():
@@ -63,7 +62,6 @@ func _load_world() -> void:
 
 func _load_json_dict(path: String) -> Dictionary:
 	if not FileAccess.file_exists(path):
-		push_warning("Missing world data: %s" % path)
 		return {}
 	var file := FileAccess.open(path, FileAccess.READ)
 	if file == null:
@@ -72,22 +70,73 @@ func _load_json_dict(path: String) -> Dictionary:
 	return parsed if typeof(parsed) == TYPE_DICTIONARY else {}
 
 
-func _build_route_graph(links: Array) -> Dictionary:
-	var graph: Dictionary = {}
+func _load_routes(links: Array) -> void:
+	ROUTES = {}
+	LINK_DAYS = {}
 	for link in links:
-		if typeof(link) != TYPE_ARRAY or link.size() < 2:
+		var a := ""
+		var b := ""
+		var days := 1
+		if typeof(link) == TYPE_ARRAY and link.size() >= 2:
+			a = str(link[0])
+			b = str(link[1])
+			if link.size() >= 3:
+				days = int(link[2])
+		elif typeof(link) == TYPE_DICTIONARY:
+			a = str(link.get("from", ""))
+			b = str(link.get("to", ""))
+			days = int(link.get("days", 1))
+		else:
 			continue
-		var a := str(link[0])
-		var b := str(link[1])
-		if not graph.has(a):
-			graph[a] = []
-		if not graph.has(b):
-			graph[b] = []
-		if b not in graph[a]:
-			graph[a].append(b)
-		if a not in graph[b]:
-			graph[b].append(a)
-	return graph
+		if a.is_empty() or b.is_empty() or a == b:
+			continue
+		if not ROUTES.has(a):
+			ROUTES[a] = []
+		if not ROUTES.has(b):
+			ROUTES[b] = []
+		if b not in ROUTES[a]:
+			ROUTES[a].append(b)
+		if a not in ROUTES[b]:
+			ROUTES[b].append(a)
+		LINK_DAYS[_link_key(a, b)] = max(1, days)
+
+
+func _link_key(a: String, b: String) -> String:
+	return a + "|" + b if a < b else b + "|" + a
+
+
+func is_adjacent(a: String, b: String) -> bool:
+	return b in ROUTES.get(a, [])
+
+
+func hop_days(from_id: String, to_id: String) -> int:
+	if not is_adjacent(from_id, to_id):
+		return 0
+	return max(1, int(ceil(float(LINK_DAYS.get(_link_key(from_id, to_id), 1)) / max(CARAVAN_SPEED, 0.1))))
+
+
+func is_on_road() -> bool:
+	return not transit.is_empty()
+
+
+func begin_hop(to_id: String) -> bool:
+	if is_on_road():
+		return false
+	var days := hop_days(current_city_id, to_id)
+	if days <= 0:
+		return false
+	transit = {"from": current_city_id, "to": to_id, "days": days}
+	return true
+
+
+func finish_hop() -> bool:
+	if transit.is_empty():
+		return false
+	var to_id := str(transit.get("to", ""))
+	var days := int(transit.get("days", 1))
+	transit = {}
+	day += days
+	return travel_to(to_id)
 
 
 func _reset_player_cargo() -> void:
@@ -122,6 +171,7 @@ func start_new_run(house_id: String) -> void:
 	day = 1
 	agents.clear()
 	reports.clear()
+	transit = {}
 	scrubstone_changed.emit(scrubstone)
 	inventory_changed.emit()
 	location_changed.emit(current_city_id)
@@ -218,7 +268,7 @@ func get_sell_price(good_id: String, city_id: String = "") -> int:
 
 
 func can_buy(good_id: String, amount: int = 1) -> bool:
-	if amount <= 0 or not settlement_has_market(current_city_id):
+	if amount <= 0 or not settlement_has_market(current_city_id) or is_on_road():
 		return false
 	if get_market_stock(good_id) < amount:
 		return false
@@ -239,7 +289,7 @@ func buy(good_id: String, amount: int = 1) -> bool:
 
 
 func can_sell(good_id: String, amount: int = 1) -> bool:
-	return amount > 0 and settlement_has_market(current_city_id) and inventory.get(good_id, 0) >= amount
+	return amount > 0 and settlement_has_market(current_city_id) and not is_on_road() and inventory.get(good_id, 0) >= amount
 
 
 func sell(good_id: String, amount: int = 1) -> bool:
