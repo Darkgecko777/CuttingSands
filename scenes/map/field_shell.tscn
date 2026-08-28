@@ -185,6 +185,7 @@ mouse_filter = 2
 texture = ExtResource("2_map")
 expand_mode = 1
 stretch_mode = 0
+texture_filter = 2
 
 [node name="Markers" type="Control" parent="Root/Body/MapClip/MapLayer"]
 unique_name_in_owner = true
