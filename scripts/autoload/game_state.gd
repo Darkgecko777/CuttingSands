@@ -6,6 +6,7 @@ extends Node
 signal scrubstone_changed(new_amount: int)
 signal inventory_changed
 signal location_changed(city_id: String)
+signal catalog_changed
 
 const DATA_HOUSES := "res://data/world/houses.json"
 const DATA_GOODS := "res://data/world/goods.json"
@@ -18,11 +19,16 @@ const SELL_SPREAD := 0.8
 const PRICE_PER_HOP := 3
 const STOCK_TARGET := 16
 const STOCK_BASE := 20
+const PLAYER_CARAVAN_ID := "player_caravan"
+const PLAYER_CARAVAN_NAME := "House Caravan"
 
 var selected_house_id: String = "house_kharun"
 var current_city_id: String = "kharun"
 var scrubstone: int = STARTING_SCRUBSTONE
 var caravan_capacity: int = STARTING_CAPACITY
+var day: int = 1
+var agents: Array = []
+var reports: Array = []
 var inventory: Dictionary = {}
 var market_stock: Dictionary = {}
 var HOUSES: Dictionary = {}
@@ -113,8 +119,13 @@ func start_new_run(house_id: String) -> void:
 	caravan_capacity = STARTING_CAPACITY
 	_reset_player_cargo()
 	_seed_all_markets()
+	day = 1
+	agents.clear()
+	reports.clear()
 	scrubstone_changed.emit(scrubstone)
 	inventory_changed.emit()
+	location_changed.emit(current_city_id)
+	catalog_changed.emit()
 
 
 func settlement_has_market(city_id: String) -> bool:
