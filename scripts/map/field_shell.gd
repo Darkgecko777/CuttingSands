@@ -440,20 +440,25 @@ func _ingest_paths() -> void:
 	var dummy: Node = packed.instantiate()
 	map_layer.add_child(dummy)
 	for child in dummy.get_children():
-		if child is Path2D and child.curve != null and child.curve.point_count >= 2:
-			var key := _path_key_from_name(child.name)
-			if key.is_empty():
-				continue
-			_max_path_len = maxf(_max_path_len, child.curve.get_baked_length())
-			var start := child.curve.get_point_position(0)
-			var finish := child.curve.get_point_position(child.curve.point_count - 1)
-			dummy.remove_child(child)
-			_content.add_child(child)
-			_paths[key] = {
-				"path": child,
-				"a": _city_near(start),
-				"b": _city_near(finish),
-			}
+		if not (child is Path2D):
+			continue
+		var path_node: Path2D = child
+		var curve: Curve2D = path_node.curve
+		if curve == null or curve.point_count < 2:
+			continue
+		var key := _path_key_from_name(path_node.name)
+		if key.is_empty():
+			continue
+		_max_path_len = maxf(_max_path_len, curve.get_baked_length())
+		var start: Vector2 = curve.get_point_position(0)
+		var finish: Vector2 = curve.get_point_position(curve.point_count - 1)
+		dummy.remove_child(path_node)
+		_content.add_child(path_node)
+		_paths[key] = {
+			"path": path_node,
+			"a": _city_near(start),
+			"b": _city_near(finish),
+		}
 	dummy.queue_free()
 
 
@@ -510,7 +515,7 @@ func _route_for(a: String, b: String) -> Dictionary:
 
 func _watch_seconds(from_id: String, to_id: String) -> float:
 	var route := _route_for(from_id, to_id)
-	var path := route.get("path") as Path2D
+	var path: Path2D = route.get("path") as Path2D
 	var length := 400.0
 	if path and path.curve:
 		length = path.curve.get_baked_length()
@@ -521,7 +526,7 @@ func _watch_seconds(from_id: String, to_id: String) -> float:
 
 func _sample_route(from_id: String, to_id: String, progress: float) -> Vector2:
 	var route := _route_for(from_id, to_id)
-	var path := route.get("path") as Path2D
+	var path: Path2D = route.get("path") as Path2D
 	var t := clampf(progress, 0.0, 1.0)
 	if path and path.curve and path.curve.get_baked_length() > 0.0:
 		var start_r := 0.0 if str(route.get("a", "")) == from_id else 1.0
