@@ -3,10 +3,14 @@ extends Control
 const MAP_NODES_PATH := "res://data/world/map_nodes.json"
 const MAP_SCENE := "res://scenes/map/map.tscn"
 const CARAVAN_SPRITE := "res://Assets/sprites/prototype_caravan_icon.png"
-const MAP_SIZE := Vector2(1920, 1080)
+const REF_SIZE := Vector2(1920, 1080)
 const VIEW_SIZE := Vector2(1200, 800)
 const MAX_WATCH := 30.0
 const MIN_WATCH := 6.0
+const ZOOM_MIN := 1.0
+const ZOOM_MAX := 2.0
+const ZOOM_DEFAULT := 1.5
+const ZOOM_STEP := 0.1
 const GOLD := Color(0.92, 0.78, 0.45, 1)
 const MUTED := Color(0.75, 0.62, 0.42, 1)
 const INK := Color(0.85, 0.78, 0.66, 1)
@@ -39,15 +43,21 @@ var _max_path_len := 1.0
 var _wagon: Sprite2D
 var _follow: PathFollow2D
 var _hop_tween: Tween
+var _zoom := ZOOM_DEFAULT
+var _plate_size := REF_SIZE
+var _res_scale := 1.0
+var _content: Control
 
 
 func _ready() -> void:
 	_nodes = _load_nodes()
+	_fit_plate()
 	_ingest_paths()
 	_style_dead_desk()
 	_wire_catalog_rail()
 	_build_markers()
 	_make_wagon()
+	_apply_zoom(Vector2.ZERO, false)
 	_refresh_header()
 	_set_category(Catalog.CARAVANS)
 	_center_on_city(GameState.current_city_id)
@@ -67,12 +77,7 @@ func _style_dead_desk() -> void:
 
 
 func _wire_catalog_rail() -> void:
-	_cat_buttons = {
-		Catalog.CARAVANS: %CatCaravans,
-		Catalog.AGENTS: %CatAgents,
-		Catalog.SETTLEMENTS: %CatSettlements,
-		Catalog.REPORTS: %CatReports,
-	}
+	_cat_buttons = {Catalog.CARAVANS: %CatCaravans, Catalog.AGENTS: %CatAgents, Catalog.SETTLEMENTS: %CatSettlements, Catalog.REPORTS: %CatReports}
 	for cat in _cat_buttons.keys():
 		_cat_buttons[cat].toggle_mode = true
 		_cat_buttons[cat].pressed.connect(_set_category.bind(cat))
@@ -211,9 +216,7 @@ func _show_settlement(city_id: String) -> void:
 	_clear_actions()
 	var city: Dictionary = GameState.CITIES.get(city_id, {})
 	context_title.text = GameState.get_settlement_name(city_id)
-	var kind := str(city.get("type", "settlement")).capitalize().replace("_", " ")
-	var market_line := "Market" if GameState.settlement_has_market(city_id) else "No market"
-	context_meta.text = "%s  ·  %s" % [kind, market_line]
+	context_meta.text = "%s  ·  %s" % [str(city.get("type", "settlement")).capitalize().replace("_", " "), "Market" if GameState.settlement_has_market(city_id) else "No market"]
 	context_body.text = str(city.get("short_desc", city.get("desc", "")))
 	if GameState.is_on_road():
 		context_body.text += "\nOn the road to %s." % GameState.get_settlement_name(str(GameState.transit.get("to", "")))
@@ -244,15 +247,13 @@ func _show_empty() -> void:
 
 
 func _on_travel(city_id: String) -> void:
-	if not GameState.begin_hop(city_id):
-		return
-	_play_hop(str(GameState.transit.get("from", "")), city_id)
+	if GameState.begin_hop(city_id):
+		_play_hop(str(GameState.transit.get("from", "")), city_id)
 
 
 func _build_market() -> void:
 	for good_id in GameState.GOODS.keys():
 		var row := HBoxContainer.new()
-		row.add_theme_constant_override("separation", 8)
 		var name_label := Label.new()
 		name_label.text = GameState.get_good_name(good_id)
 		name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -342,10 +343,13 @@ func _on_map_gui_input(event: InputEvent) -> void:
 		if mouse.button_index == MOUSE_BUTTON_LEFT:
 			_dragging = mouse.pressed
 			_drag_last = mouse.position
+		elif mouse.button_index == MOUSE_BUTTON_WHEEL_UP and mouse.pressed:
+			_nudge_zoom(ZOOM_STEP, mouse.position)
+		elif mouse.button_index == MOUSE_BUTTON_WHEEL_DOWN and mouse.pressed:
+			_nudge_zoom(-ZOOM_STEP, mouse.position)
 	elif event is InputEventMouseMotion and _dragging:
-		var motion := event as InputEventMouseMotion
-		map_layer.position += motion.position - _drag_last
-		_drag_last = motion.position
+		map_layer.position += event.position - _drag_last
+		_drag_last = event.position
 		_clamp_map()
 
 
@@ -356,16 +360,65 @@ func _center_on_city(city_id: String) -> void:
 		return
 	var point := Vector2(float(pos.get("x", 0)), float(pos.get("y", 0)))
 	var view := map_clip.size if map_clip.size.x >= 8.0 else VIEW_SIZE
-	map_layer.position = Vector2(view.x * 0.5, view.y * 0.5) - point
+	var cam := _cam_scale()
+	map_layer.scale = Vector2(cam, cam)
+	map_layer.position = Vector2(view.x * 0.5, view.y * 0.5) - point * _zoom
 	_clamp_map()
 
 
 func _clamp_map() -> void:
 	var view := map_clip.size if map_clip.size.x >= 8.0 else VIEW_SIZE
 	var pos := map_layer.position
-	pos.x = clampf(pos.x, view.x - MAP_SIZE.x, 0.0) if MAP_SIZE.x > view.x else (view.x - MAP_SIZE.x) * 0.5
-	pos.y = clampf(pos.y, view.y - MAP_SIZE.y, 0.0) if MAP_SIZE.y > view.y else (view.y - MAP_SIZE.y) * 0.5
+	var scaled := _plate_size * _cam_scale()
+	pos.x = clampf(pos.x, view.x - scaled.x, 0.0) if scaled.x > view.x else (view.x - scaled.x) * 0.5
+	pos.y = clampf(pos.y, view.y - scaled.y, 0.0) if scaled.y > view.y else (view.y - scaled.y) * 0.5
 	map_layer.position = pos
+
+
+func _cam_scale() -> float:
+	return _zoom / maxf(_res_scale, 0.01)
+
+
+func _nudge_zoom(delta: float, pivot: Vector2) -> void:
+	_zoom = clampf(_zoom + delta, ZOOM_MIN, ZOOM_MAX)
+	_apply_zoom(pivot, true)
+
+
+func _apply_zoom(pivot: Vector2, toward_cursor: bool) -> void:
+	var cam := _cam_scale()
+	var old_scale := map_layer.scale.x if map_layer.scale.x > 0.01 else cam
+	if toward_cursor:
+		var world := (pivot - map_layer.position) / old_scale
+		map_layer.scale = Vector2(cam, cam)
+		map_layer.position = pivot - world * cam
+	else:
+		map_layer.scale = Vector2(cam, cam)
+	_clamp_map()
+
+
+func _fit_plate() -> void:
+	var plate := map_layer.get_node_or_null("MapImage") as TextureRect
+	_plate_size = REF_SIZE
+	_res_scale = 1.0
+	if plate and plate.texture:
+		_plate_size = plate.texture.get_size()
+		plate.texture_filter = CanvasItem.TEXTURE_FILTER_LINEAR
+		plate.position = Vector2.ZERO
+		plate.size = _plate_size
+		plate.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+	if _plate_size.x > 1.0:
+		_res_scale = _plate_size.x / REF_SIZE.x
+	map_layer.size = _plate_size
+	_content = map_layer.get_node_or_null("Content") as Control
+	if _content == null:
+		_content = Control.new()
+		_content.name = "Content"
+		_content.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		map_layer.add_child(_content)
+	_content.position = Vector2.ZERO
+	_content.scale = Vector2(_res_scale, _res_scale)
+	if markers_layer.get_parent() != _content:
+		markers_layer.reparent(_content)
 
 
 func _ingest_paths() -> void:
@@ -385,7 +438,7 @@ func _ingest_paths() -> void:
 				continue
 			_max_path_len = maxf(_max_path_len, child.curve.get_baked_length())
 			dummy.remove_child(child)
-			map_layer.add_child(child)
+			_content.add_child(child)
 			_paths[key] = child
 	dummy.queue_free()
 
@@ -415,7 +468,7 @@ func _make_wagon() -> void:
 	_wagon.centered = true
 	_wagon.visible = false
 	_wagon.z_index = 10
-	map_layer.add_child(_wagon)
+	_content.add_child(_wagon)
 
 
 func _path_for(a: String, b: String) -> Path2D:
@@ -459,7 +512,7 @@ func _play_hop(from_id: String, to_id: String) -> void:
 	else:
 		var a: Dictionary = _nodes.get(from_id, {})
 		var b: Dictionary = _nodes.get(to_id, {})
-		_wagon.reparent(map_layer)
+		_wagon.reparent(_content)
 		_wagon.position = Vector2(float(a.get("x", 0)), float(a.get("y", 0)))
 		_hop_tween = create_tween()
 		_hop_tween.tween_property(_wagon, "position", Vector2(float(b.get("x", 0)), float(b.get("y", 0))), seconds)
@@ -496,7 +549,7 @@ func _skip_hop() -> void:
 
 func _complete_hop() -> void:
 	if _follow:
-		_wagon.reparent(map_layer)
+		_wagon.reparent(_content)
 		_follow.queue_free()
 		_follow = null
 	_wagon.visible = false
