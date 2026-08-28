@@ -41,7 +41,6 @@ var _cat_buttons: Dictionary = {}
 var _paths: Dictionary = {}
 var _max_path_len := 1.0
 var _wagon: Sprite2D
-var _follow: PathFollow2D
 var _hop_tween: Tween
 var _zoom := ZOOM_DEFAULT
 var _plate_size := REF_SIZE
@@ -60,7 +59,7 @@ func _ready() -> void:
 	_apply_zoom(Vector2.ZERO, false)
 	_refresh_header()
 	_set_category(Catalog.CARAVANS)
-	_center_on_city(GameState.current_city_id)
+	_center_on_city(GameState.caravan_city(GameState.PLAYER_CARAVAN_ID))
 	GameState.scrubstone_changed.connect(_on_economy)
 	GameState.inventory_changed.connect(_on_economy)
 	GameState.location_changed.connect(_on_location_changed)
@@ -110,7 +109,10 @@ func _on_location_changed(_city_id: String) -> void:
 	_refresh_catalog()
 	_paint_markers()
 	_refresh_context()
-	_center_on_city(GameState.current_city_id)
+	if _selected_kind == "caravan":
+		_center_on_selected()
+	else:
+		_center_on_city(GameState.current_city_id)
 
 
 func _set_category(cat: int) -> void:
@@ -153,7 +155,7 @@ func _catalog_items() -> Array:
 	var items: Array = []
 	match _category:
 		Catalog.CARAVANS:
-			items.append({"kind": "caravan", "id": GameState.PLAYER_CARAVAN_ID, "name": GameState.PLAYER_CARAVAN_NAME})
+			items.append_array(GameState.list_caravans())
 		Catalog.AGENTS:
 			for agent in GameState.agents:
 				if typeof(agent) == TYPE_DICTIONARY:
@@ -171,13 +173,19 @@ func _catalog_items() -> Array:
 func _select_item(kind: String, item_id: String) -> void:
 	_selected_kind = kind
 	_selected_id = item_id
+	if kind == "caravan":
+		GameState.focused_caravan_id = item_id
 	_refresh_catalog()
 	_paint_markers()
 	_refresh_context()
-	if kind == "settlement":
-		_center_on_city(item_id)
-	elif kind == "caravan":
-		_center_on_city(GameState.current_city_id if not GameState.is_on_road() else str(GameState.transit.get("from", GameState.current_city_id)))
+	_center_on_selected()
+
+
+func _center_on_selected() -> void:
+	if _selected_kind == "settlement":
+		_center_on_city(_selected_id)
+	elif _selected_kind == "caravan":
+		_center_on_city(GameState.caravan_city(_selected_id))
 
 
 func _refresh_context() -> void:
@@ -199,7 +207,7 @@ func _show_caravan() -> void:
 		_show_transit_panel()
 		return
 	_clear_actions()
-	var city_id := GameState.current_city_id
+	var city_id := GameState.caravan_city(GameState.PLAYER_CARAVAN_ID)
 	context_title.text = GameState.PLAYER_CARAVAN_NAME
 	context_meta.text = "At %s" % GameState.get_settlement_name(city_id)
 	context_body.text = "Cargo %d / %d" % [GameState.cargo_used(), GameState.caravan_capacity]
@@ -432,14 +440,20 @@ func _ingest_paths() -> void:
 	var dummy: Node = packed.instantiate()
 	map_layer.add_child(dummy)
 	for child in dummy.get_children():
-		if child is Path2D and child.curve != null:
+		if child is Path2D and child.curve != null and child.curve.point_count >= 2:
 			var key := _path_key_from_name(child.name)
 			if key.is_empty():
 				continue
 			_max_path_len = maxf(_max_path_len, child.curve.get_baked_length())
+			var start := child.curve.get_point_position(0)
+			var finish := child.curve.get_point_position(child.curve.point_count - 1)
 			dummy.remove_child(child)
 			_content.add_child(child)
-			_paths[key] = child
+			_paths[key] = {
+				"path": child,
+				"a": _city_near(start),
+				"b": _city_near(finish),
+			}
 	dummy.queue_free()
 
 
@@ -462,6 +476,24 @@ func _norm_place(part: String) -> String:
 	return s
 
 
+func _city_near(point: Vector2) -> String:
+	var best := ""
+	var best_d := INF
+	for city_id in _nodes.keys():
+		var d := _node_pos(city_id).distance_to(point)
+		if d < best_d:
+			best_d = d
+			best = city_id
+	return best
+
+
+func _node_pos(city_id: String) -> Vector2:
+	var pos: Dictionary = _nodes.get(city_id, {})
+	if pos.is_empty():
+		return Vector2.ZERO
+	return Vector2(float(pos.get("x", 0)), float(pos.get("y", 0)))
+
+
 func _make_wagon() -> void:
 	_wagon = Sprite2D.new()
 	_wagon.texture = load(CARAVAN_SPRITE)
@@ -471,62 +503,62 @@ func _make_wagon() -> void:
 	_content.add_child(_wagon)
 
 
-func _path_for(a: String, b: String) -> Path2D:
-	return _paths.get(GameState._link_key(a, b), null)
+func _route_for(a: String, b: String) -> Dictionary:
+	var record: Variant = _paths.get(GameState._link_key(a, b), {})
+	return record if typeof(record) == TYPE_DICTIONARY else {}
 
 
 func _watch_seconds(from_id: String, to_id: String) -> float:
-	var path := _path_for(from_id, to_id)
+	var route := _route_for(from_id, to_id)
+	var path := route.get("path") as Path2D
 	var length := 400.0
 	if path and path.curve:
 		length = path.curve.get_baked_length()
 	else:
-		var a: Dictionary = _nodes.get(from_id, {})
-		var b: Dictionary = _nodes.get(to_id, {})
-		if not a.is_empty() and not b.is_empty():
-			length = Vector2(float(a.get("x", 0)), float(a.get("y", 0))).distance_to(Vector2(float(b.get("x", 0)), float(b.get("y", 0))))
+		length = _node_pos(from_id).distance_to(_node_pos(to_id))
 	return clampf(MAX_WATCH * (length / _max_path_len), MIN_WATCH, MAX_WATCH)
+
+
+func _sample_route(from_id: String, to_id: String, progress: float) -> Vector2:
+	var route := _route_for(from_id, to_id)
+	var path := route.get("path") as Path2D
+	var t := clampf(progress, 0.0, 1.0)
+	if path and path.curve and path.curve.get_baked_length() > 0.0:
+		var start_r := 0.0 if str(route.get("a", "")) == from_id else 1.0
+		var end_r := 1.0 - start_r
+		var ratio := lerpf(start_r, end_r, t)
+		return path.curve.sample_baked(ratio * path.curve.get_baked_length())
+	return _node_pos(from_id).lerp(_node_pos(to_id), t)
+
+
+func _caravan_map_pos(caravan_id: String) -> Vector2:
+	var wagon: Dictionary = GameState.get_caravan(caravan_id)
+	if wagon.is_empty():
+		return _node_pos(GameState.current_city_id)
+	if str(wagon.get("status", "idle")) != "transit":
+		return _node_pos(str(wagon.get("at", GameState.current_city_id)))
+	return _sample_route(str(wagon.get("from", "")), str(wagon.get("to", "")), float(wagon.get("progress", 0.0)))
 
 
 func _play_hop(from_id: String, to_id: String) -> void:
 	if _hop_tween:
 		_hop_tween.kill()
 	_wagon.visible = true
-	var seconds := _watch_seconds(from_id, to_id)
-	var path := _path_for(from_id, to_id)
-	_center_on_city(from_id)
-	if path and path.curve:
-		if _follow:
-			_follow.queue_free()
-		_follow = PathFollow2D.new()
-		_follow.loop = false
-		_follow.rotates = true
-		path.add_child(_follow)
-		_wagon.reparent(_follow)
-		_wagon.position = Vector2.ZERO
-		var start_at_end := _path_starts_near(path, to_id)
-		_follow.progress_ratio = 1.0 if start_at_end else 0.0
-		_hop_tween = create_tween()
-		_hop_tween.tween_property(_follow, "progress_ratio", 0.0 if start_at_end else 1.0, seconds)
-		_hop_tween.finished.connect(_complete_hop)
-	else:
-		var a: Dictionary = _nodes.get(from_id, {})
-		var b: Dictionary = _nodes.get(to_id, {})
+	if _wagon.get_parent() != _content:
 		_wagon.reparent(_content)
-		_wagon.position = Vector2(float(a.get("x", 0)), float(a.get("y", 0)))
-		_hop_tween = create_tween()
-		_hop_tween.tween_property(_wagon, "position", Vector2(float(b.get("x", 0)), float(b.get("y", 0))), seconds)
-		_hop_tween.finished.connect(_complete_hop)
+	GameState.set_caravan_progress(GameState.PLAYER_CARAVAN_ID, 0.0)
+	_wagon.position = _caravan_map_pos(GameState.PLAYER_CARAVAN_ID)
+	_center_on_city(from_id)
+	_hop_tween = create_tween()
+	_hop_tween.tween_method(_on_hop_progress, 0.0, 1.0, _watch_seconds(from_id, to_id))
+	_hop_tween.finished.connect(_complete_hop)
 	_select_item("caravan", GameState.PLAYER_CARAVAN_ID)
 	_show_transit_panel()
 
 
-func _path_starts_near(path: Path2D, city_id: String) -> bool:
-	var pos: Dictionary = _nodes.get(city_id, {})
-	if pos.is_empty() or path.curve == null or path.curve.point_count == 0:
-		return false
-	var city := Vector2(float(pos.get("x", 0)), float(pos.get("y", 0)))
-	return path.curve.get_point_position(0).distance_to(city) > path.curve.get_point_position(path.curve.point_count - 1).distance_to(city)
+func _on_hop_progress(progress: float) -> void:
+	GameState.set_caravan_progress(GameState.PLAYER_CARAVAN_ID, progress)
+	_wagon.position = _caravan_map_pos(GameState.PLAYER_CARAVAN_ID)
 
 
 func _show_transit_panel() -> void:
@@ -548,10 +580,6 @@ func _skip_hop() -> void:
 
 
 func _complete_hop() -> void:
-	if _follow:
-		_wagon.reparent(_content)
-		_follow.queue_free()
-		_follow = null
 	_wagon.visible = false
 	GameState.finish_hop()
 	_set_category(Catalog.CARAVANS)

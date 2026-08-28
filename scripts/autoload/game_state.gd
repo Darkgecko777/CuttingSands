@@ -21,6 +21,7 @@ const CARAVAN_SPEED := 1.0
 
 var selected_house_id: String = "house_kharun"
 var current_city_id: String = "kharun"
+var focused_caravan_id: String = PLAYER_CARAVAN_ID
 var scrubstone: int = STARTING_SCRUBSTONE
 var caravan_capacity: int = STARTING_CAPACITY
 var day: int = 1
@@ -34,12 +35,14 @@ var HOUSES: Dictionary = {}
 var CITIES: Dictionary = {}
 var GOODS: Dictionary = {}
 var ROUTES: Dictionary = {}
+var caravans: Dictionary = {}
 
 
 func _ready() -> void:
 	_load_world()
 	_reset_player_cargo()
 	_seed_all_markets()
+	_spawn_player_caravan(current_city_id)
 
 
 func _load_world() -> void:
@@ -105,6 +108,94 @@ func _link_key(a: String, b: String) -> String:
 	return a + "|" + b if a < b else b + "|" + a
 
 
+func _empty_cargo() -> Dictionary:
+	var cargo: Dictionary = {}
+	for good_id in GOODS.keys():
+		cargo[good_id] = 0
+	if cargo.has("water"):
+		cargo["water"] = 2
+	if cargo.has("grain"):
+		cargo["grain"] = 3
+	return cargo
+
+
+func _spawn_player_caravan(at_city: String) -> void:
+	var city_id := at_city if CITIES.has(at_city) else "kharun"
+	caravans[PLAYER_CARAVAN_ID] = {
+		"id": PLAYER_CARAVAN_ID,
+		"name": PLAYER_CARAVAN_NAME,
+		"owner": "house",
+		"house_id": selected_house_id,
+		"status": "idle",
+		"at": city_id,
+		"from": "",
+		"to": "",
+		"days": 0,
+		"progress": 0.0,
+		"speed": CARAVAN_SPEED,
+		"capacity": STARTING_CAPACITY,
+		"cargo": inventory,
+	}
+	focused_caravan_id = PLAYER_CARAVAN_ID
+	_sync_player_views()
+
+
+func _sync_player_views() -> void:
+	var wagon: Dictionary = get_caravan(PLAYER_CARAVAN_ID)
+	if wagon.is_empty():
+		return
+	inventory = wagon.get("cargo", inventory)
+	caravan_capacity = int(wagon.get("capacity", STARTING_CAPACITY))
+	if str(wagon.get("status", "idle")) == "transit":
+		current_city_id = str(wagon.get("from", current_city_id))
+		transit = {
+			"from": str(wagon.get("from", "")),
+			"to": str(wagon.get("to", "")),
+			"days": int(wagon.get("days", 1)),
+		}
+	else:
+		current_city_id = str(wagon.get("at", current_city_id))
+		transit = {}
+
+
+func get_caravan(caravan_id: String) -> Dictionary:
+	var record: Variant = caravans.get(caravan_id, {})
+	return record if typeof(record) == TYPE_DICTIONARY else {}
+
+
+func list_caravans() -> Array:
+	var items: Array = []
+	for caravan_id in caravans.keys():
+		var record: Dictionary = get_caravan(caravan_id)
+		if record.is_empty():
+			continue
+		items.append({
+			"kind": "caravan",
+			"id": str(record.get("id", caravan_id)),
+			"name": str(record.get("name", caravan_id)),
+		})
+	return items
+
+
+func caravan_status(caravan_id: String) -> String:
+	return str(get_caravan(caravan_id).get("status", "idle"))
+
+
+func caravan_city(caravan_id: String) -> String:
+	var wagon: Dictionary = get_caravan(caravan_id)
+	if wagon.is_empty():
+		return current_city_id
+	if str(wagon.get("status", "idle")) == "transit":
+		return str(wagon.get("from", current_city_id))
+	return str(wagon.get("at", current_city_id))
+
+
+func set_caravan_progress(caravan_id: String, progress: float) -> void:
+	if not caravans.has(caravan_id):
+		return
+	caravans[caravan_id]["progress"] = clampf(progress, 0.0, 1.0)
+
+
 func is_adjacent(a: String, b: String) -> bool:
 	return b in ROUTES.get(a, [])
 
@@ -116,37 +207,59 @@ func hop_days(from_id: String, to_id: String) -> int:
 
 
 func is_on_road() -> bool:
-	return not transit.is_empty()
+	return caravan_status(PLAYER_CARAVAN_ID) == "transit" or not transit.is_empty()
 
 
 func begin_hop(to_id: String) -> bool:
-	if is_on_road():
+	return begin_hop_for(PLAYER_CARAVAN_ID, to_id)
+
+
+func begin_hop_for(caravan_id: String, to_id: String) -> bool:
+	var wagon: Dictionary = get_caravan(caravan_id)
+	if wagon.is_empty() or str(wagon.get("status", "idle")) == "transit":
 		return false
-	var days := hop_days(current_city_id, to_id)
+	var from_id := str(wagon.get("at", ""))
+	var days := hop_days(from_id, to_id)
 	if days <= 0:
 		return false
-	transit = {"from": current_city_id, "to": to_id, "days": days}
+	wagon["status"] = "transit"
+	wagon["from"] = from_id
+	wagon["to"] = to_id
+	wagon["days"] = days
+	wagon["progress"] = 0.0
+	if caravan_id == PLAYER_CARAVAN_ID:
+		_sync_player_views()
 	return true
 
 
 func finish_hop() -> bool:
-	if transit.is_empty():
+	return finish_hop_for(PLAYER_CARAVAN_ID)
+
+
+func finish_hop_for(caravan_id: String) -> bool:
+	var wagon: Dictionary = get_caravan(caravan_id)
+	if wagon.is_empty() or str(wagon.get("status", "idle")) != "transit":
 		return false
-	var to_id := str(transit.get("to", ""))
-	var days := int(transit.get("days", 1))
-	transit = {}
+	var to_id := str(wagon.get("to", ""))
+	var days := int(wagon.get("days", 1))
+	wagon["status"] = "idle"
+	wagon["at"] = to_id
+	wagon["from"] = ""
+	wagon["to"] = ""
+	wagon["days"] = 0
+	wagon["progress"] = 0.0
 	day += days
-	return travel_to(to_id)
+	if caravan_id == PLAYER_CARAVAN_ID:
+		_sync_player_views()
+		return travel_to(to_id)
+	return CITIES.has(to_id)
 
 
 func _reset_player_cargo() -> void:
-	inventory.clear()
-	for good_id in GOODS.keys():
-		inventory[good_id] = 0
-	if inventory.has("water"):
-		inventory["water"] = 2
-	if inventory.has("grain"):
-		inventory["grain"] = 3
+	inventory = _empty_cargo()
+	if caravans.has(PLAYER_CARAVAN_ID):
+		caravans[PLAYER_CARAVAN_ID]["cargo"] = inventory
+		caravans[PLAYER_CARAVAN_ID]["capacity"] = caravan_capacity
 
 
 func _seed_all_markets() -> void:
@@ -166,12 +279,13 @@ func start_new_run(house_id: String) -> void:
 	current_city_id = str(house.get("home", house.get("home_city", "kharun")))
 	scrubstone = STARTING_SCRUBSTONE
 	caravan_capacity = STARTING_CAPACITY
+	focused_caravan_id = PLAYER_CARAVAN_ID
 	_reset_player_cargo()
 	_seed_all_markets()
 	day = 1
 	agents.clear()
 	reports.clear()
-	transit = {}
+	_spawn_player_caravan(current_city_id)
 	scrubstone_changed.emit(scrubstone)
 	inventory_changed.emit()
 	location_changed.emit(current_city_id)
@@ -235,8 +349,14 @@ func get_settlement_name(city_id: String) -> String:
 
 
 func travel_to(city_id: String) -> bool:
-	if city_id.is_empty() or city_id == current_city_id or not CITIES.has(city_id):
+	if city_id.is_empty() or not CITIES.has(city_id):
 		return false
+	if caravans.has(PLAYER_CARAVAN_ID) and str(get_caravan(PLAYER_CARAVAN_ID).get("status", "idle")) != "transit":
+		caravans[PLAYER_CARAVAN_ID]["at"] = city_id
+	if city_id == current_city_id:
+		location_changed.emit(city_id)
+		inventory_changed.emit()
+		return true
 	current_city_id = city_id
 	location_changed.emit(city_id)
 	inventory_changed.emit()
