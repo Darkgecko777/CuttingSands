@@ -3,6 +3,7 @@ extends RefCounted
 
 const MUTED := Color(0.75, 0.62, 0.42, 1)
 const GHOST := Color(0.86, 0.28, 0.22, 1)
+const GOLD := Color(0.92, 0.78, 0.45, 1)
 
 var buy_draft: Dictionary = {}
 var sell_draft: Dictionary = {}
@@ -148,7 +149,7 @@ func render(box: VBoxContainer) -> void:
 	deal.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(deal)
 	var stock_title := Label.new()
-	stock_title.text = "Stall"
+	stock_title.text = "Stall  ·  click to take"
 	stock_title.add_theme_color_override("font_color", MUTED)
 	box.add_child(stock_title)
 	for good_id in GameState.GOODS.keys():
@@ -162,8 +163,8 @@ func render(box: VBoxContainer) -> void:
 	box.add_child(sell_grid)
 	WagonRackView.fill(sell_grid, sell_units(), on_sell_click)
 	var sell_actions := HBoxContainer.new()
-	sell_actions.add_child(_action("Sell", sell_n <= 0, commit_sells))
-	sell_actions.add_child(_action("Clear", sell_n <= 0, clear_sells))
+	sell_actions.add_child(DealStyle.button("Sell", sell_n <= 0, commit_sells))
+	sell_actions.add_child(DealStyle.button("Clear", sell_n <= 0, clear_sells))
 	box.add_child(sell_actions)
 
 
@@ -174,34 +175,17 @@ func empty_note(box: VBoxContainer, text: String) -> void:
 	box.add_child(note)
 
 
-func _stock_row(good_id: String) -> HBoxContainer:
+func _stock_row(good_id: String) -> Button:
 	var staged_buy: int = int(buy_draft.get(good_id, 0))
-	var row := HBoxContainer.new()
-	var mark := Label.new()
-	mark.text = GameState.get_good_name(good_id).substr(0, 1)
-	mark.custom_minimum_size = Vector2(22, 0)
-	row.add_child(mark)
-	var name_label := Label.new()
-	name_label.text = GameState.get_good_name(good_id)
-	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-	row.add_child(name_label)
-	var meta := Label.new()
-	meta.text = "%ds  M%d" % [GameState.get_local_price(good_id), GameState.get_market_stock(good_id) - staged_buy]
-	row.add_child(meta)
-	var plus := Button.new()
-	plus.text = "+"
-	plus.disabled = not can_stage_buy(good_id)
-	plus.pressed.connect(stage_buy.bind(good_id))
-	row.add_child(plus)
+	var row := Button.new()
+	row.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	var ghost := "  +%d" % staged_buy if staged_buy > 0 else ""
+	row.text = "%s    %ds    M%d%s" % [GameState.get_good_name(good_id), GameState.get_local_price(good_id), GameState.get_market_stock(good_id) - staged_buy, ghost]
+	row.disabled = not can_stage_buy(good_id)
+	row.add_theme_color_override("font_color", GHOST if staged_buy > 0 else GOLD)
+	row.pressed.connect(stage_buy.bind(good_id))
+	row.tooltip_text = "Click to stage one onto the wagon"
 	return row
-
-
-func _action(text: String, disabled: bool, cb: Callable) -> Button:
-	var btn := Button.new()
-	btn.text = text
-	btn.disabled = disabled
-	btn.pressed.connect(cb)
-	return btn
 
 
 func _count(table: Dictionary) -> int:
