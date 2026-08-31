@@ -14,14 +14,14 @@ static func fill(grid: GridContainer, draft_buy: Dictionary = {}, draft_sell: Di
 		var owned := int(GameState.inventory.get(good_id, 0))
 		var selling := int(draft_sell.get(good_id, 0))
 		var buying := int(draft_buy.get(good_id, 0))
-		var keep := max(0, owned - selling)
-		var name := GameState.get_good_name(good_id)
+		var keep: int = maxi(0, owned - selling)
+		var good_name := String(GameState.get_good_name(good_id))
 		for _i in keep:
-			cells.append({"text": name, "ghost": false})
+			cells.append({"text": good_name, "ghost": false})
 		for _j in selling:
-			cells.append({"text": name, "ghost": true})
+			cells.append({"text": good_name, "ghost": true})
 		for _k in buying:
-			cells.append({"text": name, "ghost": true})
+			cells.append({"text": good_name, "ghost": true})
 	for i in GameState.caravan_capacity:
 		var cell := Label.new()
 		cell.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
