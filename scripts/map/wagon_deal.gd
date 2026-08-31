@@ -1,11 +1,9 @@
 class_name WagonDealBar
 extends RefCounted
 
-const GOLD := Color(0.92, 0.78, 0.45, 1)
-const INK := Color(0.12, 0.08, 0.05, 1)
 
-
-static func sync(host: Control, in_market: bool, desk: MarketDesk) -> void:
+static func sync(from: Control, in_market: bool, desk: MarketDesk) -> void:
+	var host := _rack_host(from)
 	var row := host.get_node_or_null("WagonDeal")
 	if not in_market:
 		if row:
@@ -25,9 +23,14 @@ static func sync(host: Control, in_market: bool, desk: MarketDesk) -> void:
 	for child in row.get_children():
 		child.queue_free()
 	var buy_n: int = desk.buy_count()
-	row.add_child(_bordered("Buy", buy_n <= 0, desk.commit_buys))
-	row.add_child(_bordered("Clear", buy_n <= 0, desk.clear_buys))
+	row.add_child(DealStyle.button("Buy", buy_n <= 0, desk.commit_buys))
+	row.add_child(DealStyle.button("Clear", buy_n <= 0, desk.clear_buys))
 
 
-static func _bordered(text: String, disabled: bool, cb: Callable) -> Button:
-	return DealStyle.button(text, disabled, cb)
+static func _rack_host(from: Control) -> Control:
+	var node: Node = from
+	while node:
+		if node.name == "WagonRack" and node is Control:
+			return node
+		node = node.get_parent()
+	return from if from.get_parent() == null else from.get_parent()
