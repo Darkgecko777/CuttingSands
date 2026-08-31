@@ -129,6 +129,7 @@ func _set_mode(mode: int) -> void:
 
 func _fill_rack() -> void:
 	WagonRackView.fill(rack_grid, _desk.wagon_units(), _desk.on_wagon_click)
+	WagonDealBar.sync(rack_grid, _yard == Yard.MARKET, _desk)
 
 
 func _show_word() -> void:
