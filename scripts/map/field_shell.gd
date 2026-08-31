@@ -14,14 +14,22 @@ const ZOOM_STEP := 0.1
 const GOLD := Color(0.92, 0.78, 0.45, 1)
 const MUTED := Color(0.75, 0.62, 0.42, 1)
 const INK := Color(0.85, 0.78, 0.66, 1)
+const RAIL_OPEN := 96.0
+const RAIL_SHUT := 44.0
+const CONTEXT_OPEN := 320.0
 
-enum Catalog { CARAVANS, AGENTS, SETTLEMENTS, REPORTS }
+enum Mode { WAGON, MAP, WORD }
 
 @onready var house_label: Label = %HouseLabel
+@onready var place_label: Label = %PlaceLabel
 @onready var status_label: Label = %StatusLabel
 @onready var day_label: Label = %DayLabel
-@onready var catalog_list: VBoxContainer = %CatalogList
-@onready var catalog_title: Label = %CatalogTitle
+@onready var weather_pip: Label = %WeatherPip
+@onready var gear_button: Button = %GearButton
+@onready var rail: Control = %Rail
+@onready var context_pane: Control = %ContextPane
+@onready var wagon_rack: Control = %WagonRack
+@onready var rack_grid: GridContainer = %RackGrid
 @onready var map_clip: Control = %MapClip
 @onready var map_layer: Control = %MapLayer
 @onready var markers_layer: Control = %Markers
@@ -32,9 +40,11 @@ enum Catalog { CARAVANS, AGENTS, SETTLEMENTS, REPORTS }
 @onready var market_box: VBoxContainer = %MarketBox
 
 var _nodes: Dictionary = {}
-var _category: int = Catalog.CARAVANS
+var _mode: int = Mode.WAGON
 var _selected_kind: String = "caravan"
 var _selected_id: String = GameState.PLAYER_CARAVAN_ID
+var _left_open := true
+var _right_open := true
 var _dragging := false
 var _drag_last := Vector2.ZERO
 var _cat_buttons: Dictionary = {}
@@ -52,34 +62,64 @@ func _ready() -> void:
 	_nodes = _load_nodes()
 	_fit_plate()
 	_ingest_paths()
-	_style_dead_desk()
-	_wire_catalog_rail()
+	_wire_shell()
 	_build_markers()
 	_make_wagon()
 	_apply_zoom(Vector2.ZERO, false)
 	_refresh_header()
-	_set_category(Catalog.CARAVANS)
+	_set_mode(Mode.WAGON)
 	_center_on_city(GameState.caravan_city(GameState.PLAYER_CARAVAN_ID))
 	GameState.scrubstone_changed.connect(_on_economy)
 	GameState.inventory_changed.connect(_on_economy)
 	GameState.location_changed.connect(_on_location_changed)
 	map_clip.gui_input.connect(_on_map_gui_input)
 	map_clip.resized.connect(_clamp_map)
+	_try_pending_travel()
 
 
-func _style_dead_desk() -> void:
-	for path in ["%HouseDeskButton", "%IntelButton", "%LettersButton"]:
-		var btn: Button = get_node_or_null(path)
-		if btn:
-			btn.disabled = true
-			btn.tooltip_text = "Not in this slice"
+func _wire_shell() -> void:
+	_cat_buttons = {Mode.WAGON: %CatWagon, Mode.MAP: %CatMap, Mode.WORD: %CatWord}
+	for mode in _cat_buttons.keys():
+		_cat_buttons[mode].toggle_mode = true
+		_cat_buttons[mode].pressed.connect(_set_mode.bind(mode))
+	%CollapseLeft.pressed.connect(_toggle_left)
+	%CollapseRight.pressed.connect(_toggle_right)
+	gear_button.pressed.connect(_on_gear)
+	var pause := get_node_or_null("/root/PauseMenu")
+	if pause and pause.has_node("%GearButton"):
+		pause.get_node("%GearButton").visible = false
 
 
-func _wire_catalog_rail() -> void:
-	_cat_buttons = {Catalog.CARAVANS: %CatCaravans, Catalog.AGENTS: %CatAgents, Catalog.SETTLEMENTS: %CatSettlements, Catalog.REPORTS: %CatReports}
-	for cat in _cat_buttons.keys():
-		_cat_buttons[cat].toggle_mode = true
-		_cat_buttons[cat].pressed.connect(_set_category.bind(cat))
+func _on_gear() -> void:
+	var pause := get_node_or_null("/root/PauseMenu")
+	if pause and pause.has_method("open"):
+		pause.open()
+
+
+func _toggle_left() -> void:
+	_left_open = not _left_open
+	rail.custom_minimum_size.x = RAIL_OPEN if _left_open else RAIL_SHUT
+	for mode in _cat_buttons.keys():
+		_cat_buttons[mode].text = _mode_label(mode) if _left_open else _mode_label(mode).substr(0, 1)
+	%CollapseLeft.text = "<" if _left_open else ">"
+	_clamp_map()
+
+
+func _toggle_right() -> void:
+	_right_open = not _right_open
+	context_pane.visible = _right_open
+	context_pane.custom_minimum_size.x = CONTEXT_OPEN if _right_open else 0.0
+	_clamp_map()
+
+
+func _mode_label(mode: int) -> String:
+	match mode:
+		Mode.WAGON:
+			return "Wagon"
+		Mode.MAP:
+			return "Map"
+		_:
+			return "Word"
 
 
 func _load_nodes() -> Dictionary:
@@ -94,80 +134,80 @@ func _load_nodes() -> Dictionary:
 
 func _refresh_header() -> void:
 	house_label.text = GameState.get_house_name()
+	if GameState.is_on_road():
+		place_label.text = "Bound for %s" % GameState.get_settlement_name(str(GameState.transit.get("to", "")))
+	else:
+		place_label.text = GameState.get_city_name()
 	status_label.text = "Scrubstone %d    Cargo %d/%d" % [GameState.scrubstone, GameState.cargo_used(), GameState.caravan_capacity]
 	day_label.text = "Day %d" % GameState.day
+	weather_pip.text = ""
 
 
 func _on_economy(_arg: Variant = null) -> void:
 	_refresh_header()
-	if _selected_kind == "caravan":
+	_fill_rack()
+	if _mode == Mode.WAGON:
 		_show_caravan()
 
 
 func _on_location_changed(_city_id: String) -> void:
 	_refresh_header()
-	_refresh_catalog()
 	_paint_markers()
 	_refresh_context()
+	_fill_rack()
 	if _selected_kind == "caravan":
 		_center_on_selected()
 	else:
 		_center_on_city(GameState.current_city_id)
 
 
-func _set_category(cat: int) -> void:
-	_category = cat
+func _set_mode(mode: int) -> void:
+	_mode = mode
 	for key in _cat_buttons.keys():
-		_cat_buttons[key].button_pressed = (key == cat)
-	match cat:
-		Catalog.CARAVANS: catalog_title.text = "Caravans"
-		Catalog.AGENTS: catalog_title.text = "Agents"
-		Catalog.SETTLEMENTS: catalog_title.text = "Settlements"
-		Catalog.REPORTS: catalog_title.text = "Reports"
-	_refresh_catalog()
-	if cat == Catalog.CARAVANS:
+		_cat_buttons[key].button_pressed = (key == mode)
+	wagon_rack.visible = (mode == Mode.WAGON)
+	map_clip.visible = (mode != Mode.WAGON)
+	if mode == Mode.WAGON:
 		_select_item("caravan", GameState.PLAYER_CARAVAN_ID)
+		_fill_rack()
+	elif mode == Mode.WORD:
+		_show_word()
+	else:
+		_refresh_context()
+	_clamp_map()
 
 
-func _refresh_catalog() -> void:
-	for child in catalog_list.get_children():
+func _fill_rack() -> void:
+	for child in rack_grid.get_children():
 		child.queue_free()
-	var items: Array = _catalog_items()
-	if items.is_empty():
-		var empty := Label.new()
-		empty.text = "None yet"
-		empty.add_theme_color_override("font_color", MUTED)
-		catalog_list.add_child(empty)
-		return
-	for item in items:
-		var btn := Button.new()
-		btn.text = str(item.get("name", item.get("id", "?")))
-		btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		btn.toggle_mode = true
-		var kind := str(item.get("kind", ""))
-		var item_id := str(item.get("id", ""))
-		btn.button_pressed = (_selected_kind == kind and _selected_id == item_id)
-		btn.pressed.connect(_select_item.bind(kind, item_id))
-		catalog_list.add_child(btn)
+	var cells: Array = []
+	for good_id in GameState.GOODS.keys():
+		var qty := int(GameState.inventory.get(good_id, 0))
+		for _i in qty:
+			cells.append(GameState.get_good_name(good_id))
+	for i in GameState.caravan_capacity:
+		var cell := Label.new()
+		cell.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+		cell.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+		cell.custom_minimum_size = Vector2(88, 64)
+		if i < cells.size():
+			cell.text = str(cells[i])
+			cell.add_theme_color_override("font_color", GOLD)
+		else:
+			cell.text = "—"
+			cell.add_theme_color_override("font_color", MUTED)
+		rack_grid.add_child(cell)
 
 
-func _catalog_items() -> Array:
-	var items: Array = []
-	match _category:
-		Catalog.CARAVANS:
-			items.append_array(GameState.list_caravans())
-		Catalog.AGENTS:
-			for agent in GameState.agents:
-				if typeof(agent) == TYPE_DICTIONARY:
-					items.append(agent)
-		Catalog.SETTLEMENTS:
-			for city_id in GameState.CITIES.keys():
-				items.append({"kind": "settlement", "id": city_id, "name": GameState.get_settlement_name(city_id)})
-		Catalog.REPORTS:
-			for report in GameState.reports:
-				if typeof(report) == TYPE_DICTIONARY:
-					items.append(report)
-	return items
+func _show_word() -> void:
+	_clear_actions()
+	context_title.text = "Word"
+	context_meta.text = "Nothing on the desk"
+	context_body.text = "Arrival slips and rumours will land here. A report will pull the well to its subject."
+	var empty := Label.new()
+	empty.text = "No word yet"
+	empty.add_theme_color_override("font_color", MUTED)
+	market_box.add_child(empty)
 
 
 func _select_item(kind: String, item_id: String) -> void:
@@ -175,7 +215,6 @@ func _select_item(kind: String, item_id: String) -> void:
 	_selected_id = item_id
 	if kind == "caravan":
 		GameState.focused_caravan_id = item_id
-	_refresh_catalog()
 	_paint_markers()
 	_refresh_context()
 	_center_on_selected()
@@ -189,6 +228,9 @@ func _center_on_selected() -> void:
 
 
 func _refresh_context() -> void:
+	if _mode == Mode.WORD:
+		_show_word()
+		return
 	match _selected_kind:
 		"caravan": _show_caravan()
 		"settlement": _show_settlement(_selected_id)
@@ -210,7 +252,7 @@ func _show_caravan() -> void:
 	var city_id := GameState.caravan_city(GameState.PLAYER_CARAVAN_ID)
 	context_title.text = GameState.PLAYER_CARAVAN_NAME
 	context_meta.text = "At %s" % GameState.get_settlement_name(city_id)
-	context_body.text = "Cargo %d / %d" % [GameState.cargo_used(), GameState.caravan_capacity]
+	context_body.text = "Temporary stall list. Draft buy/sell comes with icons."
 	if GameState.settlement_has_market(city_id):
 		_build_market()
 	else:
@@ -218,6 +260,12 @@ func _show_caravan() -> void:
 		note.text = "No market at this stop."
 		note.add_theme_color_override("font_color", MUTED)
 		market_box.add_child(note)
+	for neighbor in GameState.neighbors_of(city_id):
+		var dest := str(neighbor)
+		var road := Button.new()
+		road.text = "Road to %s  ·  %d day" % [GameState.get_settlement_name(dest), GameState.hop_days(city_id, dest)]
+		road.pressed.connect(_on_travel.bind(dest))
+		context_actions.add_child(road)
 
 
 func _show_settlement(city_id: String) -> void:
@@ -249,13 +297,16 @@ func _show_settlement(city_id: String) -> void:
 
 func _show_empty() -> void:
 	_clear_actions()
-	context_title.text = catalog_title.text
+	context_title.text = _mode_label(_mode)
 	context_meta.text = ""
-	context_body.text = "Nothing in this list yet."
+	context_body.text = "Nothing selected."
 
 
 func _on_travel(city_id: String) -> void:
 	if GameState.begin_hop(city_id):
+		if not _right_open:
+			_toggle_right()
+		_set_mode(Mode.MAP)
 		_play_hop(str(GameState.transit.get("from", "")), city_id)
 
 
@@ -314,7 +365,7 @@ func _build_markers() -> void:
 
 
 func _on_marker_pressed(city_id: String) -> void:
-	_set_category(Catalog.SETTLEMENTS)
+	_set_mode(Mode.MAP)
 	_select_item("settlement", city_id)
 
 
@@ -587,4 +638,23 @@ func _skip_hop() -> void:
 func _complete_hop() -> void:
 	_wagon.visible = false
 	GameState.finish_hop()
-	_set_category(Catalog.CARAVANS)
+	_set_mode(Mode.WAGON)
+	_refresh_header()
+	_paint_markers()
+
+
+func _return_to_city() -> void:
+	if GameState.is_on_road():
+		return
+	_set_mode(Mode.WAGON)
+
+
+func _try_pending_travel() -> void:
+	var dest := str(GameState.pending_travel_to)
+	if dest.is_empty():
+		if GameState.is_on_road():
+			_show_transit_panel()
+		return
+	GameState.pending_travel_to = ""
+	if GameState.begin_hop(dest):
+		_play_hop(str(GameState.transit.get("from", "")), dest)
