@@ -15,11 +15,33 @@ func clear() -> void:
 	_notify()
 
 
-func count(table: Dictionary) -> int:
-	var total := 0
-	for good_id in table.keys():
-		total += int(table[good_id])
-	return total
+func wagon_units() -> Array:
+	var units: Array = []
+	for good_id in GameState.GOODS.keys():
+		var gid := str(good_id)
+		var keep: int = maxi(0, int(GameState.inventory.get(gid, 0)) - int(sell_draft.get(gid, 0)))
+		for _i in keep:
+			units.append({"id": gid, "ghost": false})
+		for _j in int(buy_draft.get(gid, 0)):
+			units.append({"id": gid, "ghost": true})
+	return units
+
+
+func sell_units() -> Array:
+	var units: Array = []
+	for good_id in GameState.GOODS.keys():
+		var gid := str(good_id)
+		for _i in int(sell_draft.get(gid, 0)):
+			units.append({"id": gid, "ghost": true})
+	return units
+
+
+func preview_cells() -> int:
+	return CargoMath.cells_in(GameState.inventory) - CargoMath.cells_in(sell_draft) + CargoMath.cells_in(buy_draft)
+
+
+func preview_mass() -> int:
+	return CargoMath.mass_in(GameState.inventory) - CargoMath.mass_in(sell_draft) + CargoMath.mass_in(buy_draft)
 
 
 func buy_cost() -> int:
@@ -36,19 +58,21 @@ func sell_gain() -> int:
 	return gain
 
 
-func preview_used() -> int:
-	return GameState.cargo_used() - count(sell_draft) + count(buy_draft)
+func staged_count() -> int:
+	return _count(buy_draft) + _count(sell_draft)
 
 
 func can_stage_buy(good_id: String) -> bool:
 	if GameState.is_on_road() or not GameState.settlement_has_market(GameState.current_city_id):
 		return false
-	var staged := int(buy_draft.get(good_id, 0))
+	var staged: int = int(buy_draft.get(good_id, 0))
 	if GameState.get_market_stock(good_id) - staged <= 0:
 		return false
 	if GameState.scrubstone < buy_cost() + GameState.get_local_price(good_id):
 		return false
-	return preview_used() + 1 <= GameState.caravan_capacity
+	if preview_cells() + CargoMath.size_of(good_id) > GameState.caravan_capacity:
+		return false
+	return preview_mass() + CargoMath.mass_of(good_id) <= GameState.caravan_mass_capacity
 
 
 func can_stage_sell(good_id: String) -> bool:
@@ -57,23 +81,27 @@ func can_stage_sell(good_id: String) -> bool:
 	return int(GameState.inventory.get(good_id, 0)) - int(sell_draft.get(good_id, 0)) > 0
 
 
-func stage_plus(good_id: String) -> void:
-	if int(sell_draft.get(good_id, 0)) > 0:
-		_nudge(sell_draft, good_id, -1)
-	elif can_stage_buy(good_id):
-		_nudge(buy_draft, good_id, 1)
-	else:
-		return
-	_notify()
-
-
-func stage_minus(good_id: String) -> void:
-	if int(buy_draft.get(good_id, 0)) > 0:
+func on_wagon_click(good_id: String, ghost: bool) -> void:
+	if ghost:
 		_nudge(buy_draft, good_id, -1)
 	elif can_stage_sell(good_id):
 		_nudge(sell_draft, good_id, 1)
 	else:
 		return
+	_notify()
+
+
+func on_sell_click(good_id: String, _ghost: bool) -> void:
+	if int(sell_draft.get(good_id, 0)) <= 0:
+		return
+	_nudge(sell_draft, good_id, -1)
+	_notify()
+
+
+func stage_buy(good_id: String) -> void:
+	if not can_stage_buy(good_id):
+		return
+	_nudge(buy_draft, good_id, 1)
 	_notify()
 
 
@@ -94,32 +122,32 @@ func commit_sells() -> void:
 func render(box: VBoxContainer) -> void:
 	for child in box.get_children():
 		child.queue_free()
-	var buy_n := count(buy_draft)
-	var sell_n := count(sell_draft)
+	var buy_n: int = _count(buy_draft)
+	var sell_n: int = _count(sell_draft)
 	var deal := Label.new()
 	deal.text = "Buy %d · %ds    Sell %d · %ds    Net %+d" % [buy_n, buy_cost(), sell_n, sell_gain(), sell_gain() - buy_cost()]
 	deal.add_theme_color_override("font_color", GHOST if buy_n + sell_n > 0 else MUTED)
 	deal.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(deal)
 	var actions := HBoxContainer.new()
-	var buy_btn := Button.new()
-	buy_btn.text = "Buy"
-	buy_btn.disabled = buy_n <= 0
-	buy_btn.pressed.connect(commit_buys)
-	actions.add_child(buy_btn)
-	var sell_btn := Button.new()
-	sell_btn.text = "Sell"
-	sell_btn.disabled = sell_n <= 0
-	sell_btn.pressed.connect(commit_sells)
-	actions.add_child(sell_btn)
-	var clear_btn := Button.new()
-	clear_btn.text = "Clear"
-	clear_btn.disabled = buy_n + sell_n <= 0
-	clear_btn.pressed.connect(clear)
-	actions.add_child(clear_btn)
+	actions.add_child(_action("Buy", buy_n <= 0, commit_buys))
+	actions.add_child(_action("Sell", sell_n <= 0, commit_sells))
+	actions.add_child(_action("Clear", buy_n + sell_n <= 0, clear))
 	box.add_child(actions)
+	var stock_title := Label.new()
+	stock_title.text = "Stall"
+	stock_title.add_theme_color_override("font_color", MUTED)
+	box.add_child(stock_title)
 	for good_id in GameState.GOODS.keys():
-		box.add_child(_row(str(good_id)))
+		box.add_child(_stock_row(str(good_id)))
+	var sell_title := Label.new()
+	sell_title.text = "To sell"
+	sell_title.add_theme_color_override("font_color", MUTED)
+	box.add_child(sell_title)
+	var sell_grid := GridContainer.new()
+	sell_grid.columns = 4
+	box.add_child(sell_grid)
+	WagonRackView.fill(sell_grid, sell_units(), on_sell_click)
 
 
 func empty_note(box: VBoxContainer, text: String) -> void:
@@ -129,41 +157,41 @@ func empty_note(box: VBoxContainer, text: String) -> void:
 	box.add_child(note)
 
 
-func _row(good_id: String) -> HBoxContainer:
-	var staged_buy := int(buy_draft.get(good_id, 0))
-	var staged_sell := int(sell_draft.get(good_id, 0))
+func _stock_row(good_id: String) -> HBoxContainer:
+	var staged_buy: int = int(buy_draft.get(good_id, 0))
 	var row := HBoxContainer.new()
+	var mark := Label.new()
+	mark.text = GameState.get_good_name(good_id).substr(0, 1)
+	mark.custom_minimum_size = Vector2(22, 0)
+	row.add_child(mark)
 	var name_label := Label.new()
 	name_label.text = GameState.get_good_name(good_id)
 	name_label.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	row.add_child(name_label)
-	var price := Label.new()
-	price.text = "%d/%d" % [GameState.get_local_price(good_id), GameState.get_sell_price(good_id)]
-	row.add_child(price)
-	var stock := Label.new()
-	stock.text = "M%d Y%d" % [GameState.get_market_stock(good_id) - staged_buy + staged_sell, int(GameState.inventory.get(good_id, 0)) - staged_sell + staged_buy]
-	row.add_child(stock)
-	var ghost := Label.new()
-	if staged_buy > 0:
-		ghost.text = "+%d" % staged_buy
-	elif staged_sell > 0:
-		ghost.text = "−%d" % staged_sell
-	else:
-		ghost.text = ""
-	ghost.custom_minimum_size = Vector2(28, 0)
-	ghost.add_theme_color_override("font_color", GHOST)
-	row.add_child(ghost)
+	var meta := Label.new()
+	meta.text = "%ds  M%d" % [GameState.get_local_price(good_id), GameState.get_market_stock(good_id) - staged_buy]
+	row.add_child(meta)
 	var plus := Button.new()
 	plus.text = "+"
-	plus.disabled = not can_stage_buy(good_id) and staged_sell <= 0
-	plus.pressed.connect(stage_plus.bind(good_id))
+	plus.disabled = not can_stage_buy(good_id)
+	plus.pressed.connect(stage_buy.bind(good_id))
 	row.add_child(plus)
-	var minus := Button.new()
-	minus.text = "−"
-	minus.disabled = not can_stage_sell(good_id) and staged_buy <= 0
-	minus.pressed.connect(stage_minus.bind(good_id))
-	row.add_child(minus)
 	return row
+
+
+func _action(text: String, disabled: bool, cb: Callable) -> Button:
+	var btn := Button.new()
+	btn.text = text
+	btn.disabled = disabled
+	btn.pressed.connect(cb)
+	return btn
+
+
+func _count(table: Dictionary) -> int:
+	var total := 0
+	for good_id in table.keys():
+		total += int(table[good_id])
+	return total
 
 
 func _nudge(table: Dictionary, good_id: String, delta: int) -> void:
