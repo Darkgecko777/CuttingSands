@@ -96,7 +96,7 @@ func _on_confirm_pressed() -> void:
 	if selected_house_id.is_empty():
 		return
 	GameState.start_new_run(selected_house_id)
-	get_tree().change_scene_to_file("res://scenes/map/field_shell.tscn")
+	get_tree().change_scene_to_file("res://scenes/main/city_hub.tscn")
 
 
 func _on_back_pressed() -> void:
