@@ -59,7 +59,15 @@ func sell_gain() -> int:
 
 
 func staged_count() -> int:
-	return _count(buy_draft) + _count(sell_draft)
+	return buy_count() + sell_count()
+
+
+func buy_count() -> int:
+	return _count(buy_draft)
+
+
+func sell_count() -> int:
+	return _count(sell_draft)
 
 
 func can_stage_buy(good_id: String) -> bool:
@@ -105,6 +113,16 @@ func stage_buy(good_id: String) -> void:
 	_notify()
 
 
+func clear_buys() -> void:
+	buy_draft.clear()
+	_notify()
+
+
+func clear_sells() -> void:
+	sell_draft.clear()
+	_notify()
+
+
 func commit_buys() -> void:
 	for good_id in buy_draft.keys():
 		GameState.buy(str(good_id), int(buy_draft[good_id]))
@@ -122,18 +140,13 @@ func commit_sells() -> void:
 func render(box: VBoxContainer) -> void:
 	for child in box.get_children():
 		child.queue_free()
-	var buy_n: int = _count(buy_draft)
-	var sell_n: int = _count(sell_draft)
+	var buy_n: int = buy_count()
+	var sell_n: int = sell_count()
 	var deal := Label.new()
 	deal.text = "Buy %d · %ds    Sell %d · %ds    Net %+d" % [buy_n, buy_cost(), sell_n, sell_gain(), sell_gain() - buy_cost()]
 	deal.add_theme_color_override("font_color", GHOST if buy_n + sell_n > 0 else MUTED)
 	deal.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	box.add_child(deal)
-	var actions := HBoxContainer.new()
-	actions.add_child(_action("Buy", buy_n <= 0, commit_buys))
-	actions.add_child(_action("Sell", sell_n <= 0, commit_sells))
-	actions.add_child(_action("Clear", buy_n + sell_n <= 0, clear))
-	box.add_child(actions)
 	var stock_title := Label.new()
 	stock_title.text = "Stall"
 	stock_title.add_theme_color_override("font_color", MUTED)
@@ -148,6 +161,10 @@ func render(box: VBoxContainer) -> void:
 	sell_grid.columns = 4
 	box.add_child(sell_grid)
 	WagonRackView.fill(sell_grid, sell_units(), on_sell_click)
+	var sell_actions := HBoxContainer.new()
+	sell_actions.add_child(_action("Sell", sell_n <= 0, commit_sells))
+	sell_actions.add_child(_action("Clear", sell_n <= 0, clear_sells))
+	box.add_child(sell_actions)
 
 
 func empty_note(box: VBoxContainer, text: String) -> void:
