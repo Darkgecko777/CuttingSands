@@ -29,7 +29,8 @@ func _on_continue_pressed() -> void:
 
 
 func _on_options_pressed() -> void:
-	print("Options pressed (not yet implemented)")
+	if has_node("/root/PauseMenu"):
+		PauseMenu.open()
 
 
 func _on_exit_pressed() -> void:
