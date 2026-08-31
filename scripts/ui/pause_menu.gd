@@ -1,6 +1,6 @@
 extends CanvasLayer
 
-## Global menu. Gear stays on every screen. Esc and the gear open the same overlay.
+## Global menu. Esc opens the overlay. Gear lives in the play-shell top bar.
 
 const FRONT_SCENES := [
 	"res://scenes/ui/title_screen.tscn",
@@ -23,6 +23,7 @@ func _ready() -> void:
 	layer = 100
 	visible = true
 	_set_menu_open(false)
+	gear_button.visible = false
 	gear_button.pressed.connect(_on_gear)
 	resume_button.pressed.connect(close)
 	options_button.pressed.connect(_on_options)
@@ -74,7 +75,7 @@ func _set_menu_open(is_open: bool) -> void:
 	menu_open = is_open
 	dimmer.visible = is_open
 	panel_root.visible = is_open
-	gear_button.visible = true
+	gear_button.visible = false
 
 
 func _on_options() -> void:
