@@ -14,11 +14,8 @@ const ZOOM_STEP := 0.1
 const GOLD := Color(0.92, 0.78, 0.45, 1)
 const MUTED := Color(0.75, 0.62, 0.42, 1)
 const INK := Color(0.85, 0.78, 0.66, 1)
-const RAIL_OPEN := 96.0
-const RAIL_SHUT := 44.0
-const CONTEXT_OPEN := 320.0
-
 enum Mode { WAGON, MAP, WORD }
+enum Yard { NONE, HOUSE, MARKET }
 
 @onready var house_label: Label = %HouseLabel
 @onready var place_label: Label = %PlaceLabel
@@ -41,10 +38,9 @@ enum Mode { WAGON, MAP, WORD }
 
 var _nodes: Dictionary = {}
 var _mode: int = Mode.WAGON
+var _yard: int = Yard.NONE
 var _selected_kind: String = "caravan"
 var _selected_id: String = GameState.PLAYER_CARAVAN_ID
-var _left_open := true
-var _right_open := true
 var _dragging := false
 var _drag_last := Vector2.ZERO
 var _cat_buttons: Dictionary = {}
@@ -82,8 +78,6 @@ func _wire_shell() -> void:
 	for mode in _cat_buttons.keys():
 		_cat_buttons[mode].toggle_mode = true
 		_cat_buttons[mode].pressed.connect(_set_mode.bind(mode))
-	%CollapseLeft.pressed.connect(_toggle_left)
-	%CollapseRight.pressed.connect(_toggle_right)
 	gear_button.pressed.connect(_on_gear)
 	var pause := get_node_or_null("/root/PauseMenu")
 	if pause and pause.has_node("%GearButton"):
@@ -94,22 +88,6 @@ func _on_gear() -> void:
 	var pause := get_node_or_null("/root/PauseMenu")
 	if pause and pause.has_method("open"):
 		pause.open()
-
-
-func _toggle_left() -> void:
-	_left_open = not _left_open
-	rail.custom_minimum_size.x = RAIL_OPEN if _left_open else RAIL_SHUT
-	for mode in _cat_buttons.keys():
-		_cat_buttons[mode].text = _mode_label(mode) if _left_open else _mode_label(mode).substr(0, 1)
-	%CollapseLeft.text = "<" if _left_open else ">"
-	_clamp_map()
-
-
-func _toggle_right() -> void:
-	_right_open = not _right_open
-	context_pane.visible = _right_open
-	context_pane.custom_minimum_size.x = CONTEXT_OPEN if _right_open else 0.0
-	_clamp_map()
 
 
 func _mode_label(mode: int) -> String:
@@ -246,13 +224,46 @@ func _clear_actions() -> void:
 
 func _show_caravan() -> void:
 	if GameState.is_on_road():
+		_yard = Yard.NONE
 		_show_transit_panel()
 		return
+	match _yard:
+		Yard.MARKET:
+			_show_market_yard()
+		Yard.HOUSE:
+			_show_house_yard()
+		_:
+			_show_city_yards()
+
+
+func _show_city_yards() -> void:
 	_clear_actions()
 	var city_id := GameState.caravan_city(GameState.PLAYER_CARAVAN_ID)
-	context_title.text = GameState.PLAYER_CARAVAN_NAME
-	context_meta.text = "At %s" % GameState.get_settlement_name(city_id)
+	context_title.text = GameState.get_settlement_name(city_id)
+	context_meta.text = "Yards"
+	context_body.text = "The house compound and the market are rooms of this stop. Roads leave the gate."
+	var house := Button.new()
+	house.text = "House %s" % GameState.get_house_name()
+	house.pressed.connect(_enter_yard.bind(Yard.HOUSE))
+	context_actions.add_child(house)
+	if GameState.settlement_has_market(city_id):
+		var market := Button.new()
+		market.text = "Market"
+		market.pressed.connect(_enter_yard.bind(Yard.MARKET))
+		context_actions.add_child(market)
+	_add_road_buttons(city_id)
+
+
+func _show_market_yard() -> void:
+	_clear_actions()
+	var city_id := GameState.caravan_city(GameState.PLAYER_CARAVAN_ID)
+	context_title.text = "Market"
+	context_meta.text = GameState.get_settlement_name(city_id)
 	context_body.text = "Temporary stall list. Draft buy/sell comes with icons."
+	var back := Button.new()
+	back.text = "Leave market"
+	back.pressed.connect(_enter_yard.bind(Yard.NONE))
+	context_actions.add_child(back)
 	if GameState.settlement_has_market(city_id):
 		_build_market()
 	else:
@@ -260,12 +271,38 @@ func _show_caravan() -> void:
 		note.text = "No market at this stop."
 		note.add_theme_color_override("font_color", MUTED)
 		market_box.add_child(note)
+
+
+func _show_house_yard() -> void:
+	_clear_actions()
+	context_title.text = "House %s" % GameState.get_house_name()
+	context_meta.text = GameState.get_settlement_name(GameState.caravan_city(GameState.PLAYER_CARAVAN_ID))
+	context_body.text = "The marked compound. Standing, letters, and house credit will live here."
+	var back := Button.new()
+	back.text = "Leave house"
+	back.pressed.connect(_enter_yard.bind(Yard.NONE))
+	context_actions.add_child(back)
+	var note := Label.new()
+	note.text = "House desk later."
+	note.add_theme_color_override("font_color", MUTED)
+	market_box.add_child(note)
+
+
+func _add_road_buttons(city_id: String) -> void:
 	for neighbor in GameState.neighbors_of(city_id):
 		var dest := str(neighbor)
 		var road := Button.new()
 		road.text = "Road to %s  ·  %d day" % [GameState.get_settlement_name(dest), GameState.hop_days(city_id, dest)]
 		road.pressed.connect(_on_travel.bind(dest))
 		context_actions.add_child(road)
+
+
+func _enter_yard(yard: int) -> void:
+	_yard = yard
+	if yard == Yard.MARKET:
+		_set_mode(Mode.WAGON)
+	else:
+		_refresh_context()
 
 
 func _show_settlement(city_id: String) -> void:
@@ -284,8 +321,8 @@ func _show_settlement(city_id: String) -> void:
 	var here := city_id == GameState.current_city_id
 	var travel := Button.new()
 	if here:
-		travel.text = "You are here"
-		travel.disabled = true
+		_show_city_yards()
+		return
 	elif GameState.is_adjacent(GameState.current_city_id, city_id):
 		travel.text = "Travel here  ·  %d day" % GameState.hop_days(GameState.current_city_id, city_id)
 		travel.pressed.connect(_on_travel.bind(city_id))
@@ -304,8 +341,7 @@ func _show_empty() -> void:
 
 func _on_travel(city_id: String) -> void:
 	if GameState.begin_hop(city_id):
-		if not _right_open:
-			_toggle_right()
+		_yard = Yard.NONE
 		_set_mode(Mode.MAP)
 		_play_hop(str(GameState.transit.get("from", "")), city_id)
 
@@ -638,6 +674,7 @@ func _skip_hop() -> void:
 func _complete_hop() -> void:
 	_wagon.visible = false
 	GameState.finish_hop()
+	_yard = Yard.NONE
 	_set_mode(Mode.WAGON)
 	_refresh_header()
 	_paint_markers()
