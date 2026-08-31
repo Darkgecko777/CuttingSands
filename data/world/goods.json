@@ -4,41 +4,65 @@
     "name": "Water",
     "base_price": 12,
     "producer": "sarns_rest",
-    "weight": 1
+    "producers": ["sarns_rest"],
+    "size": 3,
+    "mass": 4,
+    "category": "water",
+    "icon": "res://Assets/goods/water.png"
   },
   "grain": {
     "id": "grain",
     "name": "Grain",
     "base_price": 8,
     "producer": "veythar",
-    "weight": 1
+    "producers": ["veythar"],
+    "size": 2,
+    "mass": 1,
+    "category": "food",
+    "icon": "res://Assets/goods/grain.png"
   },
   "salt": {
     "id": "salt",
     "name": "Salt",
     "base_price": 15,
     "producer": "zamath",
-    "weight": 1
+    "producers": ["zamath"],
+    "size": 2,
+    "mass": 2,
+    "category": "material",
+    "icon": "res://Assets/goods/salt.png"
   },
   "iron": {
     "id": "iron",
     "name": "Iron",
     "base_price": 28,
     "producer": "kharun",
-    "weight": 1
+    "producers": ["kharun"],
+    "size": 2,
+    "mass": 5,
+    "category": "material",
+    "icon": "res://Assets/goods/iron.png"
   },
   "spices": {
     "id": "spices",
     "name": "Spices",
     "base_price": 35,
     "producer": "ghorath",
-    "weight": 1
+    "producers": ["ghorath"],
+    "size": 1,
+    "mass": 1,
+    "category": "craft",
+    "icon": "res://Assets/goods/spices.png"
   },
   "cloth": {
     "id": "cloth",
     "name": "Cloth",
     "base_price": 18,
     "producer": "thalor",
-    "weight": 1
+    "producers": ["thalor"],
+    "size": 1,
+    "mass": 1,
+    "category": "craft",
+    "icon": "res://Assets/goods/cloth.png"
   }
 }
