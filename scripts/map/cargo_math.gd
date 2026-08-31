@@ -1,6 +1,9 @@
 class_name CargoMath
 extends RefCounted
 
+const CELL_CAP := 24
+const MASS_CAP := 36
+
 
 static func size_of(good_id: String) -> int:
 	var rec: Dictionary = GameState.GOODS.get(good_id, {})
@@ -26,3 +29,11 @@ static func mass_in(table: Dictionary) -> int:
 	for good_id in table.keys():
 		used += mass_of(str(good_id)) * int(table[good_id])
 	return used
+
+
+static func cell_cap() -> int:
+	return CELL_CAP
+
+
+static func mass_cap() -> int:
+	return MASS_CAP
