@@ -28,9 +28,11 @@ var _selected_kind: String = "caravan"
 var _selected_id: String = GameState.PLAYER_CARAVAN_ID
 var _cat_buttons: Dictionary = {}
 var _map := MapWell.new()
+var _desk := MarketDesk.new()
 
 
 func _ready() -> void:
+	_desk.on_changed = _on_draft_changed
 	_map.setup(self, map_clip, map_layer, markers_layer)
 	_wire_shell()
 	_refresh_header()
@@ -74,7 +76,11 @@ func _refresh_header() -> void:
 		place_label.text = "Bound for %s" % GameState.get_settlement_name(str(GameState.transit.get("to", "")))
 	else:
 		place_label.text = GameState.get_city_name()
-	status_label.text = "Scrubstone %d    Cargo %d/%d" % [GameState.scrubstone, GameState.cargo_used(), GameState.caravan_capacity]
+	var net := _desk.sell_gain() - _desk.buy_cost()
+	if net != 0 or _desk.count(_desk.buy_draft) + _desk.count(_desk.sell_draft) > 0:
+		status_label.text = "Scrubstone %d (%+d)    Cargo %d/%d" % [GameState.scrubstone, net, _desk.preview_used(), GameState.caravan_capacity]
+	else:
+		status_label.text = "Scrubstone %d    Cargo %d/%d" % [GameState.scrubstone, GameState.cargo_used(), GameState.caravan_capacity]
 	day_label.text = "Day %d" % GameState.day
 	weather_pip.text = ""
 
@@ -86,7 +92,15 @@ func _on_economy(_arg: Variant = null) -> void:
 		_show_caravan()
 
 
+func _on_draft_changed() -> void:
+	_refresh_header()
+	_fill_rack()
+	if _yard == Yard.MARKET:
+		_show_market_yard()
+
+
 func _on_location_changed(_city_id: String) -> void:
+	_desk.clear()
 	_refresh_header()
 	_map.paint_markers()
 	_refresh_context()
@@ -114,7 +128,7 @@ func _set_mode(mode: int) -> void:
 
 
 func _fill_rack() -> void:
-	WagonRackView.fill(rack_grid)
+	WagonRackView.fill(rack_grid, _desk.buy_draft, _desk.sell_draft)
 
 
 func _show_word() -> void:
@@ -122,7 +136,7 @@ func _show_word() -> void:
 	context_title.text = "Word"
 	context_meta.text = "Nothing on the desk"
 	context_body.text = "Arrival slips and rumours will land here. A report will pull the well to its subject."
-	MarketDesk.empty_note(market_box, "No word yet")
+	_desk.empty_note(market_box, "No word yet")
 
 
 func _select_item(kind: String, item_id: String) -> void:
@@ -194,15 +208,15 @@ func _show_market_yard() -> void:
 	var city_id := GameState.caravan_city(GameState.PLAYER_CARAVAN_ID)
 	context_title.text = "Market"
 	context_meta.text = GameState.get_settlement_name(city_id)
-	context_body.text = "Temporary stall list. Draft buy/sell comes with icons."
+	context_body.text = "+ stages a buy, − stages a sell. Red is not real until Buy or Sell."
 	var back := Button.new()
 	back.text = "Leave market"
-	back.pressed.connect(_enter_yard.bind(Yard.NONE))
+	back.pressed.connect(_leave_market)
 	context_actions.add_child(back)
 	if GameState.settlement_has_market(city_id):
-		MarketDesk.build_stall(market_box, _on_buy, _on_sell)
+		_desk.render(market_box)
 	else:
-		MarketDesk.empty_note(market_box, "No market at this stop.")
+		_desk.empty_note(market_box, "No market at this stop.")
 
 
 func _show_house_yard() -> void:
@@ -214,7 +228,7 @@ func _show_house_yard() -> void:
 	back.text = "Leave house"
 	back.pressed.connect(_enter_yard.bind(Yard.NONE))
 	context_actions.add_child(back)
-	MarketDesk.empty_note(market_box, "House desk later.")
+	_desk.empty_note(market_box, "House desk later.")
 
 
 func _add_road_buttons(city_id: String) -> void:
@@ -227,11 +241,18 @@ func _add_road_buttons(city_id: String) -> void:
 
 
 func _enter_yard(yard: int) -> void:
+	if yard != Yard.MARKET:
+		_desk.clear()
 	_yard = yard
 	if yard == Yard.MARKET:
 		_set_mode(Mode.WAGON)
 	else:
 		_refresh_context()
+
+
+func _leave_market() -> void:
+	_desk.clear()
+	_enter_yard(Yard.NONE)
 
 
 func _show_settlement(city_id: String) -> void:
@@ -269,19 +290,10 @@ func _show_empty() -> void:
 
 func _on_travel(city_id: String) -> void:
 	if GameState.begin_hop(city_id):
+		_desk.clear()
 		_yard = Yard.NONE
 		_set_mode(Mode.MAP)
 		_map.play_hop(str(GameState.transit.get("from", "")), city_id)
-
-
-func _on_buy(good_id: String) -> void:
-	GameState.buy(good_id)
-	_show_caravan()
-
-
-func _on_sell(good_id: String) -> void:
-	GameState.sell(good_id)
-	_show_caravan()
 
 
 func _show_transit_panel() -> void:
