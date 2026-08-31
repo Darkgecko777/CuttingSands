@@ -11,10 +11,11 @@ const DATA_SETTLEMENTS := "res://data/world/settlements.json"
 const DATA_ROUTES := "res://data/world/routes.json"
 const STARTING_SCRUBSTONE := 500
 const STARTING_CAPACITY := 16
-const SELL_SPREAD := 0.8
-const PRICE_PER_HOP := 3
+const SELL_SPREAD := 0.85
+const PRICE_PER_HOP := 5
 const STOCK_TARGET := 16
 const STOCK_BASE := 20
+const PRODUCER_STOCK_BONUS := 12
 const PLAYER_CARAVAN_ID := "player_caravan"
 const PLAYER_CARAVAN_NAME := "House Caravan"
 const CARAVAN_SPEED := 1.0
@@ -36,6 +37,7 @@ var CITIES: Dictionary = {}
 var GOODS: Dictionary = {}
 var ROUTES: Dictionary = {}
 var caravans: Dictionary = {}
+var pending_travel_to: String = ""
 
 
 func _ready() -> void:
@@ -200,6 +202,11 @@ func is_adjacent(a: String, b: String) -> bool:
 	return b in ROUTES.get(a, [])
 
 
+func neighbors_of(city_id: String) -> Array:
+	var raw: Variant = ROUTES.get(city_id, [])
+	return raw if typeof(raw) == TYPE_ARRAY else []
+
+
 func hop_days(from_id: String, to_id: String) -> int:
 	if not is_adjacent(from_id, to_id):
 		return 0
@@ -227,6 +234,7 @@ func begin_hop_for(caravan_id: String, to_id: String) -> bool:
 	wagon["to"] = to_id
 	wagon["days"] = days
 	wagon["progress"] = 0.0
+	pending_travel_to = ""
 	if caravan_id == PLAYER_CARAVAN_ID:
 		_sync_player_views()
 	return true
@@ -269,7 +277,11 @@ func _seed_all_markets() -> void:
 			continue
 		var stocks: Dictionary = {}
 		for good_id in GOODS.keys():
-			stocks[good_id] = max(2, STOCK_BASE - hops_to_producer(city_id, good_id) * 3)
+			var hops := hops_to_producer(city_id, good_id)
+			var stock := STOCK_BASE - hops * 4
+			if hops == 0:
+				stock += PRODUCER_STOCK_BONUS
+			stocks[good_id] = max(2, stock)
 		market_stock[city_id] = stocks
 
 
@@ -280,6 +292,7 @@ func start_new_run(house_id: String) -> void:
 	scrubstone = STARTING_SCRUBSTONE
 	caravan_capacity = STARTING_CAPACITY
 	focused_caravan_id = PLAYER_CARAVAN_ID
+	pending_travel_to = ""
 	_reset_player_cargo()
 	_seed_all_markets()
 	day = 1
@@ -372,6 +385,14 @@ func get_good_name(good_id: String) -> String:
 	return str(GOODS.get(good_id, {}).get("name", good_id.capitalize()))
 
 
+func get_producer_id(good_id: String) -> String:
+	return str(GOODS.get(good_id, {}).get("producer", ""))
+
+
+func get_producer_name(good_id: String) -> String:
+	return get_settlement_name(get_producer_id(good_id))
+
+
 func get_market_stock(good_id: String, city_id: String = "") -> int:
 	var cid := current_city_id if city_id.is_empty() else city_id
 	return int(market_stock.get(cid, {}).get(good_id, 0))
@@ -384,7 +405,7 @@ func get_local_price(good_id: String, city_id: String = "") -> int:
 
 
 func get_sell_price(good_id: String, city_id: String = "") -> int:
-	return max(1, int(get_local_price(good_id, city_id) * SELL_SPREAD))
+	return max(1, int(round(get_local_price(good_id, city_id) * SELL_SPREAD)))
 
 
 func can_buy(good_id: String, amount: int = 1) -> bool:
