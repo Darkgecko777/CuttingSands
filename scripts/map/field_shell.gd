@@ -53,7 +53,6 @@ var _plate_size := REF_SIZE
 var _res_scale := 1.0
 var _content: Control
 
-
 func _ready() -> void:
 	_nodes = _load_nodes()
 	_fit_plate()
@@ -71,14 +70,3 @@ func _ready() -> void:
 	map_clip.gui_input.connect(_on_map_gui_input)
 	map_clip.resized.connect(_clamp_map)
 	_try_pending_travel()
-
-
-func _wire_shell() -> void:
-	_cat_buttons = {Mode.WAGON: %CatWagon, Mode.MAP: %CatMap, Mode.WORD: %CatWord}
-	for mode in _cat_buttons.keys():
-		_cat_buttons[mode].toggle_mode = true
-		_cat_buttons[mode].pressed.connect(_set_mode.bind(mode))
-	gear_button.pressed.connect(_on_gear)
-	var pause := get_node_or_null("/root/PauseMenu")
-	if pause and pause.has_node("%GearButton"):
-		pause.get_node("%GearButton").visible = false
