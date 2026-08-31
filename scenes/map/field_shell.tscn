@@ -106,11 +106,6 @@ theme_override_constants/margin_bottom = 8
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="CollapseLeft" type="Button" parent="Root/Body/Rail/RailMargin/RailVBox"]
-unique_name_in_owner = true
-layout_mode = 2
-text = "<"
-
 [node name="CatWagon" type="Button" parent="Root/Body/Rail/RailMargin/RailVBox"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(0, 52)
@@ -230,11 +225,6 @@ theme_override_constants/margin_bottom = 12
 [node name="ContextVBox" type="VBoxContainer" parent="Root/Body/ContextPane/ContextMargin"]
 layout_mode = 2
 theme_override_constants/separation = 8
-
-[node name="CollapseRight" type="Button" parent="Root/Body/ContextPane/ContextMargin/ContextVBox"]
-unique_name_in_owner = true
-layout_mode = 2
-text = ">"
 
 [node name="ContextTitle" type="Label" parent="Root/Body/ContextPane/ContextMargin/ContextVBox"]
 unique_name_in_owner = true
