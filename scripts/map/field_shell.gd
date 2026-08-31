@@ -77,10 +77,10 @@ func _refresh_header() -> void:
 	else:
 		place_label.text = GameState.get_city_name()
 	var net := _desk.sell_gain() - _desk.buy_cost()
-	if net != 0 or _desk.count(_desk.buy_draft) + _desk.count(_desk.sell_draft) > 0:
-		status_label.text = "Scrubstone %d (%+d)    Cargo %d/%d" % [GameState.scrubstone, net, _desk.preview_used(), GameState.caravan_capacity]
+	if _desk.staged_count() > 0:
+		status_label.text = "Scrubstone %d (%+d)    Cells %d/%d    Mass %d/%d" % [GameState.scrubstone, net, _desk.preview_cells(), GameState.caravan_capacity, _desk.preview_mass(), GameState.caravan_mass_capacity]
 	else:
-		status_label.text = "Scrubstone %d    Cargo %d/%d" % [GameState.scrubstone, GameState.cargo_used(), GameState.caravan_capacity]
+		status_label.text = "Scrubstone %d    Cells %d/%d    Mass %d/%d" % [GameState.scrubstone, GameState.cargo_used(), GameState.caravan_capacity, GameState.cargo_mass(), GameState.caravan_mass_capacity]
 	day_label.text = "Day %d" % GameState.day
 	weather_pip.text = ""
 
@@ -128,7 +128,7 @@ func _set_mode(mode: int) -> void:
 
 
 func _fill_rack() -> void:
-	WagonRackView.fill(rack_grid, _desk.buy_draft, _desk.sell_draft)
+	WagonRackView.fill(rack_grid, _desk.wagon_units(), _desk.on_wagon_click)
 
 
 func _show_word() -> void:
@@ -208,10 +208,10 @@ func _show_market_yard() -> void:
 	var city_id := GameState.caravan_city(GameState.PLAYER_CARAVAN_ID)
 	context_title.text = "Market"
 	context_meta.text = GameState.get_settlement_name(city_id)
-	context_body.text = "+ stages a buy, − stages a sell. Red is not real until Buy or Sell."
+	context_body.text = "Stall is a list. Click wagon to stage a sale. + stages a buy onto the rack."
 	var back := Button.new()
 	back.text = "Leave market"
-	back.pressed.connect(_leave_market)
+	back.pressed.connect(_enter_yard.bind(Yard.NONE))
 	context_actions.add_child(back)
 	if GameState.settlement_has_market(city_id):
 		_desk.render(market_box)
@@ -241,18 +241,16 @@ func _add_road_buttons(city_id: String) -> void:
 
 
 func _enter_yard(yard: int) -> void:
-	if yard != Yard.MARKET:
-		_desk.clear()
 	_yard = yard
+	if yard != Yard.MARKET:
+		_desk.buy_draft.clear()
+		_desk.sell_draft.clear()
+		_fill_rack()
+		_refresh_header()
 	if yard == Yard.MARKET:
 		_set_mode(Mode.WAGON)
 	else:
 		_refresh_context()
-
-
-func _leave_market() -> void:
-	_desk.clear()
-	_enter_yard(Yard.NONE)
 
 
 func _show_settlement(city_id: String) -> void:
@@ -290,7 +288,8 @@ func _show_empty() -> void:
 
 func _on_travel(city_id: String) -> void:
 	if GameState.begin_hop(city_id):
-		_desk.clear()
+		_desk.buy_draft.clear()
+		_desk.sell_draft.clear()
 		_yard = Yard.NONE
 		_set_mode(Mode.MAP)
 		_map.play_hop(str(GameState.transit.get("from", "")), city_id)
