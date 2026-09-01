@@ -8,6 +8,8 @@ extends RefCounted
 static func reset() -> void:
 	GameState.memory = {}
 	stamp_city(GameState.current_city_id)
+	var home := GameState.current_city_id
+	WordBook.add_slip(home, "", "House primer. %s stalls are an assay while you stand them." % WorldBook.settlement_name(home), 5, "assay")
 
 
 static func stamp_city(city_id: String) -> void:
