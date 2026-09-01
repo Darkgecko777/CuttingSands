@@ -16,12 +16,12 @@ static func load_world() -> void:
 		GameState.HOUSES = {"house_kharun": {"name": "House Kharûn", "home": "kharun", "short_desc": "Scrubstone, contracts, quiet leverage.", "available": true}}
 	if GameState.GOODS.is_empty():
 		GameState.GOODS = {
-			"water": {"name": "Water", "base_price": 12, "producer": "sarns_rest", "size": 3, "mass": 4},
-			"grain": {"name": "Grain", "base_price": 8, "producer": "veythar", "size": 2, "mass": 1},
-			"salt": {"name": "Salt", "base_price": 15, "producer": "zamath", "size": 2, "mass": 2},
-			"iron": {"name": "Iron", "base_price": 28, "producer": "kharun", "size": 2, "mass": 5},
-			"spices": {"name": "Spices", "base_price": 35, "producer": "ghorath", "size": 1, "mass": 1},
-			"cloth": {"name": "Cloth", "base_price": 18, "producer": "thalor", "size": 1, "mass": 1},
+			"water": {"name": "Water", "mark": "W", "base_price": 12, "producer": "sarns_rest", "size": 3, "mass": 4},
+			"speargrain": {"name": "Speargrain", "mark": "S", "base_price": 8, "producer": "veythar", "size": 2, "mass": 1},
+			"brineglass": {"name": "Brineglass", "mark": "B", "base_price": 28, "producer": "kharun", "size": 2, "mass": 4},
+			"witching_rods": {"name": "Witching rods", "mark": "R", "base_price": 32, "producer": "zamath", "size": 2, "mass": 2},
+			"highweave": {"name": "Highweave", "mark": "H", "base_price": 18, "producer": "thalor", "size": 1, "mass": 1},
+			"oath_wine": {"name": "Oath-wine", "mark": "O", "base_price": 35, "producer": "ghorath", "size": 1, "mass": 2},
 		}
 
 
@@ -95,6 +95,14 @@ static func house_name(house_id: String) -> String:
 
 static func good_name(good_id: String) -> String:
 	return str(GameState.GOODS.get(good_id, {}).get("name", good_id.capitalize()))
+
+
+static func good_mark(good_id: String) -> String:
+	var rec: Dictionary = GameState.GOODS.get(good_id, {})
+	var mark := str(rec.get("mark", "")).strip_edges()
+	if mark.is_empty():
+		mark = good_name(good_id).substr(0, 1)
+	return mark
 
 
 static func producer_id(good_id: String) -> String:
