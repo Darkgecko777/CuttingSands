@@ -198,6 +198,10 @@ func get_good_name(good_id: String) -> String:
 	return WorldBook.good_name(good_id)
 
 
+func get_good_mark(good_id: String) -> String:
+	return WorldBook.good_mark(good_id)
+
+
 func get_producer_id(good_id: String) -> String:
 	return WorldBook.producer_id(good_id)
 
