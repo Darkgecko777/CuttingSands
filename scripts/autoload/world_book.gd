@@ -73,6 +73,15 @@ static func settlement_has_market(city_id: String) -> bool:
 	return city_id != "sarns_rest"
 
 
+static func settlement_has_house_yard(city_id: String) -> bool:
+	var city: Dictionary = GameState.CITIES.get(city_id, {})
+	var seat := city.get("house", null)
+	if seat == null or str(seat).is_empty() or str(seat) == "null":
+		return false
+	var kind := str(city.get("type", ""))
+	return kind == "city" or kind == "stronghold"
+
+
 static func settlement_name(city_id: String) -> String:
 	return str(GameState.CITIES.get(city_id, {}).get("name", city_id.capitalize()))
 
