@@ -181,38 +181,32 @@ grow_vertical = 2
 
 [node name="RackMargin" type="MarginContainer" parent="Root/Body/Well/WagonRack"]
 layout_mode = 2
-theme_override_constants/margin_left = 24
-theme_override_constants/margin_top = 24
-theme_override_constants/margin_right = 24
-theme_override_constants/margin_bottom = 24
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 12
 
 [node name="RackVBox" type="VBoxContainer" parent="Root/Body/Well/WagonRack/RackMargin"]
 layout_mode = 2
-theme_override_constants/separation = 12
+theme_override_constants/separation = 8
 
 [node name="RackTitle" type="Label" parent="Root/Body/Well/WagonRack/RackMargin/RackVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.92, 0.78, 0.45, 1)
 theme_override_font_sizes/font_size = 20
-text = "Wagon rack  ·  placeholder cells"
-
-[node name="RackHint" type="Label" parent="Root/Body/Well/WagonRack/RackMargin/RackVBox"]
-layout_mode = 2
-theme_override_colors/font_color = Color(0.75, 0.62, 0.42, 1)
-text = "Icons and staged buy/sell come later. Cells show load only."
-autowrap_mode = 3
+text = "Wagon"
 
 [node name="RackGrid" type="GridContainer" parent="Root/Body/Well/WagonRack/RackMargin/RackVBox"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_vertical = 3
+size_flags_vertical = 0
 theme_override_constants/h_separation = 8
 theme_override_constants/v_separation = 8
 columns = 8
 
 [node name="ContextPane" type="PanelContainer" parent="Root/Body"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(320, 0)
+custom_minimum_size = Vector2(480, 0)
 layout_mode = 2
 
 [node name="ContextMargin" type="MarginContainer" parent="Root/Body/ContextPane"]
@@ -243,7 +237,7 @@ text = "At Kharûn"
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.78, 0.66, 1)
-text = "Cargo 5/16"
+text = ""
 autowrap_mode = 3
 
 [node name="ContextActions" type="VBoxContainer" parent="Root/Body/ContextPane/ContextMargin/ContextVBox"]
