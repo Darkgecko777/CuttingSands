@@ -95,6 +95,7 @@ func _on_card_pressed(house_id: String, card: Button) -> void:
 func _on_confirm_pressed() -> void:
 	if selected_house_id.is_empty():
 		return
+	AudioManager.fade_out_wind()
 	GameState.start_new_run(selected_house_id)
 	get_tree().change_scene_to_file("res://scenes/map/field_shell.tscn")
 

@@ -11,6 +11,7 @@ extends Control
 
 
 func _ready() -> void:
+	AudioManager.resume_wind()
 	new_game_button.pressed.connect(_on_new_game_pressed)
 	continue_button.pressed.connect(_on_continue_pressed)
 	options_button.pressed.connect(_on_options_pressed)
