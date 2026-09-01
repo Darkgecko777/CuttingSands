@@ -52,8 +52,6 @@ class Layer:
 var _layers: Array[Layer] = []
 var _noise: FastNoiseLite
 var _time: float = 0.0
-var _sim_ms: float = 0.0
-var _total_count: int = 0
 var _shimmer_noise: FastNoiseLite
 var _grain_tex: ImageTexture
 
@@ -63,8 +61,6 @@ var _macro_from: float = 0.0
 var _macro_hold_left: float = 0.0
 var _macro_lerp_t: float = 1.0
 var _micro_noise: FastNoiseLite
-
-@onready var _perf_label: Label = get_parent().get_node_or_null("SandPerfLabel") as Label
 
 
 func _ready() -> void:
@@ -126,7 +122,6 @@ func _ready() -> void:
 	}))
 
 	for layer in _layers:
-		_total_count += layer.count
 		_init_layer_particles(layer)
 		_setup_layer_mesh(layer)
 	set_process(true)
@@ -241,15 +236,11 @@ func _write_instance(L: Layer, i: int) -> void:
 
 
 func _process(delta: float) -> void:
-	var t0 := Time.get_ticks_usec()
 	_time += delta
 	_update_macro(delta)
 	var gust := _gust_strength(_time)
 	for layer in _layers:
 		_simulate_layer(layer, delta, gust)
-	var t1 := Time.get_ticks_usec()
-	_sim_ms = (t1 - t0) / 1000.0
-	_update_perf_label(gust)
 	AudioManager.set_wind_intensity(gust)
 
 
@@ -351,9 +342,3 @@ func _update_macro(delta: float) -> void:
 func _gust_strength(t: float) -> float:
 	var micro := _micro_noise.get_noise_1d(t * 8.0)
 	return clampf(_macro_current * (1.0 + micro * MICRO_AMP), 0.0, 1.0)
-
-
-func _update_perf_label(gust: float) -> void:
-	if _perf_label == null: return
-	_perf_label.text = "sand: %d (5 layers) | sim: %.2f ms | fps: %d | gust: %.2f" % [
-		_total_count, _sim_ms, Engine.get_frames_per_second(), gust]
