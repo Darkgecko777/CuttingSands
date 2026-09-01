@@ -135,8 +135,8 @@ func _fill_rack() -> void:
 func _show_word() -> void:
 	_clear_actions()
 	context_title.text = "Word"
-	context_meta.text = "Nothing on the desk"
-	context_body.text = "Arrival slips and rumours will land here. A report will pull the well to its subject."
+	context_meta.text = ""
+	context_body.text = ""
 	_desk.empty_note(market_box, "No word yet")
 
 
@@ -191,7 +191,7 @@ func _show_city_yards() -> void:
 	var city_id := GameState.caravan_city(GameState.PLAYER_CARAVAN_ID)
 	context_title.text = GameState.get_settlement_name(city_id)
 	context_meta.text = "Yards"
-	context_body.text = "The house compound and the market are rooms of this stop. Roads leave the gate."
+	context_body.text = GameState.get_city_desc()
 	var house := Button.new()
 	house.text = "House %s" % GameState.get_house_name()
 	house.pressed.connect(_enter_yard.bind(Yard.HOUSE))
@@ -209,7 +209,7 @@ func _show_market_yard() -> void:
 	var city_id := GameState.caravan_city(GameState.PLAYER_CARAVAN_ID)
 	context_title.text = "Market"
 	context_meta.text = GameState.get_settlement_name(city_id)
-	context_body.text = "Stall is a list. Click wagon to stage a sale. + stages a buy onto the rack."
+	context_body.text = ""
 	var back := Button.new()
 	back.text = "Leave market"
 	back.pressed.connect(_enter_yard.bind(Yard.NONE))
@@ -224,12 +224,11 @@ func _show_house_yard() -> void:
 	_clear_actions()
 	context_title.text = "House %s" % GameState.get_house_name()
 	context_meta.text = GameState.get_settlement_name(GameState.caravan_city(GameState.PLAYER_CARAVAN_ID))
-	context_body.text = "The marked compound. Standing, letters, and house credit will live here."
+	context_body.text = ""
 	var back := Button.new()
 	back.text = "Leave house"
 	back.pressed.connect(_enter_yard.bind(Yard.NONE))
 	context_actions.add_child(back)
-	_desk.empty_note(market_box, "House desk later.")
 
 
 func _add_road_buttons(city_id: String) -> void:
@@ -284,7 +283,7 @@ func _show_empty() -> void:
 	_clear_actions()
 	context_title.text = _mode_label(_mode)
 	context_meta.text = ""
-	context_body.text = "Nothing selected."
+	context_body.text = ""
 
 
 func _on_travel(city_id: String) -> void:
