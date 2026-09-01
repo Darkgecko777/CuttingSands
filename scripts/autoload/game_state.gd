@@ -26,6 +26,7 @@ var caravan_mass_capacity: int = STARTING_MASS
 var day: int = 1
 var agents: Array = []
 var reports: Array = []
+var memory: Dictionary = {}
 var LINK_DAYS: Dictionary = {}
 var transit: Dictionary = {}
 var inventory: Dictionary = {}
@@ -43,6 +44,8 @@ func _ready() -> void:
 	CargoHold.reset_player()
 	MarketBook.seed_all()
 	CaravanLog.spawn_player(current_city_id)
+	WordBook.reset()
+	SightBook.reset()
 
 
 func start_new_run(house_id: String) -> void:
@@ -58,8 +61,9 @@ func start_new_run(house_id: String) -> void:
 	MarketBook.seed_all()
 	day = 1
 	agents.clear()
-	reports.clear()
+	WordBook.reset()
 	CaravanLog.spawn_player(current_city_id)
+	SightBook.reset()
 	scrubstone_changed.emit(scrubstone)
 	inventory_changed.emit()
 	location_changed.emit(current_city_id)

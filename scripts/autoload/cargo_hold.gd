@@ -46,6 +46,7 @@ static func buy(good_id: String, amount: int = 1) -> bool:
 	GameState.scrubstone -= GameState.get_local_price(good_id) * amount
 	GameState.inventory[good_id] = GameState.inventory.get(good_id, 0) + amount
 	GameState.market_stock[GameState.current_city_id][good_id] = GameState.get_market_stock(good_id) - amount
+	SightBook.stamp_city(GameState.current_city_id)
 	GameState.scrubstone_changed.emit(GameState.scrubstone)
 	GameState.inventory_changed.emit()
 	return true
@@ -63,6 +64,7 @@ static func sell(good_id: String, amount: int = 1) -> bool:
 	if not GameState.market_stock.has(GameState.current_city_id):
 		GameState.market_stock[GameState.current_city_id] = {}
 	GameState.market_stock[GameState.current_city_id][good_id] = GameState.get_market_stock(good_id) + amount
+	SightBook.stamp_city(GameState.current_city_id)
 	GameState.scrubstone_changed.emit(GameState.scrubstone)
 	GameState.inventory_changed.emit()
 	return true

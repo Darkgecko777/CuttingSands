@@ -50,7 +50,7 @@ static func mint_arrival(city_id: String, seen_before: bool, prior: Dictionary) 
 		if not old_band.is_empty() and old_band != now_band:
 			moved.append(gid)
 	if moved.is_empty():
-		add_slip(city_id, "", "Quiet since you were last here." % [] if false else "Quiet since you were last here.", 5, "assay")
+		add_slip(city_id, "", "Quiet since you were last here.", 5, "assay")
 		return
 	if moved.size() == 1:
 		var gid: String = moved[0]

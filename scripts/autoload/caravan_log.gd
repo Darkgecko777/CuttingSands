@@ -69,6 +69,8 @@ static func begin_hop_for(caravan_id: String, to_id: String) -> bool:
 	var days := hop_days(from_id, to_id)
 	if days <= 0:
 		return false
+	if caravan_id == GameState.PLAYER_CARAVAN_ID:
+		SightBook.on_depart(from_id)
 	wagon["status"] = "transit"
 	wagon["from"] = from_id
 	wagon["to"] = to_id
@@ -95,5 +97,7 @@ static func finish_hop_for(caravan_id: String) -> bool:
 	GameState.day += days
 	if caravan_id == GameState.PLAYER_CARAVAN_ID:
 		sync_player()
-		return GameState.travel_to(to_id)
+		var ok := GameState.travel_to(to_id)
+		SightBook.on_arrival(to_id)
+		return ok
 	return GameState.CITIES.has(to_id)
