@@ -8,8 +8,8 @@ static func empty_cargo() -> Dictionary:
 		cargo[good_id] = 0
 	if cargo.has("water"):
 		cargo["water"] = 2
-	if cargo.has("grain"):
-		cargo["grain"] = 3
+	if cargo.has("speargrain"):
+		cargo["speargrain"] = 3
 	return cargo
 
 
