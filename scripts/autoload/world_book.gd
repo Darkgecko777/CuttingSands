@@ -75,8 +75,11 @@ static func settlement_has_market(city_id: String) -> bool:
 
 static func settlement_has_house_yard(city_id: String) -> bool:
 	var city: Dictionary = GameState.CITIES.get(city_id, {})
-	var seat := str(city.get("house", ""))
-	if seat.is_empty() or seat == "null":
+	var raw: Variant = city.get("house", "")
+	if raw == null:
+		return false
+	var seat := str(raw)
+	if seat.is_empty() or seat == "null" or seat == "<null>":
 		return false
 	var kind := str(city.get("type", ""))
 	return kind == "city" or kind == "stronghold"
