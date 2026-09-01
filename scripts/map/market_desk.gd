@@ -8,6 +8,7 @@ const GOLD := Color(0.92, 0.78, 0.45, 1)
 var buy_draft: Dictionary = {}
 var sell_draft: Dictionary = {}
 var on_changed: Callable
+var on_inspect: Callable
 
 
 func clear() -> void:
@@ -108,6 +109,7 @@ func on_sell_click(good_id: String, _ghost: bool) -> void:
 
 
 func stage_buy(good_id: String) -> void:
+	_inspect(good_id)
 	if not can_stage_buy(good_id):
 		return
 	_nudge(buy_draft, good_id, 1)
@@ -161,7 +163,7 @@ func render(box: VBoxContainer) -> void:
 	var sell_grid := GridContainer.new()
 	sell_grid.columns = 4
 	box.add_child(sell_grid)
-	WagonRackView.fill(sell_grid, sell_units(), on_sell_click)
+	WagonRackView.fill(sell_grid, sell_units(), on_sell_click, on_inspect)
 	var sell_actions := HBoxContainer.new()
 	sell_actions.add_child(DealStyle.button("Sell", sell_n <= 0, commit_sells))
 	sell_actions.add_child(DealStyle.button("Clear", sell_n <= 0, clear_sells))
@@ -184,8 +186,15 @@ func _stock_row(good_id: String) -> Button:
 	row.disabled = not can_stage_buy(good_id)
 	row.add_theme_color_override("font_color", GHOST if staged_buy > 0 else GOLD)
 	row.pressed.connect(stage_buy.bind(good_id))
-	row.tooltip_text = "Click to stage one onto the wagon"
+	row.tooltip_text = GoodCopy.stall_tooltip(good_id)
+	if on_inspect.is_valid():
+		row.mouse_entered.connect(on_inspect.bind(good_id))
 	return row
+
+
+func _inspect(good_id: String) -> void:
+	if on_inspect.is_valid():
+		on_inspect.call(good_id)
 
 
 func _count(table: Dictionary) -> int:
