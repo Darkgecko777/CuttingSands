@@ -8,6 +8,7 @@
     "size": 3,
     "mass": 4,
     "category": "water",
+    "blurb": "Cistern loads from Sarn's Rest. Stacks poorly. The road drinks it.",
     "icon": "res://Assets/goods/water.png"
   },
   "grain": {
@@ -19,6 +20,7 @@
     "size": 2,
     "mass": 1,
     "category": "food",
+    "blurb": "Veythar staple. Cheap near the fields, dear where the wells are thin.",
     "icon": "res://Assets/goods/grain.png"
   },
   "salt": {
@@ -30,6 +32,7 @@
     "size": 2,
     "mass": 2,
     "category": "material",
+    "blurb": "Zamath cut. Preserves and pays. Heavy for the purse it brings.",
     "icon": "res://Assets/goods/salt.png"
   },
   "iron": {
@@ -41,6 +44,7 @@
     "size": 2,
     "mass": 5,
     "category": "material",
+    "blurb": "Kharûn forge stock. Mass first, profit second.",
     "icon": "res://Assets/goods/iron.png"
   },
   "spices": {
@@ -52,6 +56,7 @@
     "size": 1,
     "mass": 1,
     "category": "craft",
+    "blurb": "Ghorath packs. Light, loud, and watched on the road.",
     "icon": "res://Assets/goods/spices.png"
   },
   "cloth": {
@@ -63,6 +68,7 @@
     "size": 1,
     "mass": 1,
     "category": "craft",
+    "blurb": "Thalor weave. Travels clean if the dust does not claim it.",
     "icon": "res://Assets/goods/cloth.png"
   }
 }
