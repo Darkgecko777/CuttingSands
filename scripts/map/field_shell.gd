@@ -91,7 +91,12 @@ func _refresh_header() -> void:
 	else:
 		status_label.text = "Scrubstone %d    Cells %d/%d    Mass %d/%d" % [GameState.scrubstone, GameState.cargo_used(), GameState.caravan_capacity, GameState.cargo_mass(), GameState.caravan_mass_capacity]
 	day_label.text = "Day %d" % GameState.day
-	weather_pip.text = ""
+	if GameState.is_on_road():
+		var dest := str(GameState.transit.get("to", ""))
+		var origin := str(GameState.transit.get("from", GameState.current_city_id))
+		weather_pip.text = RoadPressure.weather_term(origin, dest) if RoadPressure.weather(origin, dest) > 0 else ""
+	else:
+		weather_pip.text = ""
 	var title := _rack_title()
 	if title:
 		title.text = ZoneStyle.rack_title(_yard, GameState.is_on_road())
@@ -226,6 +231,9 @@ func _show_city_yards() -> void:
 	context_title.text = GameState.get_settlement_name(city_id)
 	context_meta.text = "Yard"
 	context_body.text = GameState.get_city_desc()
+	if not GameState.road_note.is_empty():
+		context_body.text = GameState.road_note + "\n\n" + context_body.text
+		GameState.road_note = ""
 	if WorldBook.settlement_has_house_yard(city_id):
 		var house := Button.new()
 		house.text = "House %s" % GameState.get_house_name()
@@ -275,7 +283,7 @@ func _add_road_buttons(city_id: String) -> void:
 	for neighbor in GameState.neighbors_of(city_id):
 		var dest := str(neighbor)
 		var road := Button.new()
-		road.text = "Road to %s  ·  %d day" % [GameState.get_settlement_name(dest), GameState.hop_days(city_id, dest)]
+		road.text = "Road to %s  ·  %d day  ·  %s" % [GameState.get_settlement_name(dest), GameState.hop_days(city_id, dest), RoadPressure.route_words(city_id, dest)]
 		road.pressed.connect(_on_travel.bind(dest))
 		context_actions.add_child(road)
 
@@ -311,7 +319,7 @@ func _show_settlement(city_id: String) -> void:
 		return
 	var travel := Button.new()
 	if GameState.is_adjacent(GameState.current_city_id, city_id):
-		travel.text = "Travel here  ·  %d day" % GameState.hop_days(GameState.current_city_id, city_id)
+		travel.text = "Travel here  ·  %d day  ·  %s" % [GameState.hop_days(GameState.current_city_id, city_id), RoadPressure.route_words(GameState.current_city_id, city_id)]
 		travel.pressed.connect(_on_travel.bind(city_id))
 	else:
 		travel.text = "No direct road"
@@ -340,7 +348,8 @@ func _show_transit_panel() -> void:
 	var dest := str(GameState.transit.get("to", ""))
 	context_title.text = GameState.PLAYER_CARAVAN_NAME
 	context_meta.text = "On the road"
-	context_body.text = "Bound for %s  ·  %d day" % [GameState.get_settlement_name(dest), int(GameState.transit.get("days", 1))]
+	var origin := str(GameState.transit.get("from", GameState.current_city_id))
+	context_body.text = "Bound for %s  ·  %d day  ·  %s" % [GameState.get_settlement_name(dest), int(GameState.transit.get("days", 1)), RoadPressure.route_words(origin, dest)]
 	var skip := Button.new()
 	skip.text = "Skip travel"
 	skip.pressed.connect(_map.skip_hop)
