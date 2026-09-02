@@ -104,20 +104,20 @@ static func _take_tithe() -> String:
 	if take_coin and CargoHold.cells() > 0:
 		take_coin = randf() < 0.5
 	if take_coin and purse > 0:
-		var cut := max(1, int(floor(float(purse) * TITHE_RATE)))
+		var cut: int = maxi(1, int(floor(float(purse) * TITHE_RATE)))
 		cut = mini(cut, purse)
 		GameState.scrubstone -= cut
 		GameState.scrubstone_changed.emit(GameState.scrubstone)
 		return "They took %d scrubstone." % cut
-	var choices: Array = []
+	var choices: Array[String] = []
 	for good_id in GameState.inventory.keys():
 		if int(GameState.inventory[good_id]) > 0:
 			choices.append(str(good_id))
 	if choices.is_empty():
 		return ""
-	var good_id := str(choices[randi() % choices.size()])
-	var have := int(GameState.inventory[good_id])
-	var cut_u := max(1, int(floor(float(have) * TITHE_RATE)))
+	var good_id: String = choices[randi() % choices.size()]
+	var have: int = int(GameState.inventory[good_id])
+	var cut_u: int = maxi(1, int(floor(float(have) * TITHE_RATE)))
 	cut_u = mini(cut_u, have)
 	GameState.inventory[good_id] = have - cut_u
 	GameState.inventory_changed.emit()

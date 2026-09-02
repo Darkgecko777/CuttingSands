@@ -58,7 +58,8 @@ static func neighbors_of(city_id: String) -> Array:
 static func hop_days(from_id: String, to_id: String) -> int:
 	if not is_adjacent(from_id, to_id):
 		return 0
-	var base := max(1, int(ceil(float(GameState.LINK_DAYS.get(GameState._link_key(from_id, to_id), 1)) / max(GameState.CARAVAN_SPEED, 0.1))))
+	var raw_days: int = int(GameState.LINK_DAYS.get(GameState._link_key(from_id, to_id), 1))
+	var base: int = maxi(1, int(ceil(float(raw_days) / max(GameState.CARAVAN_SPEED, 0.1))))
 	return base + RoadPressure.extra_days(from_id, to_id)
 
 
