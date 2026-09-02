@@ -28,6 +28,9 @@ var agents: Array = []
 var reports: Array = []
 var memory: Dictionary = {}
 var LINK_DAYS: Dictionary = {}
+var LINK_WEATHER: Dictionary = {}
+var LINK_HEAT: Dictionary = {}
+var road_note: String = ""
 var transit: Dictionary = {}
 var inventory: Dictionary = {}
 var market_stock: Dictionary = {}
@@ -57,6 +60,8 @@ func start_new_run(house_id: String) -> void:
 	caravan_mass_capacity = STARTING_MASS
 	focused_caravan_id = PLAYER_CARAVAN_ID
 	pending_travel_to = ""
+	road_note = ""
+	RoadPressure.seed_pressures()
 	CargoHold.reset_player()
 	MarketBook.seed_all()
 	day = 1

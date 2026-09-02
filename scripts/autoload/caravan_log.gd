@@ -58,7 +58,8 @@ static func neighbors_of(city_id: String) -> Array:
 static func hop_days(from_id: String, to_id: String) -> int:
 	if not is_adjacent(from_id, to_id):
 		return 0
-	return max(1, int(ceil(float(GameState.LINK_DAYS.get(GameState._link_key(from_id, to_id), 1)) / max(GameState.CARAVAN_SPEED, 0.1))))
+	var base := max(1, int(ceil(float(GameState.LINK_DAYS.get(GameState._link_key(from_id, to_id), 1)) / max(GameState.CARAVAN_SPEED, 0.1))))
+	return base + RoadPressure.extra_days(from_id, to_id)
 
 
 static func begin_hop_for(caravan_id: String, to_id: String) -> bool:
@@ -87,6 +88,7 @@ static func finish_hop_for(caravan_id: String) -> bool:
 	if wagon.is_empty() or str(wagon.get("status", "idle")) != "transit":
 		return false
 	var to_id := str(wagon.get("to", ""))
+	var from_id := str(wagon.get("from", ""))
 	var days := int(wagon.get("days", 1))
 	wagon["status"] = "idle"
 	wagon["at"] = to_id
@@ -97,6 +99,7 @@ static func finish_hop_for(caravan_id: String) -> bool:
 	GameState.day += days
 	if caravan_id == GameState.PLAYER_CARAVAN_ID:
 		sync_player()
+		RoadPressure.resolve_hop(from_id, to_id)
 		var ok := GameState.travel_to(to_id)
 		SightBook.on_arrival(to_id)
 		return ok

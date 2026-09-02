@@ -12,6 +12,7 @@ static func load_world() -> void:
 	GameState.GOODS = _json_dict(DATA_GOODS)
 	GameState.CITIES = _json_dict(DATA_SETTLEMENTS)
 	_load_routes(_json_dict(DATA_ROUTES).get("links", []))
+	RoadPressure.seed_pressures()
 	if GameState.HOUSES.is_empty():
 		GameState.HOUSES = {"house_kharun": {"name": "House Kharûn", "home": "kharun", "short_desc": "Scrubstone, contracts, quiet leverage.", "available": true}}
 	if GameState.GOODS.is_empty():
