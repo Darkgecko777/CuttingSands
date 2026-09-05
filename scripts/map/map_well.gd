@@ -274,6 +274,30 @@ func caravan_map_pos(caravan_id: String) -> Vector2:
 	return _sample_route(str(record.get("from", "")), str(record.get("to", "")), float(record.get("progress", 0.0)))
 
 
+func pause_watch() -> void:
+	if hop_tween and hop_tween.is_valid() and hop_tween.is_running():
+		hop_tween.pause()
+
+
+func resume_watch() -> void:
+	if wagon:
+		wagon.visible = GameState.is_on_road()
+	if GameState.is_on_road():
+		focus_watch()
+	if hop_tween and hop_tween.is_valid() and not hop_tween.is_running():
+		hop_tween.play()
+
+
+func focus_watch() -> void:
+	zoom = ZOOM_DEFAULT
+	var point := caravan_map_pos(GameState.PLAYER_CARAVAN_ID)
+	var view := map_clip.size if map_clip.size.x >= 8.0 else VIEW_SIZE
+	var cam := _cam_scale()
+	map_layer.scale = Vector2(cam, cam)
+	map_layer.position = Vector2(view.x * 0.5, view.y * 0.5) - point * cam
+	clamp_map()
+
+
 func play_hop(from_id: String, to_id: String) -> void:
 	if hop_tween:
 		hop_tween.kill()
