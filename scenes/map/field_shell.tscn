@@ -236,7 +236,7 @@ size_flags_horizontal = 3
 theme_override_constants/separation = 4
 
 [node name="BottomBar" type="PanelContainer" parent="Root"]
-custom_minimum_size = Vector2(0, 64)
+custom_minimum_size = Vector2(0, 72)
 layout_mode = 2
 
 [node name="BottomMargin" type="MarginContainer" parent="Root/BottomBar"]
@@ -246,7 +246,32 @@ theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 8
 
-[node name="ContextActions" type="HBoxContainer" parent="Root/BottomBar/BottomMargin"]
+[node name="BottomRow" type="HBoxContainer" parent="Root/BottomBar/BottomMargin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="PlaceBanner" type="Button" parent="Root/BottomBar/BottomMargin/BottomRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 48)
+layout_mode = 2
+text = "Kharûn"
+
+[node name="HouseBtn" type="Button" parent="Root/BottomBar/BottomMargin/BottomRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 48)
+layout_mode = 2
+toggle_mode = true
+text = "House"
+
+[node name="MarketBtn" type="Button" parent="Root/BottomBar/BottomMargin/BottomRow"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(140, 48)
+layout_mode = 2
+toggle_mode = true
+text = "Market"
+
+[node name="ContextActions" type="HBoxContainer" parent="Root/BottomBar/BottomMargin/BottomRow"]
 unique_name_in_owner = true
 layout_mode = 2
+size_flags_horizontal = 3
 theme_override_constants/separation = 8
