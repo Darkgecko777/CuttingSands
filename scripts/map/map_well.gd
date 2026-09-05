@@ -97,6 +97,16 @@ func center_on_city(city_id: String) -> void:
 	clamp_map()
 
 
+func show_atlas() -> void:
+	var view := map_clip.size if map_clip.size.x >= 8.0 else VIEW_SIZE
+	if plate_size.x < 1.0 or plate_size.y < 1.0:
+		clamp_map()
+		return
+	var fit := minf(view.x / plate_size.x, view.y / plate_size.y)
+	zoom = clampf(fit * maxf(res_scale, 0.01), 0.2, ZOOM_MAX)
+	apply_zoom(Vector2.ZERO, false)
+
+
 func clamp_map() -> void:
 	var view := map_clip.size if map_clip.size.x >= 8.0 else VIEW_SIZE
 	var pos := map_layer.position
