@@ -13,7 +13,7 @@ func render(box: VBoxContainer, title: Label, meta: Label, body: Label) -> void:
 		child.queue_free()
 	var slips: Array = WordBook.all_slips()
 	if slips.is_empty():
-		title.text = "Word"
+		title.text = "Rumours"
 		meta.text = ""
 		body.text = "No word yet. Walk a stall. Arrival notes collect here."
 		var note := Label.new()
@@ -35,15 +35,15 @@ func render(box: VBoxContainer, title: Label, meta: Label, body: Label) -> void:
 func _paint_selected(title: Label, meta: Label, body: Label) -> void:
 	var rec := WordBook.slip(selected_id)
 	if rec.is_empty():
-		title.text = "Word"
+		title.text = "Rumours"
 		meta.text = ""
 		body.text = ""
 		return
 	var city_id := str(rec.get("city_id", ""))
 	var good_id := str(rec.get("good_id", ""))
-	title.text = WorldBook.settlement_name(city_id) if not city_id.is_empty() else "Word"
+	title.text = WorldBook.settlement_name(city_id) if not city_id.is_empty() else "Rumours"
 	var bits: PackedStringArray = [WordBook.stars_text(int(rec.get("stars", 1)))]
-	bits.append(WordBook.age_text(int(rec.get("minted_day", GameState.day))))
+	bits.append(WordBook.age_text(int(rec.get("minted_day", GameState.day)))]
 	if not good_id.is_empty():
 		bits.append(WorldBook.good_name(good_id))
 	meta.text = "  ·  ".join(bits)
