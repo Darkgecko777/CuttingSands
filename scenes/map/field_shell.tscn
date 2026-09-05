@@ -77,7 +77,7 @@ unique_name_in_owner = true
 custom_minimum_size = Vector2(88, 36)
 layout_mode = 2
 toggle_mode = true
-text = "Wagon"
+text = "Cargo"
 
 [node name="CatMap" type="Button" parent="TopBar/TopMargin/TopRow"]
 unique_name_in_owner = true
@@ -152,6 +152,28 @@ layout_mode = 0
 offset_right = 1920.0
 offset_bottom = 1080.0
 mouse_filter = 2
+
+[node name="LocationWell" type="PanelContainer" parent="Body/Well"]
+unique_name_in_owner = true
+visible = false
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+
+[node name="LocMargin" type="MarginContainer" parent="Body/Well/LocationWell"]
+layout_mode = 2
+theme_override_constants/margin_left = 16
+theme_override_constants/margin_top = 12
+theme_override_constants/margin_right = 16
+theme_override_constants/margin_bottom = 12
+
+[node name="RouteBox" type="VBoxContainer" parent="Body/Well/LocationWell/LocMargin"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_constants/separation = 8
 
 [node name="WagonRack" type="PanelContainer" parent="Body/Well"]
 unique_name_in_owner = true
@@ -309,6 +331,14 @@ layout_mode = 2
 size_flags_vertical = 3
 toggle_mode = true
 text = "Market"
+
+[node name="OutyardBtn" type="Button" parent="BottomBar/BottomRow/BottomStack/OptionsBand"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 80)
+layout_mode = 2
+size_flags_vertical = 3
+toggle_mode = true
+text = "Outyard"
 
 [node name="ContextActions" type="HBoxContainer" parent="BottomBar/BottomRow/BottomStack/OptionsBand"]
 unique_name_in_owner = true
