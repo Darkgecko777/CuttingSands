@@ -22,103 +22,103 @@ grow_vertical = 2
 mouse_filter = 2
 color = Color(0.08, 0.05, 0.03, 1)
 
-[node name="Root" type="VBoxContainer" parent="."]
+[node name="TopBar" type="PanelContainer" parent="."]
 layout_mode = 1
-anchors_preset = 15
+anchors_preset = 10
 anchor_right = 1.0
-anchor_bottom = 1.0
+offset_bottom = 56.0
 grow_horizontal = 2
-grow_vertical = 2
-theme_override_constants/separation = 0
 
-[node name="TopBar" type="PanelContainer" parent="Root"]
-custom_minimum_size = Vector2(0, 56)
-layout_mode = 2
-
-[node name="TopMargin" type="MarginContainer" parent="Root/TopBar"]
+[node name="TopMargin" type="MarginContainer" parent="TopBar"]
 layout_mode = 2
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 8
 
-[node name="TopRow" type="HBoxContainer" parent="Root/TopBar/TopMargin"]
+[node name="TopRow" type="HBoxContainer" parent="TopBar/TopMargin"]
 layout_mode = 2
 theme_override_constants/separation = 16
 
-[node name="HouseLabel" type="Label" parent="Root/TopBar/TopMargin/TopRow"]
+[node name="HouseLabel" type="Label" parent="TopBar/TopMargin/TopRow"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.92, 0.78, 0.45, 1)
 theme_override_font_sizes/font_size = 20
 text = "House"
 
-[node name="PlaceLabel" type="Label" parent="Root/TopBar/TopMargin/TopRow"]
+[node name="PlaceLabel" type="Label" parent="TopBar/TopMargin/TopRow"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.78, 0.66, 1)
 text = "Kharûn"
 
-[node name="DayLabel" type="Label" parent="Root/TopBar/TopMargin/TopRow"]
+[node name="DayLabel" type="Label" parent="TopBar/TopMargin/TopRow"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.75, 0.62, 0.42, 1)
 text = "Day 1"
 
-[node name="StatusLabel" type="Label" parent="Root/TopBar/TopMargin/TopRow"]
+[node name="StatusLabel" type="Label" parent="TopBar/TopMargin/TopRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_colors/font_color = Color(0.85, 0.78, 0.66, 1)
 text = "Scrubstone 500    Cargo 5/16"
 
-[node name="WeatherPip" type="Label" parent="Root/TopBar/TopMargin/TopRow"]
+[node name="WeatherPip" type="Label" parent="TopBar/TopMargin/TopRow"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.75, 0.62, 0.42, 1)
 text = ""
 
-[node name="CatWagon" type="Button" parent="Root/TopBar/TopMargin/TopRow"]
+[node name="CatWagon" type="Button" parent="TopBar/TopMargin/TopRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(88, 36)
 layout_mode = 2
 toggle_mode = true
 text = "Wagon"
 
-[node name="CatMap" type="Button" parent="Root/TopBar/TopMargin/TopRow"]
+[node name="CatMap" type="Button" parent="TopBar/TopMargin/TopRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(88, 36)
 layout_mode = 2
 toggle_mode = true
 text = "Map"
 
-[node name="CatWord" type="Button" parent="Root/TopBar/TopMargin/TopRow"]
+[node name="CatWord" type="Button" parent="TopBar/TopMargin/TopRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(88, 36)
 layout_mode = 2
 toggle_mode = true
 text = "Rumours"
 
-[node name="GearButton" type="Button" parent="Root/TopBar/TopMargin/TopRow"]
+[node name="GearButton" type="Button" parent="TopBar/TopMargin/TopRow"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(44, 36)
 layout_mode = 2
 tooltip_text = "Menu"
 text = "⚙"
 
-[node name="Body" type="HBoxContainer" parent="Root"]
-layout_mode = 2
-size_flags_vertical = 3
+[node name="Body" type="HBoxContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = 56.0
+offset_bottom = -80.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_constants/separation = 6
 
-[node name="Well" type="Control" parent="Root/Body"]
+[node name="Well" type="Control" parent="Body"]
 unique_name_in_owner = true
 clip_contents = true
 layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
-[node name="MapClip" type="Control" parent="Root/Body/Well"]
+[node name="MapClip" type="Control" parent="Body/Well"]
 unique_name_in_owner = true
 clip_contents = true
 layout_mode = 1
@@ -129,14 +129,14 @@ grow_horizontal = 2
 grow_vertical = 2
 mouse_filter = 0
 
-[node name="MapLayer" type="Control" parent="Root/Body/Well/MapClip"]
+[node name="MapLayer" type="Control" parent="Body/Well/MapClip"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_right = 1920.0
 offset_bottom = 1080.0
 mouse_filter = 2
 
-[node name="MapImage" type="TextureRect" parent="Root/Body/Well/MapClip/MapLayer"]
+[node name="MapImage" type="TextureRect" parent="Body/Well/MapClip/MapLayer"]
 layout_mode = 0
 offset_right = 1920.0
 offset_bottom = 1080.0
@@ -146,14 +146,14 @@ expand_mode = 1
 stretch_mode = 0
 texture_filter = 2
 
-[node name="Markers" type="Control" parent="Root/Body/Well/MapClip/MapLayer"]
+[node name="Markers" type="Control" parent="Body/Well/MapClip/MapLayer"]
 unique_name_in_owner = true
 layout_mode = 0
 offset_right = 1920.0
 offset_bottom = 1080.0
 mouse_filter = 2
 
-[node name="WagonRack" type="PanelContainer" parent="Root/Body/Well"]
+[node name="WagonRack" type="PanelContainer" parent="Body/Well"]
 unique_name_in_owner = true
 visible = false
 layout_mode = 1
@@ -163,24 +163,24 @@ anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
 
-[node name="RackMargin" type="MarginContainer" parent="Root/Body/Well/WagonRack"]
+[node name="RackMargin" type="MarginContainer" parent="Body/Well/WagonRack"]
 layout_mode = 2
 theme_override_constants/margin_left = 16
 theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 16
 theme_override_constants/margin_bottom = 12
 
-[node name="RackVBox" type="VBoxContainer" parent="Root/Body/Well/WagonRack/RackMargin"]
+[node name="RackVBox" type="VBoxContainer" parent="Body/Well/WagonRack/RackMargin"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="RackTitle" type="Label" parent="Root/Body/Well/WagonRack/RackMargin/RackVBox"]
+[node name="RackTitle" type="Label" parent="Body/Well/WagonRack/RackMargin/RackVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.92, 0.78, 0.45, 1)
 theme_override_font_sizes/font_size = 20
 text = "Wagon"
 
-[node name="RackGrid" type="GridContainer" parent="Root/Body/Well/WagonRack/RackMargin/RackVBox"]
+[node name="RackGrid" type="GridContainer" parent="Body/Well/WagonRack/RackMargin/RackVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_vertical = 0
@@ -188,89 +188,95 @@ theme_override_constants/h_separation = 8
 theme_override_constants/v_separation = 8
 columns = 8
 
-[node name="ContextPane" type="PanelContainer" parent="Root/Body"]
+[node name="ContextPane" type="PanelContainer" parent="Body"]
 unique_name_in_owner = true
 custom_minimum_size = Vector2(480, 0)
 layout_mode = 2
 
-[node name="ContextMargin" type="MarginContainer" parent="Root/Body/ContextPane"]
+[node name="ContextMargin" type="MarginContainer" parent="Body/ContextPane"]
 layout_mode = 2
 theme_override_constants/margin_left = 12
 theme_override_constants/margin_top = 12
 theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 12
 
-[node name="ContextVBox" type="VBoxContainer" parent="Root/Body/ContextPane/ContextMargin"]
+[node name="ContextVBox" type="VBoxContainer" parent="Body/ContextPane/ContextMargin"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="ContextTitle" type="Label" parent="Root/Body/ContextPane/ContextMargin/ContextVBox"]
+[node name="ContextTitle" type="Label" parent="Body/ContextPane/ContextMargin/ContextVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.92, 0.78, 0.45, 1)
 theme_override_font_sizes/font_size = 20
 text = "House Caravan"
 
-[node name="ContextMeta" type="Label" parent="Root/Body/ContextPane/ContextMargin/ContextVBox"]
+[node name="ContextMeta" type="Label" parent="Body/ContextPane/ContextMargin/ContextVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.75, 0.62, 0.42, 1)
 text = "At Kharûn"
 
-[node name="ContextBody" type="Label" parent="Root/Body/ContextPane/ContextMargin/ContextVBox"]
+[node name="ContextBody" type="Label" parent="Body/ContextPane/ContextMargin/ContextVBox"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.78, 0.66, 1)
 text = ""
 autowrap_mode = 3
 
-[node name="MarketScroll" type="ScrollContainer" parent="Root/Body/ContextPane/ContextMargin/ContextVBox"]
+[node name="MarketScroll" type="ScrollContainer" parent="Body/ContextPane/ContextMargin/ContextVBox"]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="MarketBox" type="VBoxContainer" parent="Root/Body/ContextPane/ContextMargin/ContextVBox/MarketScroll"]
+[node name="MarketBox" type="VBoxContainer" parent="Body/ContextPane/ContextMargin/ContextVBox/MarketScroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
 theme_override_constants/separation = 4
 
-[node name="BottomBar" type="PanelContainer" parent="Root"]
-custom_minimum_size = Vector2(0, 72)
-layout_mode = 2
+[node name="BottomBar" type="PanelContainer" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -80.0
+grow_horizontal = 2
+grow_vertical = 0
 
-[node name="BottomMargin" type="MarginContainer" parent="Root/BottomBar"]
+[node name="BottomMargin" type="MarginContainer" parent="BottomBar"]
 layout_mode = 2
 theme_override_constants/margin_left = 12
 theme_override_constants/margin_top = 8
 theme_override_constants/margin_right = 12
 theme_override_constants/margin_bottom = 8
 
-[node name="BottomRow" type="HBoxContainer" parent="Root/BottomBar/BottomMargin"]
+[node name="BottomRow" type="HBoxContainer" parent="BottomBar/BottomMargin"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="PlaceBanner" type="Button" parent="Root/BottomBar/BottomMargin/BottomRow"]
+[node name="PlaceBanner" type="Button" parent="BottomBar/BottomMargin/BottomRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(220, 48)
+custom_minimum_size = Vector2(220, 56)
 layout_mode = 2
 text = "Kharûn"
 
-[node name="HouseBtn" type="Button" parent="Root/BottomBar/BottomMargin/BottomRow"]
+[node name="HouseBtn" type="Button" parent="BottomBar/BottomMargin/BottomRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(140, 48)
+custom_minimum_size = Vector2(160, 56)
 layout_mode = 2
 toggle_mode = true
 text = "House"
 
-[node name="MarketBtn" type="Button" parent="Root/BottomBar/BottomMargin/BottomRow"]
+[node name="MarketBtn" type="Button" parent="BottomBar/BottomMargin/BottomRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(140, 48)
+custom_minimum_size = Vector2(160, 56)
 layout_mode = 2
 toggle_mode = true
 text = "Market"
 
-[node name="ContextActions" type="HBoxContainer" parent="Root/BottomBar/BottomMargin/BottomRow"]
+[node name="ContextActions" type="HBoxContainer" parent="BottomBar/BottomMargin/BottomRow"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
