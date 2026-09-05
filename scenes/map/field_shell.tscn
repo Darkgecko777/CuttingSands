@@ -26,7 +26,7 @@ color = Color(0.08, 0.05, 0.03, 1)
 layout_mode = 1
 anchors_preset = 10
 anchor_right = 1.0
-offset_bottom = 56.0
+offset_bottom = 100.0
 grow_horizontal = 2
 
 [node name="TopMargin" type="MarginContainer" parent="TopBar"]
@@ -105,8 +105,8 @@ layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = 56.0
-offset_bottom = -80.0
+offset_top = 100.0
+offset_bottom = -180.0
 grow_horizontal = 2
 grow_vertical = 2
 theme_override_constants/separation = 6
@@ -241,43 +241,78 @@ anchors_preset = 12
 anchor_top = 1.0
 anchor_right = 1.0
 anchor_bottom = 1.0
-offset_top = -80.0
+offset_top = -180.0
 grow_horizontal = 2
 grow_vertical = 0
 
-[node name="BottomMargin" type="MarginContainer" parent="BottomBar"]
+[node name="BottomRow" type="HBoxContainer" parent="BottomBar"]
 layout_mode = 2
-theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 8
-theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 8
+theme_override_constants/separation = 0
 
-[node name="BottomRow" type="HBoxContainer" parent="BottomBar/BottomMargin"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="PlaceBanner" type="Button" parent="BottomBar/BottomMargin/BottomRow"]
+[node name="PlaceBanner" type="Button" parent="BottomBar/BottomRow"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(220, 56)
+custom_minimum_size = Vector2(180, 180)
 layout_mode = 2
 text = "Kharûn"
 
-[node name="HouseBtn" type="Button" parent="BottomBar/BottomMargin/BottomRow"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(160, 56)
+[node name="BottomStack" type="VBoxContainer" parent="BottomBar/BottomRow"]
 layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 0
+
+[node name="BannerBand" type="Control" parent="BottomBar/BottomRow/BottomStack"]
+custom_minimum_size = Vector2(0, 90)
+layout_mode = 2
+size_flags_horizontal = 3
+
+[node name="BannerPlate" type="ColorRect" parent="BottomBar/BottomRow/BottomStack/BannerBand"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.22, 0.14, 0.08, 1)
+
+[node name="BannerCaption" type="Label" parent="BottomBar/BottomRow/BottomStack/BannerBand"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 16.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_colors/font_color = Color(0.92, 0.78, 0.45, 1)
+theme_override_font_sizes/font_size = 22
+text = "Location banner"
+vertical_alignment = 1
+
+[node name="OptionsBand" type="HBoxContainer" parent="BottomBar/BottomRow/BottomStack"]
+custom_minimum_size = Vector2(0, 90)
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 8
+
+[node name="HouseBtn" type="Button" parent="BottomBar/BottomRow/BottomStack/OptionsBand"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(160, 80)
+layout_mode = 2
+size_flags_vertical = 3
 toggle_mode = true
 text = "House"
 
-[node name="MarketBtn" type="Button" parent="BottomBar/BottomMargin/BottomRow"]
+[node name="MarketBtn" type="Button" parent="BottomBar/BottomRow/BottomStack/OptionsBand"]
 unique_name_in_owner = true
-custom_minimum_size = Vector2(160, 56)
+custom_minimum_size = Vector2(160, 80)
 layout_mode = 2
+size_flags_vertical = 3
 toggle_mode = true
 text = "Market"
 
-[node name="ContextActions" type="HBoxContainer" parent="BottomBar/BottomMargin/BottomRow"]
+[node name="ContextActions" type="HBoxContainer" parent="BottomBar/BottomRow/BottomStack/OptionsBand"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
+size_flags_vertical = 3
 theme_override_constants/separation = 8
