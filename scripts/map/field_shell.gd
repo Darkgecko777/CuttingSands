@@ -1,6 +1,7 @@
 extends Control
 
 const MUTED := Color(0.75, 0.62, 0.42, 1)
+const WordDeskScript = preload("res://scripts/map/word_desk.gd")
 
 enum Mode { WAGON, MAP, WORD }
 enum Yard { NONE, HOUSE, MARKET }
@@ -31,7 +32,7 @@ var _inspect_good_id: String = ""
 var _cat_buttons: Dictionary = {}
 var _map := MapWell.new()
 var _desk := MarketDesk.new()
-var _word := WordDesk.new()
+var _word = WordDeskScript.new()
 
 
 func _ready() -> void:
