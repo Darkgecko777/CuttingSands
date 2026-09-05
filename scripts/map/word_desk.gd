@@ -5,7 +5,7 @@ const MUTED := Color(0.75, 0.62, 0.42, 1)
 const GOLD := Color(0.92, 0.78, 0.45, 1)
 
 var selected_id: String = ""
-var on_pick: Callable
+var on_pick: Callable = Callable()
 
 
 func render(box: VBoxContainer, title: Label, meta: Label, body: Label) -> void:
@@ -43,7 +43,7 @@ func _paint_selected(title: Label, meta: Label, body: Label) -> void:
 	var good_id := str(rec.get("good_id", ""))
 	title.text = WorldBook.settlement_name(city_id) if not city_id.is_empty() else "Rumours"
 	var bits: PackedStringArray = [WordBook.stars_text(int(rec.get("stars", 1)))]
-	bits.append(WordBook.age_text(int(rec.get("minted_day", GameState.day)))]
+	bits.append(WordBook.age_text(int(rec.get("minted_day", GameState.day))))
 	if not good_id.is_empty():
 		bits.append(WorldBook.good_name(good_id))
 	meta.text = "  ·  ".join(bits)
