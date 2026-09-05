@@ -20,7 +20,7 @@ enum Yard { NONE, HOUSE, MARKET }
 @onready var context_title: Label = %ContextTitle
 @onready var context_meta: Label = %ContextMeta
 @onready var context_body: Label = %ContextBody
-@onready var context_actions: VBoxContainer = %ContextActions
+@onready var context_actions: HBoxContainer = %ContextActions
 @onready var market_box: VBoxContainer = %MarketBox
 
 var _mode: int = Mode.WAGON
@@ -72,7 +72,7 @@ func _mode_label(mode: int) -> String:
 		Mode.MAP:
 			return "Map"
 		_:
-			return "Word"
+			return "Rumours"
 
 
 func _rack_title() -> Label:
