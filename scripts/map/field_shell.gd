@@ -12,29 +12,32 @@ enum Yard { NONE, HOUSE, MARKET, OUTYARD }
 @onready var day_label: Label = %DayLabel
 @onready var weather_pip: Label = %WeatherPip
 @onready var gear_button: Button = %GearButton
-@onready var wagon_rack: Control = %WagonRack
 @onready var rack_grid: GridContainer = %RackGrid
 @onready var map_clip: Control = %MapClip
 @onready var map_layer: Control = %MapLayer
 @onready var markers_layer: Control = %Markers
-@onready var context_pane: PanelContainer = %ContextPane
+@onready var split_host: HBoxContainer = %SplitHost
+@onready var left_pane: PanelContainer = %LeftPane
+@onready var right_pane: PanelContainer = %RightPane
+@onready var left_title: Label = %LeftTitle
+@onready var left_box: VBoxContainer = %LeftBox
 @onready var context_title: Label = %ContextTitle
 @onready var context_meta: Label = %ContextMeta
 @onready var context_body: Label = %ContextBody
-@onready var context_actions: HBoxContainer = %ContextActions
 @onready var market_box: VBoxContainer = %MarketBox
 @onready var place_banner: Button = %PlaceBanner
 @onready var house_btn: Button = %HouseBtn
 @onready var market_btn: Button = %MarketBtn
 @onready var outyard_btn: Button = %OutyardBtn
-@onready var location_well: Control = %LocationWell
-@onready var route_box: VBoxContainer = %RouteBox
+@onready var banner_caption: Label = %BannerCaption
+@onready var context_actions: HBoxContainer = %ContextActions
 
 var _mode: int = Mode.NONE
 var _yard: int = Yard.MARKET
 var _selected_kind: String = "caravan"
 var _selected_id: String = GameState.PLAYER_CARAVAN_ID
 var _inspect_good_id: String = ""
+var _outyard_dest: String = ""
 var _cat_buttons: Dictionary = {}
 var _map := MapWell.new()
 var _desk := MarketDesk.new()
@@ -80,16 +83,12 @@ func _mode_label(mode: int) -> String:
 	match mode:
 		Mode.CARGO:
 			return "Cargo"
-		Mode.NONE:
-			return ""
 		Mode.MAP:
 			return "Map"
-		_:
+		Mode.WORD:
 			return "Rumours"
-
-
-func _rack_title() -> Label:
-	return wagon_rack.get_node_or_null("RackMargin/RackVBox/RackTitle") as Label
+		_:
+			return ""
 
 
 func _refresh_header() -> void:
@@ -110,11 +109,9 @@ func _refresh_header() -> void:
 		weather_pip.text = RoadPressure.weather_term(origin, dest) if RoadPressure.weather(origin, dest) > 0 else ""
 	else:
 		weather_pip.text = ""
-	var title := _rack_title()
-	if title:
-		title.text = ZoneStyle.rack_title(_yard, GameState.is_on_road())
-	ZoneStyle.paint(context_pane, _yard, GameState.is_on_road())
 	_refresh_place_bar()
+	ZoneStyle.paint(left_pane, _yard, GameState.is_on_road())
+	ZoneStyle.paint(right_pane, _yard, GameState.is_on_road())
 
 
 func _on_economy(_arg: Variant = null) -> void:
@@ -127,23 +124,21 @@ func _on_economy(_arg: Variant = null) -> void:
 func _on_draft_changed() -> void:
 	_refresh_header()
 	_fill_rack()
-	if _yard == Yard.MARKET:
+	if _yard == Yard.MARKET and _mode == Mode.NONE:
 		_show_market_yard()
 
 
 func _on_location_changed(_city_id: String) -> void:
 	_desk.clear()
 	_inspect_good_id = ""
+	_outyard_dest = ""
 	_yard = Yard.MARKET
 	_mode = Mode.NONE
 	_refresh_header()
 	_map.paint_markers()
 	_refresh_context()
 	_fill_rack()
-	if _selected_kind == "caravan":
-		_map.center_on_selected()
-	else:
-		_map.center_on_city(GameState.current_city_id)
+	_map.center_on_city(GameState.current_city_id)
 
 
 func _toggle_mode(mode: int) -> void:
@@ -155,11 +150,17 @@ func _toggle_mode(mode: int) -> void:
 
 func _apply_well() -> void:
 	var on_road := GameState.is_on_road()
-	var cargo := _mode == Mode.CARGO
-	var routes := (not cargo) and (not on_road) and _mode == Mode.NONE and _yard == Yard.OUTYARD
-	wagon_rack.visible = cargo
-	location_well.visible = routes
-	map_clip.visible = (not cargo) and (not routes)
+	var map_only := on_road or _mode == Mode.MAP
+	split_host.visible = not map_only
+	map_clip.visible = map_only
+	if _mode == Mode.CARGO:
+		left_pane.size_flags_stretch_ratio = 1.5
+		right_pane.size_flags_stretch_ratio = 1.0
+	else:
+		left_pane.size_flags_stretch_ratio = 1.0
+		right_pane.size_flags_stretch_ratio = 1.0
+	if map_only and not on_road:
+		_map.show_atlas()
 
 
 func _set_mode(mode: int) -> void:
@@ -170,8 +171,11 @@ func _set_mode(mode: int) -> void:
 	if mode == Mode.CARGO:
 		_select_item("caravan", GameState.PLAYER_CARAVAN_ID)
 		_fill_rack()
+		_show_cargo_tab()
 	elif mode == Mode.WORD:
 		_show_word()
+	elif mode == Mode.MAP:
+		_refresh_header()
 	else:
 		_refresh_context()
 	_map.clamp_map()
@@ -180,28 +184,41 @@ func _set_mode(mode: int) -> void:
 
 func _fill_rack() -> void:
 	var in_market := _yard == Yard.MARKET and not GameState.is_on_road()
-	var click := _desk.on_wagon_click if in_market else Callable()
+	var click := Callable()
+	if in_market:
+		click = _desk.on_wagon_click
 	WagonRackView.fill(rack_grid, _desk.wagon_units(), click, _inspect_good)
-	WagonDealBar.sync(rack_grid, in_market, _desk)
+	WagonDealBar.sync(rack_grid, in_market and _mode != Mode.WORD, _desk)
 
 
 func _inspect_good(good_id: String) -> void:
 	_inspect_good_id = good_id
 	if _mode == Mode.WORD or GameState.is_on_road():
 		return
-	if _yard == Yard.MARKET:
-		context_body.text = GoodCopy.context_block(good_id)
+	context_body.text = GoodCopy.context_block(good_id)
+	if _mode == Mode.CARGO:
+		context_title.text = WorldBook.good_name(good_id)
+		context_meta.text = "Selected"
+
+
+func _clear_lists() -> void:
+	for child in left_box.get_children():
+		child.queue_free()
+	for child in market_box.get_children():
+		child.queue_free()
+	for child in context_actions.get_children():
+		child.queue_free()
 
 
 func _show_word() -> void:
-	for child in market_box.get_children():
-		child.queue_free()
-	_word.render(market_box, context_title, context_meta, context_body)
+	_clear_lists()
+	rack_grid.visible = false
+	left_title.text = "Slips"
+	_word.render(left_box, context_title, context_meta, context_body)
 	var rec := WordBook.slip(_word.selected_id)
 	var city_id := str(rec.get("city_id", ""))
 	if not city_id.is_empty():
 		_map.center_on_city(city_id)
-	ZoneStyle.paint(context_pane, Yard.NONE, false)
 
 
 func _on_word_pick(slip_id: String) -> void:
@@ -217,13 +234,19 @@ func _select_item(kind: String, item_id: String) -> void:
 	if kind == "caravan":
 		GameState.focused_caravan_id = item_id
 	_map.paint_markers()
-	_refresh_context()
+	if _mode != Mode.MAP and _mode != Mode.WORD and _mode != Mode.CARGO:
+		_refresh_context()
 	_map.center_on_selected()
 
 
 func _refresh_context() -> void:
 	if _mode == Mode.WORD:
 		_show_word()
+		return
+	if _mode == Mode.CARGO:
+		_show_cargo_tab()
+		return
+	if _mode == Mode.MAP:
 		return
 	match _selected_kind:
 		"caravan":
@@ -233,13 +256,6 @@ func _refresh_context() -> void:
 		_:
 			_show_empty()
 	_refresh_header()
-
-
-func _clear_actions() -> void:
-	for child in context_actions.get_children():
-		child.queue_free()
-	for child in market_box.get_children():
-		child.queue_free()
 
 
 func _show_caravan() -> void:
@@ -263,8 +279,18 @@ func _refresh_place_bar() -> void:
 	var city_id := GameState.caravan_city(GameState.PLAYER_CARAVAN_ID)
 	if on_road:
 		place_banner.text = "Bound for %s" % GameState.get_settlement_name(str(GameState.transit.get("to", "")))
+		banner_caption.text = "On the road  ·  %s" % RoadPressure.route_words(str(GameState.transit.get("from", "")), str(GameState.transit.get("to", "")))
 	else:
 		place_banner.text = GameState.get_settlement_name(city_id)
+		match _yard:
+			Yard.MARKET:
+				banner_caption.text = "Market  ·  %s" % GameState.get_settlement_name(city_id)
+			Yard.HOUSE:
+				banner_caption.text = "House %s" % GameState.get_house_name()
+			Yard.OUTYARD:
+				banner_caption.text = "Outyard  ·  roads from %s" % GameState.get_settlement_name(city_id)
+			_:
+				banner_caption.text = GameState.get_settlement_name(city_id)
 	place_banner.disabled = on_road
 	house_btn.disabled = on_road or not WorldBook.settlement_has_house_yard(city_id)
 	market_btn.disabled = on_road or not GameState.settlement_has_market(city_id)
@@ -274,13 +300,15 @@ func _refresh_place_bar() -> void:
 	outyard_btn.set_pressed_no_signal(not on_road and _yard == Yard.OUTYARD)
 
 
-func _fit_place_button(btn: Button) -> void:
-	btn.custom_minimum_size = Vector2(0, 48)
-	btn.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-
-
 func _show_city_yards() -> void:
-	_clear_actions()
+	_clear_lists()
+	rack_grid.visible = false
+	left_title.text = GameState.get_city_name()
+	var note := Label.new()
+	note.text = "House, Market, or Outyard."
+	note.add_theme_color_override("font_color", MUTED)
+	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	left_box.add_child(note)
 	var city_id := GameState.caravan_city(GameState.PLAYER_CARAVAN_ID)
 	context_title.text = GameState.get_settlement_name(city_id)
 	context_meta.text = "Yard"
@@ -291,65 +319,104 @@ func _show_city_yards() -> void:
 
 
 func _show_market_yard() -> void:
-	_clear_actions()
+	_clear_lists()
+	rack_grid.visible = true
+	left_title.text = "Cargo"
 	var city_id := GameState.caravan_city(GameState.PLAYER_CARAVAN_ID)
 	context_title.text = "Market"
 	context_meta.text = GameState.get_settlement_name(city_id)
-	context_body.text = GoodCopy.context_block(_inspect_good_id, city_id) if not _inspect_good_id.is_empty() else ""
+	if _inspect_good_id.is_empty():
+		context_body.text = "Buy and sell against the hold."
+	else:
+		context_body.text = GoodCopy.context_block(_inspect_good_id, city_id)
 	if GameState.settlement_has_market(city_id):
 		_desk.render(market_box)
 	else:
 		_desk.empty_note(market_box, "No market at this stop.")
+	_fill_rack()
 
 
 func _show_house_yard() -> void:
-	_clear_actions()
+	_clear_lists()
+	rack_grid.visible = false
 	var city_id := GameState.caravan_city(GameState.PLAYER_CARAVAN_ID)
 	if not WorldBook.settlement_has_house_yard(city_id):
 		_yard = Yard.NONE
 		_show_city_yards()
 		return
+	left_title.text = "Desk"
+	var mark := Label.new()
+	mark.text = "House mark and letters wait here."
+	mark.add_theme_color_override("font_color", MUTED)
+	mark.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	left_box.add_child(mark)
 	context_title.text = "House %s" % GameState.get_house_name()
 	context_meta.text = GameState.get_settlement_name(city_id)
 	context_body.text = "Standing and letters wait. This desk is the mark, not the town."
 
 
-func _clear_routes() -> void:
-	for child in route_box.get_children():
-		child.queue_free()
+func _show_cargo_tab() -> void:
+	_clear_lists()
+	rack_grid.visible = true
+	left_title.text = "Hold"
+	context_title.text = "Item"
+	if _inspect_good_id.is_empty():
+		context_meta.text = "Select a good"
+		context_body.text = "The hold is the string's mass and cells. Pick a unit."
+	else:
+		context_meta.text = WorldBook.good_name(_inspect_good_id)
+		context_body.text = GoodCopy.context_block(_inspect_good_id)
+	_fill_rack()
 
 
 func _show_outyard() -> void:
-	_clear_actions()
-	_clear_routes()
+	_clear_lists()
+	rack_grid.visible = false
 	var city_id := GameState.caravan_city(GameState.PLAYER_CARAVAN_ID)
+	left_title.text = "Roads"
 	context_title.text = "Outyard"
 	context_meta.text = GameState.get_settlement_name(city_id)
-	context_body.text = "Pick a road. Weather and heat are what this yard can see, not a forecast."
 	if not GameState.road_note.is_empty():
-		context_body.text = GameState.road_note + "\n\n" + context_body.text
+		context_body.text = GameState.road_note
 		GameState.road_note = ""
-	var heading := Label.new()
-	heading.text = "Roads from %s" % GameState.get_settlement_name(city_id)
-	heading.add_theme_color_override("font_color", Color(0.92, 0.78, 0.45, 1))
-	heading.add_theme_font_size_override("font_size", 22)
-	route_box.add_child(heading)
+	else:
+		context_body.text = "Weather and heat are what this yard can see, not a forecast."
 	var neighbors: Array = GameState.neighbors_of(city_id)
 	if neighbors.is_empty():
 		var none := Label.new()
 		none.text = "No marked road from this stop."
 		none.add_theme_color_override("font_color", MUTED)
-		route_box.add_child(none)
+		left_box.add_child(none)
 	else:
 		for neighbor in neighbors:
 			var dest := str(neighbor)
 			var road := Button.new()
-			road.text = "Road to %s  ·  %d day  ·  %s" % [GameState.get_settlement_name(dest), GameState.hop_days(city_id, dest), RoadPressure.route_words(city_id, dest)]
-			road.pressed.connect(_on_travel.bind(dest))
-			road.custom_minimum_size = Vector2(0, 72)
-			road.size_flags_horizontal = Control.SIZE_EXPAND_FILL
-			route_box.add_child(road)
-	_apply_well()
+			road.text = "%s  ·  %d day  ·  %s" % [GameState.get_settlement_name(dest), GameState.hop_days(city_id, dest), RoadPressure.route_words(city_id, dest)]
+			road.alignment = HORIZONTAL_ALIGNMENT_LEFT
+			road.custom_minimum_size = Vector2(0, 56)
+			road.toggle_mode = true
+			road.button_pressed = dest == _outyard_dest
+			road.pressed.connect(_pick_hop.bind(dest))
+			left_box.add_child(road)
+	_paint_hop_detail(city_id)
+
+
+func _pick_hop(dest: String) -> void:
+	_outyard_dest = dest
+	_show_outyard()
+
+
+func _paint_hop_detail(city_id: String) -> void:
+	if _outyard_dest.is_empty():
+		return
+	context_title.text = GameState.get_settlement_name(_outyard_dest)
+	context_meta.text = "%d day  ·  %s" % [GameState.hop_days(city_id, _outyard_dest), RoadPressure.route_words(city_id, _outyard_dest)]
+	context_body.text = "Leave only when you confirm this road."
+	var go := Button.new()
+	go.text = "Take the road"
+	go.custom_minimum_size = Vector2(0, 48)
+	go.pressed.connect(_on_travel.bind(_outyard_dest))
+	market_box.add_child(go)
 
 
 func _enter_yard(yard: int) -> void:
@@ -357,6 +424,8 @@ func _enter_yard(yard: int) -> void:
 	_inspect_good_id = ""
 	if yard != Yard.MARKET:
 		_desk.clear()
+	if yard != Yard.OUTYARD:
+		_outyard_dest = ""
 	_mode = Mode.NONE
 	_fill_rack()
 	_apply_well()
@@ -365,35 +434,26 @@ func _enter_yard(yard: int) -> void:
 
 
 func _show_settlement(city_id: String) -> void:
-	_clear_actions()
+	if _mode != Mode.NONE:
+		return
+	_clear_lists()
+	rack_grid.visible = false
+	left_title.text = GameState.get_settlement_name(city_id)
 	var city: Dictionary = GameState.CITIES.get(city_id, {})
 	context_title.text = GameState.get_settlement_name(city_id)
 	context_meta.text = "%s  ·  %s" % [str(city.get("type", "settlement")).capitalize().replace("_", " "), "Market" if GameState.settlement_has_market(city_id) else "No market"]
 	context_body.text = str(city.get("short_desc", city.get("desc", "")))
 	if GameState.is_on_road():
-		context_body.text += "\nOn the road to %s." % GameState.get_settlement_name(str(GameState.transit.get("to", "")))
-		var skip := Button.new()
-		skip.text = "Skip travel"
-		skip.pressed.connect(_map.skip_hop)
-		_fit_place_button(skip)
-		context_actions.add_child(skip)
+		_show_transit_panel()
 		return
 	if city_id == GameState.current_city_id:
 		_show_city_yards()
-		return
-	var travel := Button.new()
-	if GameState.is_adjacent(GameState.current_city_id, city_id):
-		travel.text = "Travel here  ·  %d day  ·  %s" % [GameState.hop_days(GameState.current_city_id, city_id), RoadPressure.route_words(GameState.current_city_id, city_id)]
-		travel.pressed.connect(_on_travel.bind(city_id))
-	else:
-		travel.text = "No direct road"
-		travel.disabled = true
-	_fit_place_button(travel)
-	context_actions.add_child(travel)
 
 
 func _show_empty() -> void:
-	_clear_actions()
+	_clear_lists()
+	rack_grid.visible = false
+	left_title.text = _mode_label(_mode)
 	context_title.text = _mode_label(_mode)
 	context_meta.text = ""
 	context_body.text = ""
@@ -404,22 +464,23 @@ func _on_travel(city_id: String) -> void:
 		_desk.clear()
 		_yard = Yard.NONE
 		_inspect_good_id = ""
+		_outyard_dest = ""
 		_set_mode(Mode.MAP)
 		_map.play_hop(str(GameState.transit.get("from", "")), city_id)
 
 
 func _show_transit_panel() -> void:
-	_clear_actions()
+	_clear_lists()
 	var dest := str(GameState.transit.get("to", ""))
-	context_title.text = GameState.PLAYER_CARAVAN_NAME
-	context_meta.text = "On the road"
 	var origin := str(GameState.transit.get("from", GameState.current_city_id))
-	context_body.text = "Bound for %s  ·  %d day  ·  %s" % [GameState.get_settlement_name(dest), int(GameState.transit.get("days", 1)), RoadPressure.route_words(origin, dest)]
+	context_title.text = "On the road"
+	context_meta.text = "Bound for %s" % GameState.get_settlement_name(dest)
+	context_body.text = "%d day  ·  %s" % [int(GameState.transit.get("days", 1)), RoadPressure.route_words(origin, dest)]
 	var skip := Button.new()
 	skip.text = "Skip travel"
 	skip.pressed.connect(_map.skip_hop)
-	_fit_place_button(skip)
 	context_actions.add_child(skip)
+	_apply_well()
 
 
 func _complete_hop() -> void:
