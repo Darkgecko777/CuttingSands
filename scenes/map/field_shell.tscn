@@ -109,7 +109,7 @@ offset_top = 100.0
 offset_bottom = -180.0
 grow_horizontal = 2
 grow_vertical = 2
-theme_override_constants/separation = 6
+theme_override_constants/separation = 0
 
 [node name="Well" type="Control" parent="Body"]
 unique_name_in_owner = true
@@ -118,9 +118,18 @@ layout_mode = 2
 size_flags_horizontal = 3
 size_flags_vertical = 3
 
+[node name="WellFill" type="ColorRect" parent="Body/Well"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+mouse_filter = 2
+color = Color(0.02, 0.015, 0.01, 1)
+
 [node name="MapClip" type="Control" parent="Body/Well"]
 unique_name_in_owner = true
 clip_contents = true
+visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
@@ -153,105 +162,101 @@ offset_right = 1920.0
 offset_bottom = 1080.0
 mouse_filter = 2
 
-[node name="LocationWell" type="PanelContainer" parent="Body/Well"]
+[node name="SplitHost" type="HBoxContainer" parent="Body/Well"]
 unique_name_in_owner = true
-visible = false
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
 anchor_bottom = 1.0
 grow_horizontal = 2
 grow_vertical = 2
+theme_override_constants/separation = 6
 
-[node name="LocMargin" type="MarginContainer" parent="Body/Well/LocationWell"]
-layout_mode = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 12
-
-[node name="RouteBox" type="VBoxContainer" parent="Body/Well/LocationWell/LocMargin"]
+[node name="LeftPane" type="PanelContainer" parent="Body/Well/SplitHost"]
 unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.0
+
+[node name="LeftMargin" type="MarginContainer" parent="Body/Well/SplitHost/LeftPane"]
+layout_mode = 2
+theme_override_constants/margin_left = 12
+theme_override_constants/margin_top = 10
+theme_override_constants/margin_right = 12
+theme_override_constants/margin_bottom = 10
+
+[node name="LeftCol" type="VBoxContainer" parent="Body/Well/SplitHost/LeftPane/LeftMargin"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="WagonRack" type="PanelContainer" parent="Body/Well"]
+[node name="LeftTitle" type="Label" parent="Body/Well/SplitHost/LeftPane/LeftMargin/LeftCol"]
 unique_name_in_owner = true
-visible = false
-layout_mode = 1
-anchors_preset = 15
-anchor_right = 1.0
-anchor_bottom = 1.0
-grow_horizontal = 2
-grow_vertical = 2
-
-[node name="RackMargin" type="MarginContainer" parent="Body/Well/WagonRack"]
-layout_mode = 2
-theme_override_constants/margin_left = 16
-theme_override_constants/margin_top = 12
-theme_override_constants/margin_right = 16
-theme_override_constants/margin_bottom = 12
-
-[node name="RackVBox" type="VBoxContainer" parent="Body/Well/WagonRack/RackMargin"]
-layout_mode = 2
-theme_override_constants/separation = 8
-
-[node name="RackTitle" type="Label" parent="Body/Well/WagonRack/RackMargin/RackVBox"]
 layout_mode = 2
 theme_override_colors/font_color = Color(0.92, 0.78, 0.45, 1)
 theme_override_font_sizes/font_size = 20
-text = "Wagon"
+text = "Cargo"
 
-[node name="RackGrid" type="GridContainer" parent="Body/Well/WagonRack/RackMargin/RackVBox"]
+[node name="RackGrid" type="GridContainer" parent="Body/Well/SplitHost/LeftPane/LeftMargin/LeftCol"]
 unique_name_in_owner = true
 layout_mode = 2
-size_flags_vertical = 0
 theme_override_constants/h_separation = 8
 theme_override_constants/v_separation = 8
 columns = 8
 
-[node name="ContextPane" type="PanelContainer" parent="Body"]
-unique_name_in_owner = true
-custom_minimum_size = Vector2(480, 0)
+[node name="LeftScroll" type="ScrollContainer" parent="Body/Well/SplitHost/LeftPane/LeftMargin/LeftCol"]
 layout_mode = 2
+size_flags_vertical = 3
+horizontal_scroll_mode = 0
 
-[node name="ContextMargin" type="MarginContainer" parent="Body/ContextPane"]
+[node name="LeftBox" type="VBoxContainer" parent="Body/Well/SplitHost/LeftPane/LeftMargin/LeftCol/LeftScroll"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 6
+
+[node name="RightPane" type="PanelContainer" parent="Body/Well/SplitHost"]
+unique_name_in_owner = true
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_stretch_ratio = 1.0
+
+[node name="RightMargin" type="MarginContainer" parent="Body/Well/SplitHost/RightPane"]
 layout_mode = 2
 theme_override_constants/margin_left = 12
-theme_override_constants/margin_top = 12
+theme_override_constants/margin_top = 10
 theme_override_constants/margin_right = 12
-theme_override_constants/margin_bottom = 12
+theme_override_constants/margin_bottom = 10
 
-[node name="ContextVBox" type="VBoxContainer" parent="Body/ContextPane/ContextMargin"]
+[node name="RightCol" type="VBoxContainer" parent="Body/Well/SplitHost/RightPane/RightMargin"]
 layout_mode = 2
 theme_override_constants/separation = 8
 
-[node name="ContextTitle" type="Label" parent="Body/ContextPane/ContextMargin/ContextVBox"]
+[node name="ContextTitle" type="Label" parent="Body/Well/SplitHost/RightPane/RightMargin/RightCol"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.92, 0.78, 0.45, 1)
 theme_override_font_sizes/font_size = 20
-text = "House Caravan"
+text = "Market"
 
-[node name="ContextMeta" type="Label" parent="Body/ContextPane/ContextMargin/ContextVBox"]
+[node name="ContextMeta" type="Label" parent="Body/Well/SplitHost/RightPane/RightMargin/RightCol"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.75, 0.62, 0.42, 1)
 text = "At Kharûn"
 
-[node name="ContextBody" type="Label" parent="Body/ContextPane/ContextMargin/ContextVBox"]
+[node name="ContextBody" type="Label" parent="Body/Well/SplitHost/RightPane/RightMargin/RightCol"]
 unique_name_in_owner = true
 layout_mode = 2
 theme_override_colors/font_color = Color(0.85, 0.78, 0.66, 1)
 text = ""
 autowrap_mode = 3
 
-[node name="MarketScroll" type="ScrollContainer" parent="Body/ContextPane/ContextMargin/ContextVBox"]
+[node name="MarketScroll" type="ScrollContainer" parent="Body/Well/SplitHost/RightPane/RightMargin/RightCol"]
 layout_mode = 2
 size_flags_vertical = 3
 horizontal_scroll_mode = 0
 
-[node name="MarketBox" type="VBoxContainer" parent="Body/ContextPane/ContextMargin/ContextVBox/MarketScroll"]
+[node name="MarketBox" type="VBoxContainer" parent="Body/Well/SplitHost/RightPane/RightMargin/RightCol/MarketScroll"]
 unique_name_in_owner = true
 layout_mode = 2
 size_flags_horizontal = 3
@@ -298,6 +303,7 @@ mouse_filter = 2
 color = Color(0.22, 0.14, 0.08, 1)
 
 [node name="BannerCaption" type="Label" parent="BottomBar/BottomRow/BottomStack/BannerBand"]
+unique_name_in_owner = true
 layout_mode = 1
 anchors_preset = 15
 anchor_right = 1.0
