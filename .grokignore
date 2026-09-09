@@ -1,0 +1,34 @@
+# Agent context only. Git tracking is .gitignore.
+# Grok Build may not honor this file; AGENTS.md still forbids crawling these paths.
+
+# Godot editor cache and import sidecars
+.godot/
+*.import
+
+# Local exports / builds
+export/
+exports/
+build/
+builds/
+*.pck
+*.zip
+*.exe
+
+# Bulk media — open a named file only if the task is art or audio
+Assets/audio/
+Assets/map/
+Assets/UI/title_screen.png
+Assets/UI/menu_frame.png
+Assets/UI/menu_frame.jpg
+Assets/UI/menu_frame - Copy.png
+
+# Editor / OS junk
+*.tmp
+.DS_Store
+Thumbs.db
+*~
+
+# Tool local state (keep project skills visible if added)
+.cursor/
+.vscode/
+.idea/
