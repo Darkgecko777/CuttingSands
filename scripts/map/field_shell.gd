@@ -406,6 +406,11 @@ func _show_outyard() -> void:
 			road.pressed.connect(_pick_hop.bind(dest))
 			left_box.add_child(road)
 	_paint_hop_detail(city_id)
+	var wait := Button.new()
+	wait.text = "Wait"
+	wait.custom_minimum_size = Vector2(0, 48)
+	wait.pressed.connect(_on_wait)
+	market_box.add_child(wait)
 
 
 func _pick_hop(dest: String) -> void:
@@ -464,6 +469,16 @@ func _show_empty() -> void:
 	context_title.text = _mode_label(_mode)
 	context_meta.text = ""
 	context_body.text = ""
+
+
+func _on_wait() -> void:
+	if GameState.is_on_road():
+		return
+	GameState.advance_days(1)
+	_refresh_header()
+	_show_outyard()
+	if _outyard_dest.is_empty():
+		context_body.text = "One day. The stalls ticked."
 
 
 func _on_travel(city_id: String) -> void:

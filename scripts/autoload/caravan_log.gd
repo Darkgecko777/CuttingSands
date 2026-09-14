@@ -97,11 +97,12 @@ static func finish_hop_for(caravan_id: String) -> bool:
 	wagon["to"] = ""
 	wagon["days"] = 0
 	wagon["progress"] = 0.0
-	GameState.day += days
 	if caravan_id == GameState.PLAYER_CARAVAN_ID:
 		sync_player()
+		GameState.advance_days(days)
 		RoadPressure.resolve_hop(from_id, to_id)
 		var ok := GameState.travel_to(to_id)
 		SightBook.on_arrival(to_id)
 		return ok
+	GameState.advance_days(days)
 	return GameState.CITIES.has(to_id)

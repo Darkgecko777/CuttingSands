@@ -6,7 +6,7 @@ signal location_changed(city_id: String)
 signal catalog_changed
 
 const STARTING_SCRUBSTONE := 500
-const STARTING_CAPACITY := 24
+const STARTING_CAPACITY := 16
 const STARTING_MASS := 36
 const SELL_SPREAD := 0.85
 const PRICE_PER_HOP := 5
@@ -125,6 +125,15 @@ func hop_days(from_id: String, to_id: String) -> int:
 
 func is_on_road() -> bool:
 	return caravan_status(PLAYER_CARAVAN_ID) == "transit" or not transit.is_empty()
+
+
+func advance_days(n: int) -> void:
+	if n <= 0:
+		return
+	for _i in n:
+		MarketBook.tick_day()
+		day += 1
+	inventory_changed.emit()
 
 
 func begin_hop(to_id: String) -> bool:

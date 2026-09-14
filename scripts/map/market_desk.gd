@@ -154,8 +154,19 @@ func render(box: VBoxContainer) -> void:
 	stock_title.text = "Stall  ·  click to take"
 	stock_title.add_theme_color_override("font_color", MUTED)
 	box.add_child(stock_title)
+	var listed := 0
 	for good_id in GameState.GOODS.keys():
-		box.add_child(_stock_row(str(good_id)))
+		var gid := str(good_id)
+		var staged_buy: int = int(buy_draft.get(gid, 0))
+		if GameState.get_market_stock(gid) - staged_buy <= 0 and staged_buy <= 0:
+			continue
+		box.add_child(_stock_row(gid))
+		listed += 1
+	if listed <= 0:
+		var none := Label.new()
+		none.text = "None on the stall."
+		none.add_theme_color_override("font_color", MUTED)
+		box.add_child(none)
 	var sell_title := Label.new()
 	sell_title.text = "To sell"
 	sell_title.add_theme_color_override("font_color", MUTED)

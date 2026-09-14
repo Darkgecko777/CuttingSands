@@ -45,7 +45,7 @@ static func buy(good_id: String, amount: int = 1) -> bool:
 		return false
 	GameState.scrubstone -= GameState.get_local_price(good_id) * amount
 	GameState.inventory[good_id] = GameState.inventory.get(good_id, 0) + amount
-	GameState.market_stock[GameState.current_city_id][good_id] = GameState.get_market_stock(good_id) - amount
+	MarketBook.set_stock(good_id, GameState.current_city_id, GameState.get_market_stock(good_id) - amount)
 	SightBook.stamp_city(GameState.current_city_id)
 	GameState.scrubstone_changed.emit(GameState.scrubstone)
 	GameState.inventory_changed.emit()
@@ -59,12 +59,16 @@ static func can_sell(good_id: String, amount: int = 1) -> bool:
 static func sell(good_id: String, amount: int = 1) -> bool:
 	if not can_sell(good_id, amount):
 		return false
+	var cid := GameState.current_city_id
 	GameState.scrubstone += GameState.get_sell_price(good_id) * amount
 	GameState.inventory[good_id] = GameState.inventory.get(good_id, 0) - amount
-	if not GameState.market_stock.has(GameState.current_city_id):
-		GameState.market_stock[GameState.current_city_id] = {}
-	GameState.market_stock[GameState.current_city_id][good_id] = GameState.get_market_stock(good_id) + amount
-	SightBook.stamp_city(GameState.current_city_id)
+	var have := GameState.get_market_stock(good_id, cid)
+	var ceiling := MarketBook.cap(cid, good_id)
+	var stored := have + amount
+	if ceiling > 0 and stored > ceiling:
+		stored = ceiling
+	MarketBook.set_stock(good_id, cid, stored)
+	SightBook.stamp_city(cid)
 	GameState.scrubstone_changed.emit(GameState.scrubstone)
 	GameState.inventory_changed.emit()
 	return true

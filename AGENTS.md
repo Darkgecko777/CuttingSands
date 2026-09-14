@@ -59,15 +59,15 @@ Start and arrival land in **Market**, no top tab open. Engine identifiers may st
 
 ## Slice now vs locked later
 
-**Shipped in this checkout:** one player wagon; JSON world; hop along adjacent roads; weather + heat *labels* at Outyard; auto tithe; arrival slips; live prices only at the stall you stand; 24 cells + 36 mass.
+**Shipped in this checkout:** one player wagon; JSON world; hop along adjacent roads; weather + heat *labels* at Outyard; auto tithe; arrival slips; live prices only at the stall you stand; per-node warehouses that produce/consume on Clock B; Outyard Wait (one day); 16 cells + 36 mass.
 
 **Locked in the vision — do not implement until Derek asks:**
 
 - Socialize (spend a day, chance of a slip, stars only)
-- Wait as a Clock B / economic verb
+- Weather step on Wait; Wait as a rival-economic verb (strings walking in)
 - 19 rival strings, house rank, one-way intrigue
 - Interrupt travel slips, salvage/lost-pool, ruin extraction
-- 16-slot stacked cargo (vision); do not silently change capacity
+- Stacked-in-cell cargo (vision 16 slots with stack limits); rack is 16 cells now — do not silently retune
 - Skill webs, agent roster, save/options, other starting houses
 
 When those land, follow the vision section for that lock. Short reminder: one wagon, no rumour shop, stars are P(true), Outyard is hop authority, never 0% road risk, bandits tithe (they do not murder the mark).

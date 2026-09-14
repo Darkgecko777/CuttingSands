@@ -108,6 +108,9 @@ static func good_mark(good_id: String) -> String:
 
 static func producer_id(good_id: String) -> String:
 	var rec: Dictionary = GameState.GOODS.get(good_id, {})
+	var origin := str(rec.get("origin_node_id", "")).strip_edges()
+	if not origin.is_empty():
+		return origin
 	var listed: Variant = rec.get("producers", [])
 	if typeof(listed) == TYPE_ARRAY and listed.size() > 0:
 		return str(listed[0])

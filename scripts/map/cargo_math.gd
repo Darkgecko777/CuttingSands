@@ -1,7 +1,7 @@
 class_name CargoMath
 extends RefCounted
 
-const CELL_CAP := 24
+const CELL_CAP := 16
 const MASS_CAP := 36
 
 
