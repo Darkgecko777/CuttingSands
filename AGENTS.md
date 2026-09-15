@@ -6,6 +6,7 @@ These rules apply when Grok Build is running **inside this Godot checkout**.
 
 - Source of truth for *code* is **this working tree**, not GitHub memory and not a prior chat.
 - Source of truth for *design intent* is `TraderOfTheCuttingSands_Vision.md`. Read the **relevant section** when the task is a lock. Do not paste the vision into the prompt or into this file.
+- If `docs/State.md` exists, read it first. It is the last **two** shipped tasks for Grok.com / Grok Build. Do not scan the repo to recover them.
 - If `docs/worklog.md` exists, read the **latest entries** before exploring. Do not ingest the whole archive.
 - One task cluster at a time. Do not recap the whole project at the start of a session.
 
@@ -80,7 +81,8 @@ When those land, follow the vision section for that lock. Short reminder: one wa
 - World facts go in `data/world/` JSON, not hard-coded in scripts.
 - Leave `.uid` files to Godot; do not hand-edit them.
 - Do not invent unique art, extra SKUs, a second wagon, a fleet screen, or a second economy unless asked.
-- Do not add README / extra scaffolding “for the agent.” `AGENTS.md` and `docs/worklog.md` are the exceptions.
+- After each completed task, update `docs/State.md`: the new task becomes **Current**, the old Current becomes **Prior**, drop anything older. Keep the file to those two entries.
+- Do not add README / extra scaffolding “for the agent.” `AGENTS.md`, `docs/State.md`, and `docs/worklog.md` are the exceptions.
 - Do not read bulk media unless the task is art/audio: `.godot/`, `*.import`, `Assets/map/`, `Assets/audio/`, large title/menu frames. See `.grokignore`. Honor that list even if a tool still lists the files.
 
 ## Git
