@@ -11,29 +11,29 @@ var on_pick: Callable = Callable()
 func render(box: VBoxContainer, title: Label, meta: Label, body: Label) -> void:
 	for child in box.get_children():
 		child.queue_free()
-	var slips: Array = WordBook.all_slips()
-	if slips.is_empty():
+	var rumours: Array = WordBook.all_rumours()
+	if rumours.is_empty():
 		title.text = "Rumours"
 		meta.text = ""
-		body.text = "No word yet. Walk a stall. Arrival notes collect here."
+		body.text = "No rumours yet. Walk a stall. Arrival notes collect here."
 		var note := Label.new()
-		note.text = "No word yet"
+		note.text = "No rumours yet"
 		note.add_theme_color_override("font_color", MUTED)
 		box.add_child(note)
 		return
-	if selected_id.is_empty() or WordBook.slip(selected_id).is_empty():
-		selected_id = str(slips[0].get("id", ""))
+	if selected_id.is_empty() or WordBook.rumour(selected_id).is_empty():
+		selected_id = str(rumours[0].get("id", ""))
 	_paint_selected(title, meta, body)
 	var head := Label.new()
-	head.text = "Slips"
+	head.text = "Rumours"
 	head.add_theme_color_override("font_color", MUTED)
 	box.add_child(head)
-	for row in slips:
+	for row in rumours:
 		box.add_child(_row(row))
 
 
 func _paint_selected(title: Label, meta: Label, body: Label) -> void:
-	var rec := WordBook.slip(selected_id)
+	var rec := WordBook.rumour(selected_id)
 	if rec.is_empty():
 		title.text = "Rumours"
 		meta.text = ""
@@ -63,12 +63,12 @@ func _row(rec: Dictionary) -> Button:
 	btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	btn.add_theme_color_override("font_color", GOLD)
 	btn.tooltip_text = str(rec.get("text", ""))
-	var slip_id := str(rec.get("id", ""))
-	btn.pressed.connect(_select.bind(slip_id))
+	var rumour_id := str(rec.get("id", ""))
+	btn.pressed.connect(_select.bind(rumour_id))
 	return btn
 
 
-func _select(slip_id: String) -> void:
-	selected_id = slip_id
+func _select(rumour_id: String) -> void:
+	selected_id = rumour_id
 	if on_pick.is_valid():
-		on_pick.call(slip_id)
+		on_pick.call(rumour_id)

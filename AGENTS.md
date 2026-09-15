@@ -25,7 +25,7 @@ These rules apply when Grok Build is running **inside this Godot checkout**.
 | Travel / tithe | `scripts/autoload/caravan_log.gd`, `scripts/map/road_pressure.gd` |
 | Economy | `scripts/autoload/cargo_hold.gd`, `market_book.gd`, `game_state.gd` |
 | World data | `scripts/autoload/world_book.gd` ← `data/world/*.json` |
-| Knowledge / slips | `scripts/sight/` (`SightBook`, `WordBook`, `GoodCopy`) — engine names until a rename pass |
+| Knowledge / rumours | `scripts/sight/` (`SightBook`, `WordBook`, `GoodCopy`) — engine names until a rename pass |
 | Title / house / pause | `scripts/ui/title_screen.gd`, `house_select.gd`, `pause_menu.gd` |
 
 ## Leftovers (do not revive)
@@ -40,12 +40,12 @@ Play lives in **one well** after house select. No second full-screen city hub or
 
 | Say | Do not put on chrome |
 |---|---|
-| Rumours (tab); one entry is a **slip** | Word, assay |
+| Rumours (tab); one entry is a **rumour** | Word, assay, slip |
 | Cargo (top tab) | Wagon as a chrome label |
 | House, Market, Outyard (bottom yards) | generic “location buttons” |
 | Outyard confirms hops | starting a hop from the Map tab |
 
-Start and arrival land in **Market**, no top tab open. Engine identifiers may still say Word / wagon / assay until a rename pass.
+Start and arrival land in **Market**, no top tab open. Engine identifiers may still say Word / wagon until a rename pass. Do not put *assay* or *slip* on chrome, in player copy, or in new identifiers.
 
 ## UI lock (keep; do not rebuild)
 
@@ -59,15 +59,16 @@ Start and arrival land in **Market**, no top tab open. Engine identifiers may st
 
 ## Slice now vs locked later
 
-**Shipped in this checkout:** one player wagon; JSON world; hop along adjacent roads; weather + heat *labels* at Outyard; auto tithe; arrival slips; live prices only at the stall you stand; per-node warehouses that produce/consume on Clock B; Outyard Wait (one day); 16 cells + 36 mass.
+**Shipped in this checkout:** one player wagon; JSON world; hop along adjacent roads; weather + heat *labels* at Outyard; auto tithe; arrival rumours; live prices only at the stall you stand; per-node warehouses that produce/consume on Clock B; cities/villages mint rations + water (posts do not; Sarn water only); price bands; stall ledger (lowest buy / highest sale + town); emergency edible → rations; Outyard Wait (one day); 16 cells + 36 mass.
 
 **Locked in the vision — do not implement until Derek asks:**
 
-- Socialize (spend a day, chance of a slip, stars only)
+- Socialize (spend a day, chance of a rumour, stars only)
 - Weather step on Wait; Wait as a rival-economic verb (strings walking in)
 - 19 rival strings, house rank, one-way intrigue
-- Interrupt travel slips, salvage/lost-pool, ruin extraction
+- Interrupt travel events, salvage/lost-pool, ruin extraction
 - Stacked-in-cell cargo (vision 16 slots with stack limits); rack is 16 cells now — do not silently retune
+- Player daily eat of rations/water
 - Skill webs, agent roster, save/options, other starting houses
 
 When those land, follow the vision section for that lock. Short reminder: one wagon, no rumour shop, stars are P(true), Outyard is hop authority, never 0% road risk, bandits tithe (they do not murder the mark).

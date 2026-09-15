@@ -148,7 +148,8 @@ func render(box: VBoxContainer) -> void:
 	var deal := Label.new()
 	deal.text = "Buy %d · %ds    Sell %d · %ds    Net %+d" % [buy_n, buy_cost(), sell_n, sell_gain(), sell_gain() - buy_cost()]
 	deal.add_theme_color_override("font_color", GHOST if buy_n + sell_n > 0 else MUTED)
-	deal.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	deal.custom_minimum_size = Vector2(0, 24)
+	deal.clip_text = true
 	box.add_child(deal)
 	var stock_title := Label.new()
 	stock_title.text = "Stall  ·  click to take"
@@ -192,12 +193,19 @@ func _stock_row(good_id: String) -> Button:
 	var staged_buy: int = int(buy_draft.get(good_id, 0))
 	var row := Button.new()
 	row.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	row.custom_minimum_size = Vector2(0, 40)
+	row.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	row.clip_text = true
+	row.mouse_filter = Control.MOUSE_FILTER_STOP
 	var ghost := "  +%d" % staged_buy if staged_buy > 0 else ""
 	row.text = "%s    %ds    M%d%s" % [GameState.get_good_name(good_id), GameState.get_local_price(good_id), GameState.get_market_stock(good_id) - staged_buy, ghost]
-	row.disabled = not can_stage_buy(good_id)
-	row.add_theme_color_override("font_color", GHOST if staged_buy > 0 else GOLD)
+	var can_buy := can_stage_buy(good_id)
+	var color := GHOST if staged_buy > 0 else (GOLD if can_buy else MUTED)
+	row.add_theme_color_override("font_color", color)
+	row.add_theme_color_override("font_hover_color", Color(1, 0.92, 0.7, 1))
 	row.pressed.connect(stage_buy.bind(good_id))
 	row.tooltip_text = GoodCopy.stall_tooltip(good_id)
+	GameState.note_stall(good_id)
 	if on_inspect.is_valid():
 		row.mouse_entered.connect(on_inspect.bind(good_id))
 	return row

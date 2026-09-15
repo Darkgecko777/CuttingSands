@@ -17,8 +17,9 @@ static func load_world() -> void:
 		GameState.HOUSES = {"house_kharun": {"name": "House Kharûn", "home": "kharun", "short_desc": "Scrubstone, contracts, quiet leverage.", "available": true}}
 	if GameState.GOODS.is_empty():
 		GameState.GOODS = {
-			"water": {"name": "Water", "mark": "W", "base_price": 12, "producer": "sarns_rest", "size": 3, "mass": 4},
-			"speargrain": {"name": "Speargrain", "mark": "S", "base_price": 8, "producer": "veythar", "size": 2, "mass": 1},
+			"water": {"name": "Water", "mark": "W", "base_price": 12, "producer": "", "size": 3, "mass": 4},
+			"rations": {"name": "Rations", "mark": "Rt", "base_price": 10, "producer": "", "size": 1, "mass": 1},
+			"speargrain": {"name": "Speargrain", "mark": "S", "base_price": 8, "producer": "veythar", "size": 2, "mass": 1, "edible": true, "ration_yield": 1},
 			"brineglass": {"name": "Brineglass", "mark": "B", "base_price": 28, "producer": "kharun", "size": 2, "mass": 4},
 			"witching_rods": {"name": "Witching rods", "mark": "R", "base_price": 32, "producer": "zamath", "size": 2, "mass": 2},
 			"highweave": {"name": "Highweave", "mark": "H", "base_price": 18, "producer": "thalor", "size": 1, "mass": 1},
@@ -94,11 +95,23 @@ static func house_name(house_id: String) -> String:
 	return str(GameState.HOUSES.get(house_id, {}).get("name", "Unknown House"))
 
 
+static func good_letter(good_id: String) -> String:
+	return str(GameState.GOODS.get(good_id, {}).get("letter", "")).strip_edges()
+
+
 static func good_name(good_id: String) -> String:
+	var letter := good_letter(good_id)
+	if not letter.is_empty():
+		var origin := producer_id(good_id)
+		if not origin.is_empty():
+			return "%s %s" % [settlement_name(origin), letter]
 	return str(GameState.GOODS.get(good_id, {}).get("name", good_id.capitalize()))
 
 
 static func good_mark(good_id: String) -> String:
+	var letter := good_letter(good_id)
+	if not letter.is_empty():
+		return letter
 	var rec: Dictionary = GameState.GOODS.get(good_id, {})
 	var mark := str(rec.get("mark", "")).strip_edges()
 	if mark.is_empty():
@@ -107,6 +120,8 @@ static func good_mark(good_id: String) -> String:
 
 
 static func producer_id(good_id: String) -> String:
+	if is_shared_good(good_id):
+		return ""
 	var rec: Dictionary = GameState.GOODS.get(good_id, {})
 	var origin := str(rec.get("origin_node_id", "")).strip_edges()
 	if not origin.is_empty():
@@ -115,3 +130,37 @@ static func producer_id(good_id: String) -> String:
 	if typeof(listed) == TYPE_ARRAY and listed.size() > 0:
 		return str(listed[0])
 	return str(rec.get("producer", ""))
+
+
+static func is_shared_good(good_id: String) -> bool:
+	return good_id == "water" or good_id == "rations"
+
+
+static func local_mint(city_id: String, good_id: String) -> Dictionary:
+	var city: Dictionary = GameState.CITIES.get(city_id, {})
+	var table: Variant = city.get("local_mint", {})
+	if typeof(table) != TYPE_DICTIONARY:
+		return {}
+	var row: Variant = table.get(good_id, {})
+	return row if typeof(row) == TYPE_DICTIONARY else {}
+
+
+static func local_base(city_id: String, good_id: String) -> int:
+	var n := int(local_mint(city_id, good_id).get("base", 0))
+	if n > 0:
+		return n
+	var rec: Dictionary = GameState.GOODS.get(good_id, {})
+	return maxi(1, int(rec.get("base_origin_price", rec.get("base_price", 10))))
+
+
+static func is_edible(good_id: String) -> bool:
+	return bool(GameState.GOODS.get(good_id, {}).get("edible", false))
+
+
+static func ration_yield(good_id: String) -> int:
+	if not is_edible(good_id):
+		return 0
+	var rec: Dictionary = GameState.GOODS.get(good_id, {})
+	if rec.has("ration_yield"):
+		return maxi(0, int(rec.get("ration_yield", 0)))
+	return 1

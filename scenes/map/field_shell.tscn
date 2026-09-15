@@ -233,20 +233,37 @@ theme_override_constants/separation = 8
 
 [node name="ContextTitle" type="Label" parent="Body/Well/SplitHost/RightPane/RightMargin/RightCol"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 28)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.92, 0.78, 0.45, 1)
 theme_override_font_sizes/font_size = 20
 text = "Market"
+clip_text = true
+text_overrun_behavior = 3
 
 [node name="ContextMeta" type="Label" parent="Body/Well/SplitHost/RightPane/RightMargin/RightCol"]
 unique_name_in_owner = true
+custom_minimum_size = Vector2(0, 22)
 layout_mode = 2
 theme_override_colors/font_color = Color(0.75, 0.62, 0.42, 1)
 text = "At Kharûn"
+clip_text = true
+text_overrun_behavior = 3
 
-[node name="ContextBody" type="Label" parent="Body/Well/SplitHost/RightPane/RightMargin/RightCol"]
-unique_name_in_owner = true
+[node name="ContextSlot" type="Control" parent="Body/Well/SplitHost/RightPane/RightMargin/RightCol"]
+custom_minimum_size = Vector2(0, 148)
 layout_mode = 2
+size_flags_vertical = 0
+clip_contents = true
+
+[node name="ContextBody" type="Label" parent="Body/Well/SplitHost/RightPane/RightMargin/RightCol/ContextSlot"]
+unique_name_in_owner = true
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
 theme_override_colors/font_color = Color(0.85, 0.78, 0.66, 1)
 text = ""
 autowrap_mode = 3
@@ -345,6 +362,14 @@ layout_mode = 2
 size_flags_vertical = 3
 toggle_mode = true
 text = "Outyard"
+
+[node name="SmashBtn" type="Button" parent="BottomBar/BottomRow/BottomStack/OptionsBand"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(220, 48)
+layout_mode = 2
+size_flags_vertical = 4
+text = "Smash to rations"
+visible = false
 
 [node name="ContextActions" type="HBoxContainer" parent="BottomBar/BottomRow/BottomStack/OptionsBand"]
 unique_name_in_owner = true

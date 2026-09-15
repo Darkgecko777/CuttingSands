@@ -31,6 +31,7 @@ enum Yard { NONE, HOUSE, MARKET, OUTYARD }
 @onready var outyard_btn: Button = %OutyardBtn
 @onready var banner_caption: Label = %BannerCaption
 @onready var context_actions: HBoxContainer = %ContextActions
+@onready var smash_btn: Button = %SmashBtn
 
 var _mode: int = Mode.NONE
 var _yard: int = Yard.MARKET
@@ -49,6 +50,7 @@ func _ready() -> void:
 	_desk.on_inspect = _inspect_good
 	_word.on_pick = _on_word_pick
 	_map.setup(self, map_clip, map_layer, markers_layer)
+	smash_btn.pressed.connect(_on_smash_from_bar)
 	_wire_shell()
 	_refresh_header()
 	_set_mode(Mode.NONE)
@@ -115,6 +117,12 @@ func _refresh_header() -> void:
 
 
 func _on_economy(_arg: Variant = null) -> void:
+	call_deferred("_apply_economy_view")
+
+
+func _apply_economy_view() -> void:
+	if not is_inside_tree():
+		return
 	_refresh_header()
 	_fill_rack()
 	if _mode == Mode.NONE:
@@ -122,6 +130,12 @@ func _on_economy(_arg: Variant = null) -> void:
 
 
 func _on_draft_changed() -> void:
+	call_deferred("_apply_draft_view")
+
+
+func _apply_draft_view() -> void:
+	if not is_inside_tree():
+		return
 	_refresh_header()
 	_fill_rack()
 	if _yard == Yard.MARKET and _mode == Mode.NONE:
@@ -206,6 +220,27 @@ func _inspect_good(good_id: String) -> void:
 	if _mode == Mode.CARGO:
 		context_title.text = WorldBook.good_name(good_id)
 		context_meta.text = "Selected"
+	_sync_convert(good_id)
+
+
+func _sync_convert(good_id: String) -> void:
+	var in_hold := _mode == Mode.CARGO or (_mode == Mode.NONE and _yard == Yard.MARKET)
+	smash_btn.visible = in_hold
+	smash_btn.set_meta("good_id", good_id)
+	smash_btn.disabled = not in_hold or good_id.is_empty() or not CargoHold.can_convert(good_id)
+
+
+func _on_smash_from_bar() -> void:
+	_on_smash_to_rations(str(smash_btn.get_meta("good_id", "")))
+
+
+func _on_smash_to_rations(good_id: String) -> void:
+	if not CargoHold.convert(good_id):
+		return
+	if _mode == Mode.CARGO:
+		call_deferred("_show_cargo_tab")
+	elif _mode == Mode.NONE and _yard == Yard.MARKET:
+		call_deferred("_show_market_yard")
 
 
 func _clear_lists() -> void:
@@ -215,21 +250,22 @@ func _clear_lists() -> void:
 		child.queue_free()
 	for child in context_actions.get_children():
 		child.queue_free()
+	smash_btn.visible = false
 
 
 func _show_word() -> void:
 	_clear_lists()
 	rack_grid.visible = false
-	left_title.text = "Slips"
+	left_title.text = "Rumours"
 	_word.render(left_box, context_title, context_meta, context_body)
-	var rec := WordBook.slip(_word.selected_id)
+	var rec := WordBook.rumour(_word.selected_id)
 	var city_id := str(rec.get("city_id", ""))
 	if not city_id.is_empty():
 		_map.center_on_city(city_id)
 
 
-func _on_word_pick(slip_id: String) -> void:
-	_word.selected_id = slip_id
+func _on_word_pick(rumour_id: String) -> void:
+	_word.selected_id = rumour_id
 	_show_word()
 
 
@@ -341,6 +377,7 @@ func _show_market_yard() -> void:
 	else:
 		_desk.empty_note(market_box, "No market at this stop.")
 	_fill_rack()
+	_sync_convert(_inspect_good_id)
 
 
 func _show_house_yard() -> void:
@@ -374,6 +411,7 @@ func _show_cargo_tab() -> void:
 		context_meta.text = WorldBook.good_name(_inspect_good_id)
 		context_body.text = GoodCopy.context_block(_inspect_good_id)
 	_fill_rack()
+	_sync_convert(_inspect_good_id)
 
 
 func _show_outyard() -> void:

@@ -40,6 +40,7 @@ var GOODS: Dictionary = {}
 var ROUTES: Dictionary = {}
 var caravans: Dictionary = {}
 var pending_travel_to: String = ""
+var price_ledger: Dictionary = {}
 
 
 func _ready() -> void:
@@ -66,6 +67,7 @@ func start_new_run(house_id: String) -> void:
 	MarketBook.seed_all()
 	day = 1
 	agents.clear()
+	price_ledger.clear()
 	WordBook.reset()
 	CaravanLog.spawn_player(current_city_id)
 	SightBook.reset()
@@ -234,6 +236,30 @@ func get_local_price(good_id: String, city_id: String = "") -> int:
 
 func get_sell_price(good_id: String, city_id: String = "") -> int:
 	return MarketBook.sell_price(good_id, city_id)
+
+
+func note_stall(good_id: String, city_id: String = "") -> void:
+	var cid := current_city_id if city_id.is_empty() else city_id
+	if good_id.is_empty() or cid.is_empty() or not settlement_has_market(cid) or is_on_road():
+		return
+	var price := get_local_price(good_id, cid)
+	if price <= 0:
+		return
+	if not price_ledger.has(good_id):
+		price_ledger[good_id] = {
+			"lowest_buy_price": price,
+			"lowest_buy_node_id": cid,
+			"highest_sell_price": price,
+			"highest_sell_node_id": cid,
+		}
+		return
+	var row: Dictionary = price_ledger[good_id]
+	if price < int(row.get("lowest_buy_price", price)):
+		row["lowest_buy_price"] = price
+		row["lowest_buy_node_id"] = cid
+	if price > int(row.get("highest_sell_price", 0)):
+		row["highest_sell_price"] = price
+		row["highest_sell_node_id"] = cid
 
 
 func can_buy(good_id: String, amount: int = 1) -> bool:

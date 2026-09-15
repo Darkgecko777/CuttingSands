@@ -72,3 +72,27 @@ static func sell(good_id: String, amount: int = 1) -> bool:
 	GameState.scrubstone_changed.emit(GameState.scrubstone)
 	GameState.inventory_changed.emit()
 	return true
+
+
+static func can_convert(good_id: String) -> bool:
+	if good_id.is_empty() or int(GameState.inventory.get(good_id, 0)) < 1:
+		return false
+	var yield_n := WorldBook.ration_yield(good_id)
+	if yield_n <= 0:
+		return false
+	var next: Dictionary = GameState.inventory.duplicate()
+	next[good_id] = int(next.get(good_id, 0)) - 1
+	next["rations"] = int(next.get("rations", 0)) + yield_n
+	if CargoMath.cells_in(next) > GameState.caravan_capacity:
+		return false
+	return CargoMath.mass_in(next) <= GameState.caravan_mass_capacity
+
+
+static func convert(good_id: String) -> bool:
+	if not can_convert(good_id):
+		return false
+	var yield_n := WorldBook.ration_yield(good_id)
+	GameState.inventory[good_id] = int(GameState.inventory.get(good_id, 0)) - 1
+	GameState.inventory["rations"] = int(GameState.inventory.get("rations", 0)) + yield_n
+	GameState.inventory_changed.emit()
+	return true

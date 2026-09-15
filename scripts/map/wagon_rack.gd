@@ -25,17 +25,19 @@ static func fill(grid: GridContainer, units: Array, on_unit: Callable, on_inspec
 static func _cell(good_id: String, ghost: bool, head: bool, on_unit: Callable, on_inspect: Callable) -> Button:
 	var cell := Button.new()
 	cell.custom_minimum_size = Vector2(72, 52)
+	cell.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	cell.clip_text = true
+	cell.mouse_filter = Control.MOUSE_FILTER_STOP
 	cell.text = GameState.get_good_name(good_id)
 	cell.tooltip_text = GoodCopy.wagon_tooltip(good_id)
 	var color := GHOST if ghost else GOLD
 	cell.add_theme_color_override("font_color", color)
-	cell.add_theme_color_override("font_hover_color", color)
+	cell.add_theme_color_override("font_hover_color", Color(1, 0.92, 0.7, 1))
 	if on_inspect.is_valid():
 		cell.mouse_entered.connect(on_inspect.bind(good_id))
 	if head and on_unit.is_valid():
 		cell.pressed.connect(on_unit.bind(good_id, ghost))
 	else:
-		cell.disabled = not head
 		cell.focus_mode = Control.FOCUS_NONE
 	return cell
 
@@ -45,6 +47,8 @@ static func _empty() -> Label:
 	cell.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
 	cell.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	cell.custom_minimum_size = Vector2(72, 52)
+	cell.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	cell.clip_text = true
 	cell.text = "—"
 	cell.add_theme_color_override("font_color", MUTED)
 	return cell

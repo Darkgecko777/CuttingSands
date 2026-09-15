@@ -2,7 +2,8 @@ class_name MarketBook
 extends RefCounted
 
 const LOCAL_HOOK := 1.0
-const WATER_ID := "water"
+const BAND_FLOOR := 0.70
+const BAND_CEILING := 1.45
 
 static var _path_cache: Dictionary = {}
 
@@ -15,20 +16,10 @@ static func seed_all() -> void:
 		var stocks: Dictionary = {}
 		for good_id in GameState.GOODS.keys():
 			var gid := str(good_id)
-			if is_origin(cid, gid):
+			if can_mint(cid, gid):
 				stocks[gid] = int(floor(float(cap(cid, gid)) * 0.6))
 			else:
 				stocks[gid] = 0
-		var size := market_size(cid)
-		if size > 0 and GameState.GOODS.has(WATER_ID) and not is_origin(cid, WATER_ID):
-			var seeded: int = 2
-			if size >= 8:
-				seeded = 8
-			elif size >= 4:
-				seeded = 4
-			elif size >= 3:
-				seeded = 3
-			stocks[WATER_ID] = mini(cap(cid, WATER_ID), seeded)
 		GameState.market_stock[cid] = stocks
 
 
@@ -59,22 +50,38 @@ static func is_origin(city_id: String, good_id: String) -> bool:
 	return WorldBook.producer_id(good_id) == city_id
 
 
-static func produce_mean(good_id: String) -> float:
-	var rec: Dictionary = GameState.GOODS.get(good_id, {})
-	var lo := int(rec.get("produce_min", 0))
-	var hi := int(rec.get("produce_max", lo))
+static func can_mint(city_id: String, good_id: String) -> bool:
+	if WorldBook.is_shared_good(good_id):
+		var mint := WorldBook.local_mint(city_id, good_id)
+		return int(mint.get("produce_max", 0)) > 0 or int(mint.get("produce_min", 0)) > 0
+	return is_origin(city_id, good_id)
+
+
+static func produce_mean(good_id: String, city_id: String = "") -> float:
+	var lo := 0
+	var hi := 0
+	if WorldBook.is_shared_good(good_id) and not city_id.is_empty():
+		var mint := WorldBook.local_mint(city_id, good_id)
+		lo = int(mint.get("produce_min", 0))
+		hi = int(mint.get("produce_max", lo))
+	else:
+		var rec: Dictionary = GameState.GOODS.get(good_id, {})
+		lo = int(rec.get("produce_min", 0))
+		hi = int(rec.get("produce_max", lo))
+	if hi < lo:
+		hi = lo
 	return (float(lo) + float(hi)) * 0.5
 
 
 static func cap(city_id: String, good_id: String) -> int:
-	var mean := produce_mean(good_id)
+	var mean := produce_mean(good_id, city_id)
 	if mean <= 0.0:
 		mean = 1.0
 	var size := market_size(city_id)
-	if size <= 0 and not is_origin(city_id, good_id):
-		return 0
-	if is_origin(city_id, good_id):
+	if can_mint(city_id, good_id):
 		return maxi(1, int(round(mean * 8.0 * maxf(1.0, float(size) / 4.0))))
+	if size <= 0:
+		return 0
 	return maxi(1, int(round(mean * 4.0 * maxf(1.0, float(size) / 5.0))))
 
 
@@ -89,22 +96,44 @@ static func hops_to_producer(city_id: String, good_id: String) -> int:
 static func local_price(good_id: String, city_id: String = "") -> int:
 	var cid := GameState.current_city_id if city_id.is_empty() else city_id
 	var rec: Dictionary = GameState.GOODS.get(good_id, {})
-	var base: int = int(rec.get("base_origin_price", rec.get("base_price", 10)))
-	var origin := WorldBook.producer_id(good_id)
-	var stats := _route_stats(origin, cid)
-	var hops: int = stats.x
-	var gravity: int = stats.y
-	var ceiling := cap(cid, good_id)
+	var cellar := cap(cid, good_id)
 	var have := stock(good_id, cid)
-	var filled := 0.0 if ceiling <= 0 else clampf(float(have) / float(ceiling), 0.0, 1.0)
+	var filled := 0.0 if cellar <= 0 else clampf(float(have) / float(cellar), 0.0, 1.0)
 	var scarcity := lerpf(1.35, 0.70, filled)
-	var distance := 1.0 + 0.22 * float(hops)
-	var absorb := 1.0 + 0.04 * float(gravity)
-	return maxi(1, int(round(float(base) * scarcity * distance * absorb * LOCAL_HOOK)))
+	var quirk := _quirk(cid, good_id)
+	var raw := 1
+	var floor_p := 1
+	var ceil_p := 1
+	if WorldBook.is_shared_good(good_id):
+		var base := WorldBook.local_base(cid, good_id)
+		raw = maxi(1, int(round(float(base) * scarcity * LOCAL_HOOK * quirk)))
+		floor_p = maxi(1, int(round(float(base) * BAND_FLOOR * quirk)))
+		ceil_p = maxi(floor_p, int(round(float(base) * BAND_CEILING * quirk)))
+	else:
+		var base: int = int(rec.get("base_origin_price", rec.get("base_price", 10)))
+		var origin := WorldBook.producer_id(good_id)
+		var stats := _route_stats(origin, cid)
+		var hops: int = stats.x
+		var gravity: int = stats.y
+		var distance := 1.0 + 0.22 * float(hops)
+		var absorb := 1.0 + 0.04 * float(gravity)
+		var mid := float(base) * distance * absorb * quirk
+		raw = maxi(1, int(round(float(base) * scarcity * distance * absorb * LOCAL_HOOK * quirk)))
+		floor_p = maxi(1, int(round(mid * BAND_FLOOR)))
+		ceil_p = maxi(floor_p, int(round(mid * BAND_CEILING)))
+	return clampi(raw, floor_p, ceil_p)
 
 
 static func sell_price(good_id: String, city_id: String = "") -> int:
-	return maxi(1, int(round(float(local_price(good_id, city_id)) * GameState.SELL_SPREAD)))
+	return local_price(good_id, city_id)
+
+
+static func _quirk(city_id: String, good_id: String) -> float:
+	var city: Dictionary = GameState.CITIES.get(city_id, {})
+	var quirks: Variant = city.get("price_quirks", {})
+	if typeof(quirks) != TYPE_DICTIONARY or not quirks.has(good_id):
+		return 1.0
+	return maxf(0.01, float(quirks[good_id]))
 
 
 static func _produce_all(rng: RandomNumberGenerator) -> void:
@@ -112,11 +141,18 @@ static func _produce_all(rng: RandomNumberGenerator) -> void:
 		var cid := str(city_id)
 		for good_id in GameState.GOODS.keys():
 			var gid := str(good_id)
-			if not is_origin(cid, gid):
+			if not can_mint(cid, gid):
 				continue
-			var rec: Dictionary = GameState.GOODS.get(gid, {})
-			var lo := int(rec.get("produce_min", 0))
-			var hi := int(rec.get("produce_max", lo))
+			var lo := 0
+			var hi := 0
+			if WorldBook.is_shared_good(gid):
+				var mint := WorldBook.local_mint(cid, gid)
+				lo = int(mint.get("produce_min", 0))
+				hi = int(mint.get("produce_max", lo))
+			else:
+				var rec: Dictionary = GameState.GOODS.get(gid, {})
+				lo = int(rec.get("produce_min", 0))
+				hi = int(rec.get("produce_max", lo))
 			if hi < lo:
 				hi = lo
 			var delta := rng.randi_range(lo, hi)
@@ -146,7 +182,7 @@ static func _consume_all(rng: RandomNumberGenerator) -> void:
 
 
 static func _consume_weight(good_id: String, city_id: String) -> float:
-	if is_origin(city_id, good_id):
+	if can_mint(city_id, good_id):
 		return 0.15
 	var band := str(GameState.GOODS.get(good_id, {}).get("band", "industrial"))
 	if band == "craft":

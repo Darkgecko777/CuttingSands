@@ -1,6 +1,6 @@
 # Caravans of the Cutting Sands — Project Vision
 
-**Status:** Active direction (updated 8 September 2026)  
+**Status:** Active direction (updated 14 September 2026; live economy / rations)  
 **Engine:** Godot 4.x  
 **Platform target:** Steam (using an existing paid slot)  
 **Primary goal:** A finishable, passion-aligned vertical slice that delivers the core trading + intrigue fantasy and serves as both revenue recovery and proof-of-concept for game design as a viable path.
@@ -53,23 +53,23 @@ The market is larger than any single house. Houses operate inside a system they 
 
 Most traded goods are native to this setting. Ordinary bulk (water, staple grain) may remain ordinary. Signature goods invert familiar commodity roles through fantastical production, danger, or monopoly.
 
-Goods exist to be believed, doubted, hauled, and lied about — not to decorate a generic market. A rumour slip and a house custom should be able to *name the thing* and still sound like the box.
+Goods exist to be believed, doubted, hauled, and lied about — not to decorate a generic market. A rumour and a house custom should be able to *name the thing* and still sound like the box.
 
 **A good is ready when it has an old-world rhyme and a local wound.**
 
 - **Rhyme:** what historical commodity is it *acting like*? (spice, silk, salt, indigo, incense, pitch, steel, tea, alum.)
 - **Wound:** what does this world pay to get it? (territory, poison, night shores, a house monopoly, a craft that cannot leave Zamath, coins that dissolve.)
 
-If a proposed good cannot support a 3-star slip that would make the player reroute the only wagon, it is flavor text, not a trade good.
+If a proposed good cannot support a 3-star rumour that would make the player reroute the only wagon, it is flavor text, not a trade good.
 
 **Scope guardrails (so this does not become a catalog product):**
 
-- Prefer a closed set of roughly 10–14 goods over a wide encyclopedia. Width is still low priority. *Truth of the names* is load-bearing.
+- Origin catalog is **4 unique goods per city** (Ghorath counts as city-tier) and **2 per village**. Trading posts mint none. Rations and water are separate stall rows, not those letters. Width is allowed to exceed the old 10–14 north star. *Truth of the names* still matters when a letter is named; ids may stay generic (`kharun_a`) until then.
 - All goods that will exist in the region are available from the start. No unlocking new commodities as progression.
 - Origins stay few and sticky (mint, forest, shore, hypersaline belt, a single craft seat) so knowledge can compound.
-- One short paragraph plus producer, risk/spoil tag, and rumour shape is enough. The rest appears in house custom and slips — not in a bestiary dump.
+- One short paragraph plus producer, risk/spoil tag, and rumour shape is enough. The rest appears in house custom and rumours — not in a bestiary dump.
 - Placeholder template goods (Iron, Spices, Cloth as generic SKUs) are a motivation tax. Replace them with setting nouns before investing in unique art.
-- Do not add a second economy of crafting trees or quality grades to justify the fantasy. The production story lives in the name and the map role.
+- Do not add a second economy of crafting trees or quality grades to justify the fantasy. The production story lives in the name and the map role. Emergency smash of an edible letter into rations is a panic verb, not a craft tree.
 
 Scrubstone coin remains currency and desalination feedstock; it is not “just another row on the stall.”
 
@@ -79,7 +79,7 @@ Scrubstone is the region’s currency and the key industrial material for effici
 
 Coins are soluble in concentrated salt water (their primary industrial function). Ordinary sweat causes slow, long-term erosion, so merchants of every recognized house wear functional and ceremonial gloves and keep coinage in house-marked pouches. The recognizable glove-and-pouch combination is the visible guarantee that the coins are official mint product and have been properly handled. Independent traders can imitate the gear, but only house-marked equipment carries institutional trust and eliminates the need to test every coin by hand.
 
-Kharûn itself has no reliable local water sources and is therefore entirely dependent on trade for survival, despite controlling the mint and the desalination feedstock. This creates a mutual hostage relationship rather than one-sided dominance.
+Kharûn has no generous local water. It can plate a trickle so the street exists, but cheap bulk water does not belong to the mint city. **Sarn’s Rest** is the oasis anomaly: only **Rukh** has true access. Rukh hauls water (and its own village goods) to **Westmark**. Kharûn is merely the nearest seat on that chain, not the owner of the tap. Survival still runs through trade. The hostage is geography and desalination feedstock, not a Kharûn deed on Sarn.
 
 Scrubstone is produced and consumed at a relatively fixed rate. This imposes a soft ceiling on regional population and prosperity that functions as internal consistency for the designer. Populations of cities and villages are treated as fixed and are never presented as numbers or systems to the player. There is no formal population control in the setting, no fluff about family size, and no player-facing demographic simulation. High baseline mortality and periodic water-pressure events are sufficient to keep the constraint felt without explicit modeling. Growing settlements through trade volume is acknowledged as interesting for a larger project but is out of scope here.
 
@@ -192,7 +192,7 @@ A string is a pin: house, current node, bound-for, a blunt hold (one or two good
 
 **Near-sighted profit matrix.** When a string is idle and the world clock ticks (hop, Skip, or Wait — Clock B), it scores buy-here / sell-within-**1–2 hops** using this stall as it is now and structural or last-unloaded prices at candidate dests. Expected take minus road tax (days, weather, heat tithe). Pick the best score above a floor, load, leave, sell on arrival, think again. They chase the commodity rhyme the map already encodes. They miss rumour edges, 3-hop chains, spite dumps, and clever Waits. That gap is the player fantasy.
 
-NPC knowledge is wheels and house memory, not Rumours. They do not get slips. They do not become smarter because the player planted an eye on them.
+NPC knowledge is wheels and house memory, not Rumours. They do not get rumours. They do not become smarter because the player planted an eye on them.
 
 **Shared stall, frozen desk.** NPC buy/sell resolves only on world-clock ticks. A Market draft in front of the player is frozen: strings do not print into that stall while the player is mid-deal. Wait is therefore an economic verb — sit a day and other marks can walk in.
 
@@ -212,7 +212,7 @@ NPCs never run those verbs at the player. Hostile pressure on the camera is **lo
 - An agent’s `where` is a **settlement id**, the **player wagon**, or **any string id**.
 - Planted in a place: they grant a **range of live vision** scaled by skill — incoming and outgoing strings, and the local stall, inside that range. This is knowledge fog and pin visibility, not a second paint job on the atlas. The Map tab remains the no-FoW reference chart; live tokens and freshness live in Rumours, travel watch, and pins.
 - Stuck on a string: detailed cargo class, bound-for, and timing on *that* token.
-- **No courier delay on line-of-sight.** In range is in view. This is a video game. Stars and days-old still apply when the output is a *slip* (Socialize, rescue, house talk). Live token sight does not wait on a rider.
+- **No courier delay on line-of-sight.** In range is in view. This is a video game. Stars and days-old still apply when the output is a *rumour* (Socialize, rescue, house talk). Live token sight does not wait on a rider.
 
 Do not add rival skill webs, per-NPC plot queues, or assassination. The matrix plus rank plus the shared deck is the rival game.
 
@@ -223,16 +223,44 @@ Do not add rival skill webs, per-NPC plot queues, or assassination. The matrix p
   2. Discrete events that temporarily alter production, consumption, or willingness to pay.
 - Long-term production and consumption are kept roughly in balance so the regional economy tends to wash out rather than permanently inflate or deflate. The continuous consumption of scrubstone coin for desalination provides a natural monetary and material sink.
 
+### Live Economy — Cellars, Rations, Bands (Locked 14 September 2026)
+
+This is a **static map with live shelves**. Towns do not grow, found workshops, or change what they mint because the player fed them. Stock moves. Demand geography does not.
+
+**Mint.**  
+Each city origin writes four letters. Each village origin writes two. Those letters mint only at that origin, daily, up to a cap, then stop. Trading posts mint no origin letters.
+
+Every **city and village** also mints **rations** and **water** into local cellars so the place can plate itself. Mint rate and cap are authored per node (Ghorath water can sit easy; Kharûn water is a trickle; Rukh water is the first generous stall on the Sarn chain). Posts do not mint rations or water; they only hold what a wagon sold there.
+
+Sarn’s Rest mints water only and is not a market. The player-facing cheap well is Rukh.
+
+**Burn.**  
+Every market tries to eat some of every good that is on its own shelf, every day, scaled by hidden market size. A town cannot eat a crate that is not there. No silent teleport of stock. The player wagon is the only mover until strings are allowed to buy and sell.
+
+**Price.**  
+Live price is how full that cellar is, inside a **floor and ceiling** for that good at that node. Distance from origin sets the band. A later authored quirk may shift one node’s band for one good (Ghûl pays more for a Thalor letter). Quirks are data, not a town sim.
+
+**Player knowledge.**  
+Tooltip on a good: cheapest purchase this merchant has seen and **where**, highest sale this merchant has seen and **where**. Personal standing only. Those numbers inherit the cycle the stall was in that day. Rumours may point at a market the player has not verified; they do not write the tooltip.
+
+**Rations.**  
+The player eats rations, not origin letters. Rations and water are stall goods everywhere a settlement sells them. Some origin letters will be edible in lore. An edible unit may be smashed into rations at a **bad rate**, emergency only.
+
+**Strings later.**  
+Rival tokens read the same cellars and bands. They do not need different physics. They are not required to haul for this lock to be valid.
+
+**Do not add** a quote layer, a hunger meter as chrome, house trickle, or demand-mask machinery on top of mint / burn / band.
+
 ### Information, Fog, and Rumours (Locked 30 August 2026; sources 2 September 2026)
 - Detailed knowledge of what a city currently holds is not free.
 - Default sight: the town the wagon is docked in is known. Adjacent towns may be dim. The rest is fog unless a planted agent or a fresh rumour covers it.
-- **Stars are the only quality pip on a slip.** They *are* the chance the claim is true (1 star ≈ 20%, 5 stars ≈ as close as seeing it yourself). There is no grade / value pip. The wagon is the multiplier: a true market claim pays in whatever you can actually haul; a true stash claim fills against free capacity at the moment you claim it.
-- Stars are minted by source quality, proximity, and the listener. Agent skillups raise the ceiling of stars that agent can produce. House slips and street talk start low on *distant* claims; a claim about the town you are standing in can still come in hot.
+- **Stars are the only quality pip on a rumour.** They *are* the chance the claim is true (1 star ≈ 20%, 5 stars ≈ as close as seeing it yourself). There is no grade / value pip. The wagon is the multiplier: a true market claim pays in whatever you can actually haul; a true stash claim fills against free capacity at the moment you claim it.
+- Stars are minted by source quality, proximity, and the listener. Agent skillups raise the ceiling of stars that agent can produce. House rumours and street talk start low on *distant* claims; a claim about the town you are standing in can still come in hot.
 - A rumour is a bet you can take because you only have one wagon to send. Truth is resolved when you arrive or when the relevant day comes — not when you hear it.
 - Tracking rival movements and cargoes is a high-value use of planted eyes (example: learning a metal-laden rival wagon is en route and choosing to crash the local market before it arrives).
-- Where slips are pulled from, and the Socialize verb, are locked below. Skill-web content stays deferred; stub the hooks.
+- Where rumours are pulled from, and the Socialize verb, are locked below. Skill-web content stays deferred; stub the hooks.
 
-### Rumours — Where Slips Come From (Direction Lock — 2 September 2026)
+### Rumours — Where They Come From (Direction Lock — 2 September 2026; terms 14 September 2026)
 
 The player does not buy a rumour menu. They spend a day in a place that talks.
 
@@ -241,18 +269,18 @@ The player does not buy a rumour menu. They spend a day in a place that talks.
 - **House yard** (own compound / factor in the seat you are standing in). House-coloured talk. Standing matters here.
 - **Public meeting yard** of that settlement. First slice may use Market as the street. Later the same slot can be a well, gate, or hall. Not a new rail tab. Not a unique tavern scene.
 
-Planted agents still mint slips from their `where` without the player sitting the desk. Arrival slips and road rescue remain. Socialize is the verb for the merchant’s own body.
+Planted agents still mint rumours from their `where` without the player sitting the desk. Arrival rumours and road rescue remain. Socialize is the verb for the merchant’s own body.
 
 **Verb: Socialize**
 
 - Context action while idle in House or the public yard.
 - Spends a day (Clock B). Time-paused mash is not a source.
-- Returns a *chance* of a slip, not a slip. Failure is a wasted afternoon and is legal.
+- Returns a *chance* of a rumour, not a rumour. Failure is a wasted afternoon and is legal.
 - One attempt per yard per day is enough for the slice.
 
 **Subject can be anywhere**
 
-When a slip is generated, its *subject* (settlement, good, rival wagon, zone) may be any live node on the map. That is how fog lifts on a city you have not docked in.
+When a rumour is generated, its *subject* (settlement, good, rival wagon, zone) may be any live node on the map. That is how fog lifts on a city you have not docked in.
 
 Generation site is where you heard it. If the subject is this settlement or an adjacent one, **stars tick up**. Local street talk can still be 5-star early (“the stall here is short Speargrain”). A far claim from the same well stays dim unless the source is better.
 
@@ -262,14 +290,14 @@ Generation site is where you heard it. If the subject is this settlement or an a
 |---|---|
 | Source type (street / house / agent / rescue) | Star floor and ceiling |
 | Subject next to the generation site | Extra stars |
-| Player Socialize / Intelligence rank | Chance a slip appears, and how close the star roll sits to the source ceiling |
+| Player Socialize / Intelligence rank | Chance a rumour appears, and how close the star roll sits to the source ceiling |
 | Agent rank at their seat | That agent’s own star ceiling |
 
-House standing can still change *which room you are in*. It does not print a second quality number on the slip.
+House standing can still change *which room you are in*. It does not print a second quality number on the rumour.
 
 **Payout is the wagon**
 
-Do not pre-roll a treasure size onto the slip. If the claim is a stash, holdout, or salvage, the amount is computed **when it is claimed**, against free slots on this wagon (capacity minus what you actually rolled in with). An early wagon makes a true find small. A later wagon makes the same kind of find a real load. The player may empty the rack and gamble the hop; if the stars were a lie, they arrive with air.
+Do not pre-roll a treasure size onto the rumour. If the claim is a stash, holdout, or salvage, the amount is computed **when it is claimed**, against free slots on this wagon (capacity minus what you actually rolled in with). An early wagon makes a true find small. A later wagon makes the same kind of find a real load. The player may empty the rack and gamble the hop; if the stars were a lie, they arrive with air.
 
 Market claims work the same way without a special rule: guarantee of sale or a shortage is only worth what this caravan can move.
 
@@ -277,14 +305,14 @@ Geography luck — a true holdout sitting next to the best stall for what is in 
 
 **Scaffold**
 
-Socialize spends the day, rolls chance, writes a slip with subject / stars / days-old = 0, parks it in the Rumours tab. No grade field. Plate camera on the subject can wait. Agent minting can wait. Stash resolution against free capacity waits on the first salvage/holdout verb.
+Socialize spends the day, rolls chance, writes a rumour with subject / stars / days-old = 0, parks it in the Rumours tab. No grade field. Plate camera on the subject can wait. Agent minting can wait. Stash resolution against free capacity waits on the first salvage/holdout verb.
 
 **Guardrails**
 
-- The Rumours tab stays the slip list. House desk Socialize does not swallow standing letters or credit.
+- The Rumours tab stays the rumour list. House desk Socialize does not swallow standing letters or credit.
 - Do not add a rumour shop or a third economy of buying tips.
 - Do not require unique meeting-yard art.
-- Stars remain P(true). Do not reintroduce value-as-a-stat on the slip.
+- Stars remain P(true). Do not reintroduce value-as-a-stat on the rumour.
 - Do not roll stash units at mint time and then ignore the wagon.
 
 ---
@@ -300,7 +328,7 @@ Socialize spends the day, rolls chance, writes a slip with subject / stars / day
 - Agents have roles, traits, and textual personality without unique portraits. Visuals stay generic (shared icons by role or house) to protect scope.
 - An agent record needs `where` (settlement id, player wagon, or any rival string id), `role`, and skill rank. No cargo hold. No independent market actions.
 - Planted eyes lift knowledge fog and show strings in range by skill. An eye on a string reads that token in detail. Live sight has no courier delay. Rival houses do not get a matching verb set aimed at the player; their “agents” are flavour and deck weight, not a second intrigue sim.
-- Catalog Agents / Reports list these attachments and slips. They are not a fleet roster.
+- Catalog Agents / Reports list these attachments and rumours. They are not a fleet roster.
 
 ---
 
@@ -335,13 +363,13 @@ An agent should not be able to do everything the player can, and must never take
 ## Key Systems (High-Level)
 
 1. **Trade Goods & Markets**  
-   A closed, setting-native catalog. Signature goods carry an old-world commodity rhyme and a local wound; water and staple grain may stay ordinary. Clear identities, different value/risk/demand by place. Base prices grounded in map geography and risk; short-term movement driven by scarcity and events. Names must be true enough to test against before icons exist. Scrubstone coin functions as both currency and consumable desalination feedstock. Only the player wagon trades.
+   Cities mint four letters, villages two, plus rations and water as local rows. Signature letters carry an old-world commodity rhyme and a local wound when named; ids may stay generic until then. Many letters may be foods. Base bands grounded in geography; live movement is cellar fullness. Scrubstone coin is currency and desalination feedstock. Only the player wagon trades until strings are unlocked.
 
 2. **Information & Espionage**  
    Agents and 1–5 star rumours generate the specialized knowledge the fantasy depends on. Information is partial, timed, and often contested.
 
 3. **Travel & Risk**  
-   Choose routes or destinations for the one wagon. Pressures (weather, bandit heat) sit on the plate before departure. Resolve the hop as a watch phase: days elapse, at most one interrupt slip fires, lost cargo feeds the salvage loop. See *Travel, Pressures, and Road Events*.
+   Choose routes or destinations for the one wagon. Pressures (weather, bandit heat) sit on the plate before departure. Resolve the hop as a watch phase: days elapse, at most one interrupt event fires, lost cargo feeds the salvage loop. See *Travel, Pressures, and Road Events*.
 
 4. **Rival Houses & Intrigue**  
    Competing houses with their own goals and incomplete information. The player can be targeted and can act against them through economic, informational, and limited direct means. House–city leverage is political texture, not a realm to annex.
@@ -371,7 +399,7 @@ This supersedes the 31 August strip (left rail + right context column). That col
 **Top tabs — Cargo | Map | Rumours (locked 5 September 2026).** Single-select and close. They occupy the well the same way a yard does. Closing the active tab returns to the current location; the player never left. They may change the bottom yard while a tab is open; the new yard is current but not interactive until the tab closes. No city list. No fleet list. Market and House are not top tabs.
 
 **Player-facing chrome (locked 2–5 September 2026).**
-- Third tab is **Rumours**. One entry is a **slip**. Stars are how true it sounds. Do not use *Word* or *assay* on chrome.
+- Third tab is **Rumours**. One entry is a **rumour**. Stars are how true it sounds. Do not use *Word*, *assay*, or *slip* on chrome or in player copy.
 - Hold tab is **Cargo**, not Wagon. The stake is one marked string; engine may still say wagon / Word until a rename pass.
 - Embark / roads location is **Outyard**. Do not put *Embark* on chrome.
 
@@ -391,7 +419,7 @@ This supersedes the 31 August strip (left rail + right context column). That col
 | Cargo tab | Hold (inspect; trade only if Market is still the yard) | Selected-item copy | 60 / 40 |
 | Outyard | Road list | Hop detail + confirm | 50 / 50 |
 | House | Desk stub | Standing / letters | 50 / 50 |
-| Rumours | Slip list | Selected slip | 50 / 50 |
+| Rumours | Rumour list | Selected rumour | 50 / 50 |
 | Map tab | Whole plate, zoomed out, letterboxed in the well | — | one surface |
 | On a hop, no tab | Zoomed travel watch | — | one surface |
 
@@ -407,7 +435,7 @@ Market hold and Cargo-tab hold are two loadouts of the same rack, not two invent
 - Always on: Cargo, Map, Rumours, status, gear, Skip while the watch is up.
 - Place-bound (idle in a settlement): House, Market, Outyard.
 
-**Arrival (reserved):** a one-shot slip after time away can still land in Rumours. Playtest may stay quiet. Do not open a top tab for the player on arrival.
+**Arrival (reserved):** a one-shot rumour after time away can still land in Rumours. Playtest may stay quiet. Do not open a top tab for the player on arrival.
 
 **Map events / route read:** weather and bandit heat are learned at the **Outyard**, as words on the selected road, and as a status pip only while that pressure is touching this hop. The atlas may show a hint. Never as a market row. Wait is an Outyard / later desk verb that advances Clock B. No fourth full-screen for the briefing.
 
@@ -432,11 +460,11 @@ Layout chrome and hex palette remain open. Existing in-engine cues: title-screen
 
 Travel is the tax on the knowledge-edge bet. The player already committed the only wagon. The road exists to make that commitment take time and take hits — not to become a second game.
 
-**What the player feels:** look at the plate, read the weather and the heat on the road, choose to leave or Wait, then sit the watch. The play beat on the hop is a slip that names what happened. Most hops are quiet. Some cost days. Some take a cut. A few give something back.
+**What the player feels:** look at the plate, read the weather and the heat on the road, choose to leave or Wait, then sit the watch. The play beat on the hop is an event that names what happened. Most hops are quiet. Some cost days. Some take a cut. A few give something back.
 
 ### Scaffold now, visibility next
 
-- **Now:** each road out carries two discrete labels. Under the hood those are ints that feed the hop table. Resolve, show a slip, apply the delta. Uneventful is the common result.
+- **Now:** each road out carries two discrete labels. Under the hood those are ints that feed the hop table. Resolve, show the event, apply the delta. Uneventful is the common result.
 - **Next:** the same labels get glyphs on the plate, then visible odds once mitigation hooks exist. RNG still picks which beat fires inside a known pressure.
 
 No new scene. The briefing is the **Outyard**. The atlas may hint; it does not authorize the hop. A long journey is a chain of hops. New weather and heat are learned at the next Outyard — there is no global forecast.
@@ -485,13 +513,13 @@ The merchant is under mark. The wagon is the stake. Permanent death is already o
 | **Wagon state** | Rare mishap or heavy hit | A slot locked or the wagon laid up N days — not deletion of the run |
 | **Standing** | Cowardice, dumped marked load, unpaid custom | Soft, later; do not wire it for the first table |
 
-**Flat percent, whole loop.** Tithe size does not shrink into “one crate” as the wagon grows, and it does not balloon into a wipe. Early and late, a hit is the same share of what is actually on this wagon and in this pouch. Scaffold may pick one of cargo-percent or coin-percent per tithe so the slip stays readable. Exact rate is balance; the rule is percent-of-stake, not a fixed unit count.
+**Flat percent, whole loop.** Tithe size does not shrink into “one crate” as the wagon grows, and it does not balloon into a wipe. Early and late, a hit is the same share of what is actually on this wagon and in this pouch. Scaffold may pick one of cargo-percent or coin-percent per tithe so the result line stays readable. Exact rate is balance; the rule is percent-of-stake, not a fixed unit count.
 
-Time is the weather weapon. Extra days are how grain sours and slips go stale. Do not invent a separate “spoil event” when delay already does that job.
+Time is the weather weapon. Extra days are how grain sours and rumours go stale. Do not invent a separate “spoil event” when delay already does that job.
 
 **Not a hit in this slice:** player death, a combat screen, a full wipe presented as the normal bandit result, deletion of goods from the regional total (lost units enter the zone salvage pool).
 
-Water remains a traded good. Do not add a hidden per-day water-consumption sim on top of the stall. If thirst needs to be felt later, it is a tagged spoil or a discrete slip, not a second meter.
+Water and rations are traded goods and the player’s consumables. Daily eat from the rack is a reserved hook — wire the rows and the emergency convert first. Do not add a second hidden meter that bypasses the stall.
 
 ### Why bandits steal instead of erase the mark
 
@@ -501,7 +529,7 @@ House custom already says marked caravans carry limited safe-conduct, and a hous
 - Killing a marked agent, or taking the whole house wagon as if it were unowned, is the line. That is what brings retaliation.
 - Independents without a glove-and-pouch pay worse terms. The player is marked, so the common event is a cut, not a massacre.
 
-Diegetic cover for the failsafe: if a wagon is actually ruined, the agent is pulled to the nearest house compound and the cargo dumps into that zone’s lost pool. The run continues. The load may be recoverable through the salvage loop if the player spends a salvage slip on it.
+Diegetic cover for the failsafe: if a wagon is actually ruined, the agent is pulled to the nearest house compound and the cargo dumps into that zone’s lost pool. The run continues. The load may be recoverable through the salvage loop if the player spends a salvage rumour on it.
 
 ### Mitigation — skills, agents, guards (never zero)
 
@@ -515,16 +543,16 @@ The point of Logistics, a Guardian / escort on this wagon, and a hired road guar
 
 Do not build the skill web or a guard market to prove travel. Stub a modifier hook on the hop (player rank, riding escort rank, hire flag) so the table can listen later.
 
-### Slips (the actual play beat)
+### Road events (the actual play beat)
 
-On the road, context stays Skip. An event interrupts Skip with one slip:
+On the road, context stays Skip. An event interrupts Skip with one card:
 
 - Title in setting voice
 - One short paragraph
 - A result line the player can trust (what changed)
 - Continue
 
-At most **one interrupt per hop** in the slice. Quiet roads can resolve with no slip, or with a one-line “the road was kind” so silence still feels like the world.
+At most **one interrupt per hop** in the slice. Quiet roads can resolve with no event, or with a one-line “the road was kind” so silence still feels like the world.
 
 Branching choices (pay the tithe / risk a heavier hand; press the storm / make camp +1 day) are allowed later. Scaffold may auto-resolve so the table can be felt before verbs are built.
 
@@ -541,9 +569,9 @@ Uneventful should dominate. The road is dangerous in the *possibility*, not in a
 | Ruin | Very rare | Cargo to lost-pool, agent extracted, hop aborted to nearest house seat |
 | Tailwind | Positive time | −1 day |
 | Abandoned goods | Positive cargo | Units from that zone’s lost-pool (or a cheap local good if the pool is empty) |
-| Rescue | Positive rumour | Spend a day (or not) pulling someone off the road; they pay with a rumour slip |
+| Rescue | Positive rumour | Spend a day (or not) pulling someone off the road; they pay with a rumour |
 
-Abandoned goods and a rescue are first-class goods results, not flavour on Uneventful. Rescue is how a person becomes a slip without a planted agent. Stars stay honest to source — a stranger on the sand is not a 5-star claim.
+Abandoned goods and a rescue are first-class goods results, not flavour on Uneventful. Rescue is how a person becomes a rumour without a planted agent. Stars stay honest to source — a stranger on the sand is not a 5-star claim.
 
 Positive entries exist so mitigation is not the only skill. A good-weather window, a wreck in the zone, or a voice that owes you a story are as much a reason to leave today as a storm is a reason to Wait.
 
@@ -555,7 +583,7 @@ Copy names the goods that are actually on the rack when it can. “They took a c
 2. Apply weather day-modifier to the hop length.
 3. Run days (Clock B). Spoil tags and rumour age update as days pass.
 4. Roll at most one interrupt from the weighted table, biased by those pressures.
-5. Show the slip. Apply cargo/coin/wagon deltas. Lost units go to the zone pool.
+5. Show the event. Apply cargo/coin/wagon deltas. Lost units go to the zone pool.
 6. Arrive, or extract to the recovery seat if ruined.
 
 ### Guardrails
@@ -592,7 +620,7 @@ The merchant-limited economic model (no conquest of the market, information as p
 ## Success Criteria
 
 - A playable vertical slice in which the core loop (knowledge → commitment → risk the journey → convert or lose the edge) creates real tension and satisfaction on a single wagon.
-- The stall and the slips speak setting-native goods. A rumour about a load should sound like Uncanny Mercantile, not a template market.
+- The stall and the rumours speak setting-native goods. A rumour about a load should sound like Uncanny Mercantile, not a template market.
 - Fog, rumours, and planted agents make information feel scarce and worth paying for.
 - Enough polish on feedback and atmosphere that the fantasy of being under the mark registers.
 - A version that can be iterated to a Steam-ready state without the project redefining itself into an unfinishable shape.
@@ -603,8 +631,8 @@ The merchant-limited economic model (no conquest of the market, information as p
 ## Open Items for Project Workspace
 
 - Exact city count and layout for the first vertical slice (recommended starting point: 4–5 major cities + limited outposts).
-- First test catalog locked (1 Sep 2026): Water (Sarn's Rest), Speargrain (Veythar), Brineglass (Kharûn), Witching rods (Zamath), Highweave (Thalor), Oath-wine (Ghorath). Village/shore goods later.
-- First rumour verb and how stars are shown in Reports — **verb locked 2 Sep 2026:** Socialize in House yard or public meeting yard, spends a day, chance of a slip. Stars only (no grade). Subject may be any node; local subject boosts stars. Stash/holdout amounts resolve at claim against free wagon capacity. Remaining: pip UI, exact chances, first salvage-claim verb.
+- Catalog shape locked 14 Sep 2026: 4 letters per city, 2 per village, generic ids until named; rations + water as separate local rows. Sarn water via Rukh → Westmark. Player tooltip: cheapest buy + where, highest sale + where. Emergency edible → rations. Daily player eat reserved. First named samples (1 Sep) still valid as display names where they already exist.
+- First rumour verb and how stars are shown in Reports — **verb locked 2 Sep 2026:** Socialize in House yard or public meeting yard, spends a day, chance of a rumour. Stars only (no grade). Subject may be any node; local subject boosts stars. Stash/holdout amounts resolve at claim against free wagon capacity. Remaining: pip UI, exact chances, first salvage-claim verb.
 - Agent data stubs (`where`, role, rank) and catalog listing.
 - How rival houses prioritize goals and how visible their actions are through fog — **locked 8 Sep 2026:** 4 marks per house (player is one); 19 NPC strings on a 1–2 hop profit matrix; rank on every dockable node (cities clamped, villages volatile); player-only token sabotage; location-weighted common deck the other way; agent `where` = place / player wagon / string; live LoS instant. Remaining: string count on the first slice map, rank formula, matrix weights.
 - Degree of map/node/zone complexity needed for travel, loss tracking, and salvage.
@@ -612,4 +640,4 @@ The merchant-limited economic model (no conquest of the market, information as p
 - Audio direction (Reason is already planned for sound design).
 - First vertical-slice event table and pressure types — **framework locked 2 Sep 2026**; **route read locked 2 Sep 2026** (no new screen; road line in context shows discrete weather + heat; hood ints 0–3 / 0–2; per-edge fields). Remaining: exact rates, table weights, spoil tags, weather step-on-Wait, plate glyphs.
 - Starter skill nodes and experience sources (content deferred; data hooks to be reserved).
-- Engine/repo string rename from Trader → Caravans, and Word → Rumours, when convenient.
+- Engine/repo string rename from Trader → Caravans, Word → Rumours, and purge of *assay* / *slip* from player copy, when convenient.

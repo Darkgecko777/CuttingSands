@@ -1,15 +1,15 @@
 class_name SightBook
 extends RefCounted
 
-## Player knowledge of goods and stalls. Almanac is free. Assay is here-and-now.
-## Memory is last assay. Live remote numbers never live here.
+## Player knowledge of goods and stalls. Almanac is free. A stall is live while you stand it.
+## Memory is the last stall walk. Live remote numbers never live here.
 
 
 static func reset() -> void:
 	GameState.memory = {}
 	stamp_city(GameState.current_city_id)
 	var home := GameState.current_city_id
-	WordBook.add_slip(home, "", "House primer. %s stalls are an assay while you stand them." % WorldBook.settlement_name(home), 5, "assay")
+	WordBook.add_rumour(home, "", "House primer. %s stalls are live while you stand them." % WorldBook.settlement_name(home), 5, "stall")
 
 
 static func stamp_city(city_id: String) -> void:
@@ -61,7 +61,7 @@ static func band_label(band: String) -> String:
 			return "fair"
 
 
-static func is_assay(city_id: String) -> bool:
+static func stall_is_live(city_id: String) -> bool:
 	return city_id == GameState.current_city_id and not GameState.is_on_road() and WorldBook.settlement_has_market(city_id)
 
 

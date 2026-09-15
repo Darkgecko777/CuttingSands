@@ -5,44 +5,71 @@
     "mark": "W",
     "base_price": 10,
     "base_origin_price": 10,
-    "producer": "sarns_rest",
-    "producers": ["sarns_rest"],
-    "origin_node_id": "sarns_rest",
+    "producer": "",
+    "producers": [],
+    "origin_node_id": "",
     "size": 3,
     "mass": 4,
     "band": "staple",
-    "produce_min": 3,
-    "produce_max": 6,
+    "produce_min": 0,
+    "produce_max": 0,
     "consume_rate": 0.06,
     "category": "water",
-    "blurb": "Cistern loads from Sarn's Rest. Ordinary, and therefore precious. The road drinks it."
+    "edible": false,
+    "ration_yield": 0,
+    "blurb": "Ordinary, and therefore precious. The road drinks it. Towns plate a cistern; Rukh is the first cheap well."
+  },
+  "rations": {
+    "id": "rations",
+    "name": "Rations",
+    "mark": "Rt",
+    "base_price": 10,
+    "base_origin_price": 10,
+    "producer": "",
+    "producers": [],
+    "origin_node_id": "",
+    "size": 1,
+    "mass": 1,
+    "band": "staple",
+    "produce_min": 0,
+    "produce_max": 0,
+    "consume_rate": 0.06,
+    "category": "food",
+    "edible": false,
+    "ration_yield": 0,
+    "blurb": "Plate for the road. Towns mint their own."
   },
   "brineglass": {
     "id": "brineglass",
-    "name": "Brineglass",
-    "mark": "B",
+    "name": "Kharûn A",
+    "mark": "A",
     "base_price": 22,
     "base_origin_price": 22,
     "producer": "kharun",
-    "producers": ["kharun"],
+    "producers": [
+      "kharun"
+    ],
     "origin_node_id": "kharun",
     "size": 2,
     "mass": 4,
     "band": "industrial",
     "produce_min": 2,
     "produce_max": 4,
-    "consume_rate": 0.10,
+    "consume_rate": 0.1,
     "category": "material",
-    "blurb": "Fired kiln ware from Kharûn. The rock stays home; the skin of the industry travels."
+    "blurb": "",
+    "letter": "A"
   },
   "thirstcake": {
     "id": "thirstcake",
-    "name": "Thirstcake",
-    "mark": "T",
+    "name": "Kharûn B",
+    "mark": "B",
     "base_price": 9,
     "base_origin_price": 9,
     "producer": "kharun",
-    "producers": ["kharun"],
+    "producers": [
+      "kharun"
+    ],
     "origin_node_id": "kharun",
     "size": 2,
     "mass": 2,
@@ -51,34 +78,40 @@
     "produce_max": 6,
     "consume_rate": 0.06,
     "category": "food",
-    "blurb": "Pressed brine-ration from Kharûn's cistern yards. It feeds the forges more than the tongue."
+    "blurb": "",
+    "letter": "B"
   },
   "spawn_lime": {
     "id": "spawn_lime",
-    "name": "Spawn-lime",
-    "mark": "L",
+    "name": "Kharûn C",
+    "mark": "C",
     "base_price": 18,
     "base_origin_price": 18,
     "producer": "kharun",
-    "producers": ["kharun"],
+    "producers": [
+      "kharun"
+    ],
     "origin_node_id": "kharun",
     "size": 2,
     "mass": 3,
     "band": "industrial",
     "produce_min": 2,
     "produce_max": 4,
-    "consume_rate": 0.10,
+    "consume_rate": 0.1,
     "category": "material",
-    "blurb": "Caustic white from the hypersaline beds. Binders, bleach, and bad luck in a cut."
+    "blurb": "",
+    "letter": "C"
   },
   "mark_glaze": {
     "id": "mark_glaze",
-    "name": "Mark-glaze",
-    "mark": "G",
+    "name": "Kharûn D",
+    "mark": "D",
     "base_price": 42,
     "base_origin_price": 42,
     "producer": "kharun",
-    "producers": ["kharun"],
+    "producers": [
+      "kharun"
+    ],
     "origin_node_id": "kharun",
     "size": 1,
     "mass": 1,
@@ -87,88 +120,103 @@
     "produce_max": 2,
     "consume_rate": 0.15,
     "category": "craft",
-    "blurb": "House-seal enamel. A pouch without it is just a bag of soluble coin."
+    "blurb": "",
+    "letter": "D"
   },
   "witching_rods": {
     "id": "witching_rods",
-    "name": "Witching rods",
-    "mark": "R",
+    "name": "Zamath A",
+    "mark": "A",
     "base_price": 28,
     "base_origin_price": 28,
     "producer": "zamath",
-    "producers": ["zamath"],
+    "producers": [
+      "zamath"
+    ],
     "origin_node_id": "zamath",
     "size": 2,
     "mass": 2,
     "band": "industrial",
     "produce_min": 1,
     "produce_max": 3,
-    "consume_rate": 0.10,
+    "consume_rate": 0.1,
     "category": "craft",
-    "blurb": "Forest-cut shafts for finding and working water. The wood and the knowing stay in Zamath."
+    "blurb": "",
+    "letter": "A"
   },
   "night_salt": {
     "id": "night_salt",
-    "name": "Night-salt",
-    "mark": "N",
+    "name": "Zamath B",
+    "mark": "B",
     "base_price": 20,
     "base_origin_price": 20,
     "producer": "zamath",
-    "producers": ["zamath"],
+    "producers": [
+      "zamath"
+    ],
     "origin_node_id": "zamath",
     "size": 2,
     "mass": 2,
     "band": "industrial",
     "produce_min": 2,
     "produce_max": 3,
-    "consume_rate": 0.10,
+    "consume_rate": 0.1,
     "category": "material",
-    "blurb": "Lake-crust taken after dark. Preserves meat and spoils a careless glove."
+    "blurb": "",
+    "letter": "B"
   },
   "listening_sap": {
     "id": "listening_sap",
-    "name": "Listening-sap",
-    "mark": "P",
+    "name": "Zamath C",
+    "mark": "C",
     "base_price": 30,
     "base_origin_price": 30,
     "producer": "zamath",
-    "producers": ["zamath"],
+    "producers": [
+      "zamath"
+    ],
     "origin_node_id": "zamath",
     "size": 1,
     "mass": 1,
     "band": "industrial",
     "produce_min": 1,
     "produce_max": 2,
-    "consume_rate": 0.10,
+    "consume_rate": 0.1,
     "category": "craft",
-    "blurb": "Tapped from the last forest. A drop on the ear, and the well talks back."
+    "blurb": "",
+    "letter": "C"
   },
   "razorreed": {
     "id": "razorreed",
-    "name": "Razorreed",
-    "mark": "Z",
+    "name": "Zamath D",
+    "mark": "D",
     "base_price": 16,
     "base_origin_price": 16,
     "producer": "zamath",
-    "producers": ["zamath"],
+    "producers": [
+      "zamath"
+    ],
     "origin_node_id": "zamath",
     "size": 2,
     "mass": 2,
     "band": "industrial",
     "produce_min": 2,
     "produce_max": 4,
-    "consume_rate": 0.10,
+    "consume_rate": 0.1,
     "category": "material",
-    "blurb": "Shore cane that cuts the binder. Fences, splints, and a warning in every bundle."
+    "blurb": "",
+    "letter": "D"
   },
   "highweave": {
     "id": "highweave",
-    "name": "Highweave",
-    "mark": "H",
+    "name": "Thalor A",
+    "mark": "A",
     "base_price": 40,
     "base_origin_price": 40,
     "producer": "thalor",
-    "producers": ["thalor"],
+    "producers": [
+      "thalor"
+    ],
     "origin_node_id": "thalor",
     "size": 1,
     "mass": 1,
@@ -177,34 +225,40 @@
     "produce_max": 2,
     "consume_rate": 0.15,
     "category": "craft",
-    "blurb": "Thalor mountain fibre worked into formal cloth. Dignity the high city can still put on a wagon."
+    "blurb": "",
+    "letter": "A"
   },
   "molt_floss": {
     "id": "molt_floss",
-    "name": "Molt-floss",
-    "mark": "F",
+    "name": "Thalor B",
+    "mark": "B",
     "base_price": 24,
     "base_origin_price": 24,
     "producer": "thalor",
-    "producers": ["thalor"],
+    "producers": [
+      "thalor"
+    ],
     "origin_node_id": "thalor",
     "size": 1,
     "mass": 1,
     "band": "industrial",
     "produce_min": 1,
     "produce_max": 3,
-    "consume_rate": 0.10,
+    "consume_rate": 0.1,
     "category": "craft",
-    "blurb": "Shed silk of the high passes. Warm, light, and never quite clean of the creature."
+    "blurb": "",
+    "letter": "B"
   },
   "mindstain": {
     "id": "mindstain",
-    "name": "Mindstain",
-    "mark": "I",
+    "name": "Thalor C",
+    "mark": "C",
     "base_price": 48,
     "base_origin_price": 48,
     "producer": "thalor",
-    "producers": ["thalor"],
+    "producers": [
+      "thalor"
+    ],
     "origin_node_id": "thalor",
     "size": 1,
     "mass": 1,
@@ -213,34 +267,40 @@
     "produce_max": 1,
     "consume_rate": 0.15,
     "category": "craft",
-    "blurb": "A dye that holds a thought. Ledgers, veils, and letters that should not be copied."
+    "blurb": "",
+    "letter": "C"
   },
   "frost_vein": {
     "id": "frost_vein",
-    "name": "Frost-vein",
-    "mark": "V",
+    "name": "Thalor D",
+    "mark": "D",
     "base_price": 20,
     "base_origin_price": 20,
     "producer": "thalor",
-    "producers": ["thalor"],
+    "producers": [
+      "thalor"
+    ],
     "origin_node_id": "thalor",
     "size": 2,
     "mass": 2,
     "band": "industrial",
     "produce_min": 2,
     "produce_max": 3,
-    "consume_rate": 0.10,
+    "consume_rate": 0.1,
     "category": "material",
-    "blurb": "Runoff-stone from the northern cuts. Keeps a cistern cold in a city that cannot."
+    "blurb": "",
+    "letter": "D"
   },
   "speargrain": {
     "id": "speargrain",
-    "name": "Speargrain",
-    "mark": "S",
+    "name": "Veythar A",
+    "mark": "A",
     "base_price": 8,
     "base_origin_price": 8,
     "producer": "veythar",
-    "producers": ["veythar"],
+    "producers": [
+      "veythar"
+    ],
     "origin_node_id": "veythar",
     "size": 2,
     "mass": 1,
@@ -249,52 +309,63 @@
     "produce_max": 6,
     "consume_rate": 0.06,
     "category": "food",
-    "blurb": "Veythar staple. Hard cereal that cuts the hands that reap it. The silo is the politics."
+    "edible": true,
+    "ration_yield": 1,
+    "blurb": "",
+    "letter": "A"
   },
   "edge_oil": {
     "id": "edge_oil",
-    "name": "Edge-oil",
-    "mark": "E",
+    "name": "Veythar B",
+    "mark": "B",
     "base_price": 26,
     "base_origin_price": 26,
     "producer": "veythar",
-    "producers": ["veythar"],
+    "producers": [
+      "veythar"
+    ],
     "origin_node_id": "veythar",
     "size": 1,
     "mass": 1,
     "band": "industrial",
     "produce_min": 1,
     "produce_max": 3,
-    "consume_rate": 0.10,
+    "consume_rate": 0.1,
     "category": "craft",
-    "blurb": "Pressed from the same cane that wounds the reaper. Blades, axles, and a smell like harvest."
+    "blurb": "",
+    "letter": "B"
   },
   "lure_honey": {
     "id": "lure_honey",
-    "name": "Lure-honey",
-    "mark": "Y",
+    "name": "Veythar C",
+    "mark": "C",
     "base_price": 32,
     "base_origin_price": 32,
     "producer": "veythar",
-    "producers": ["veythar"],
+    "producers": [
+      "veythar"
+    ],
     "origin_node_id": "veythar",
     "size": 1,
     "mass": 2,
     "band": "industrial",
     "produce_min": 1,
     "produce_max": 2,
-    "consume_rate": 0.10,
+    "consume_rate": 0.1,
     "category": "craft",
-    "blurb": "Bait-sweet from southern hives. Game comes to it. So do things that should not."
+    "blurb": "",
+    "letter": "C"
   },
   "chaff_weave": {
     "id": "chaff_weave",
-    "name": "Chaff-weave",
-    "mark": "C",
+    "name": "Veythar D",
+    "mark": "D",
     "base_price": 10,
     "base_origin_price": 10,
     "producer": "veythar",
-    "producers": ["veythar"],
+    "producers": [
+      "veythar"
+    ],
     "origin_node_id": "veythar",
     "size": 2,
     "mass": 1,
@@ -303,16 +374,19 @@
     "produce_max": 5,
     "consume_rate": 0.06,
     "category": "craft",
-    "blurb": "Sacks and sun-screens from leftover stalk. Cheap, and it lasts a season."
+    "blurb": "",
+    "letter": "D"
   },
   "oath_wine": {
     "id": "oath_wine",
-    "name": "Oath-wine",
-    "mark": "O",
+    "name": "Ghorath A",
+    "mark": "A",
     "base_price": 45,
     "base_origin_price": 45,
     "producer": "ghorath",
-    "producers": ["ghorath"],
+    "producers": [
+      "ghorath"
+    ],
     "origin_node_id": "ghorath",
     "size": 1,
     "mass": 2,
@@ -321,34 +395,40 @@
     "produce_max": 2,
     "consume_rate": 0.15,
     "category": "craft",
-    "blurb": "Spring-bitters of the Stronghold. Drunk when debts, seals, and second chances are made formal."
+    "blurb": "",
+    "letter": "A"
   },
   "spring_wax": {
     "id": "spring_wax",
-    "name": "Spring-wax",
-    "mark": "X",
+    "name": "Ghorath B",
+    "mark": "B",
     "base_price": 24,
     "base_origin_price": 24,
     "producer": "ghorath",
-    "producers": ["ghorath"],
+    "producers": [
+      "ghorath"
+    ],
     "origin_node_id": "ghorath",
     "size": 1,
     "mass": 1,
     "band": "industrial",
     "produce_min": 1,
     "produce_max": 3,
-    "consume_rate": 0.10,
+    "consume_rate": 0.1,
     "category": "craft",
-    "blurb": "Sealing wax from the stubborn spring. Letters, jars, and a house mark that will not smear."
+    "blurb": "",
+    "letter": "B"
   },
   "once_vellum": {
     "id": "once_vellum",
-    "name": "Once-vellum",
-    "mark": "U",
+    "name": "Ghorath C",
+    "mark": "C",
     "base_price": 50,
     "base_origin_price": 50,
     "producer": "ghorath",
-    "producers": ["ghorath"],
+    "producers": [
+      "ghorath"
+    ],
     "origin_node_id": "ghorath",
     "size": 1,
     "mass": 1,
@@ -357,88 +437,103 @@
     "produce_max": 2,
     "consume_rate": 0.15,
     "category": "craft",
-    "blurb": "Skin that takes a contract once. Rewrite it and the old terms bleed through."
+    "blurb": "",
+    "letter": "C"
   },
   "exile_iron": {
     "id": "exile_iron",
-    "name": "Exile-iron",
-    "mark": "J",
+    "name": "Ghorath D",
+    "mark": "D",
     "base_price": 22,
     "base_origin_price": 22,
     "producer": "ghorath",
-    "producers": ["ghorath"],
+    "producers": [
+      "ghorath"
+    ],
     "origin_node_id": "ghorath",
     "size": 2,
     "mass": 3,
     "band": "industrial",
     "produce_min": 2,
     "produce_max": 4,
-    "consume_rate": 0.10,
+    "consume_rate": 0.1,
     "category": "material",
-    "blurb": "Worked metal from people who no longer have a city. Good steel, no questions."
+    "blurb": "",
+    "letter": "D"
   },
   "deepgrease": {
     "id": "deepgrease",
-    "name": "Deepgrease",
-    "mark": "D",
+    "name": "Ghûl A",
+    "mark": "A",
     "base_price": 26,
     "base_origin_price": 26,
     "producer": "ghul",
-    "producers": ["ghul"],
+    "producers": [
+      "ghul"
+    ],
     "origin_node_id": "ghul",
     "size": 2,
     "mass": 2,
     "band": "industrial",
     "produce_min": 1,
     "produce_max": 3,
-    "consume_rate": 0.10,
+    "consume_rate": 0.1,
     "category": "craft",
-    "blurb": "Rendered from the larger brine beasts. Axles last. The pits never cool."
+    "blurb": "",
+    "letter": "A"
   },
   "salt_plate": {
     "id": "salt_plate",
-    "name": "Salt-plate",
-    "mark": "A",
+    "name": "Ghûl B",
+    "mark": "B",
     "base_price": 18,
     "base_origin_price": 18,
     "producer": "ghul",
-    "producers": ["ghul"],
+    "producers": [
+      "ghul"
+    ],
     "origin_node_id": "ghul",
     "size": 2,
     "mass": 3,
     "band": "industrial",
     "produce_min": 2,
     "produce_max": 4,
-    "consume_rate": 0.10,
+    "consume_rate": 0.1,
     "category": "material",
-    "blurb": "Hide and scale pressed into sheet. Armor for a wagon, not a soldier."
+    "blurb": "",
+    "letter": "B"
   },
   "spawn_cord": {
     "id": "spawn_cord",
-    "name": "Spawn-cord",
-    "mark": "Q",
+    "name": "Rukh A",
+    "mark": "A",
     "base_price": 28,
     "base_origin_price": 28,
     "producer": "rukh",
-    "producers": ["rukh"],
+    "producers": [
+      "rukh"
+    ],
     "origin_node_id": "rukh",
     "size": 1,
     "mass": 1,
     "band": "industrial",
     "produce_min": 1,
     "produce_max": 3,
-    "consume_rate": 0.10,
+    "consume_rate": 0.1,
     "category": "craft",
-    "blurb": "Line from Shore Clan nets. It holds in brine and in a sandstorm."
+    "blurb": "",
+    "letter": "A"
   },
   "drowned_eye": {
     "id": "drowned_eye",
-    "name": "Drowned-eye",
-    "mark": "K",
+    "name": "Rukh B",
+    "mark": "B",
     "base_price": 44,
     "base_origin_price": 44,
     "producer": "rukh",
-    "producers": ["rukh"],
+    "producers": [
+      "rukh"
+    ],
     "origin_node_id": "rukh",
     "size": 1,
     "mass": 1,
@@ -447,16 +542,19 @@
     "produce_max": 2,
     "consume_rate": 0.15,
     "category": "craft",
-    "blurb": "A hunter's charm from the lake. Sailors pay. Houses pretend not to."
+    "blurb": "",
+    "letter": "B"
   },
   "night_bile": {
     "id": "night_bile",
-    "name": "Night-bile",
-    "mark": "NB",
+    "name": "Neth A",
+    "mark": "A",
     "base_price": 46,
     "base_origin_price": 46,
     "producer": "neth",
-    "producers": ["neth"],
+    "producers": [
+      "neth"
+    ],
     "origin_node_id": "neth",
     "size": 1,
     "mass": 1,
@@ -465,52 +563,61 @@
     "produce_max": 2,
     "consume_rate": 0.15,
     "category": "craft",
-    "blurb": "Venom taken after dark in Neth. A drop is a tool. A vial is a statement."
+    "blurb": "",
+    "letter": "A"
   },
   "dusk_hide": {
     "id": "dusk_hide",
-    "name": "Dusk-hide",
-    "mark": "DH",
+    "name": "Neth B",
+    "mark": "B",
     "base_price": 20,
     "base_origin_price": 20,
     "producer": "neth",
-    "producers": ["neth"],
+    "producers": [
+      "neth"
+    ],
     "origin_node_id": "neth",
     "size": 2,
     "mass": 2,
     "band": "industrial",
     "produce_min": 2,
     "produce_max": 3,
-    "consume_rate": 0.10,
+    "consume_rate": 0.1,
     "category": "material",
-    "blurb": "Skins from the night hunt. They take dye badly and weather well."
+    "blurb": "",
+    "letter": "B"
   },
   "mute_stone": {
     "id": "mute_stone",
-    "name": "Mute-stone",
-    "mark": "MS",
+    "name": "Kethra A",
+    "mark": "A",
     "base_price": 20,
     "base_origin_price": 20,
     "producer": "kethra",
-    "producers": ["kethra"],
+    "producers": [
+      "kethra"
+    ],
     "origin_node_id": "kethra",
     "size": 2,
     "mass": 4,
     "band": "industrial",
     "produce_min": 2,
     "produce_max": 4,
-    "consume_rate": 0.10,
+    "consume_rate": 0.1,
     "category": "material",
-    "blurb": "Lesser scrubstone from Kethra's pits. It does not mint. It still drinks salt."
+    "blurb": "",
+    "letter": "A"
   },
   "thirst_weed": {
     "id": "thirst_weed",
-    "name": "Thirst-weed",
-    "mark": "TW",
+    "name": "Kethra B",
+    "mark": "B",
     "base_price": 7,
     "base_origin_price": 7,
     "producer": "kethra",
-    "producers": ["kethra"],
+    "producers": [
+      "kethra"
+    ],
     "origin_node_id": "kethra",
     "size": 2,
     "mass": 1,
@@ -519,16 +626,21 @@
     "produce_max": 6,
     "consume_rate": 0.06,
     "category": "food",
-    "blurb": "Scrub forage that thickens a stew and a throat. Kethra's other export."
+    "edible": true,
+    "ration_yield": 1,
+    "blurb": "",
+    "letter": "B"
   },
   "day_crust": {
     "id": "day_crust",
-    "name": "Day-crust",
-    "mark": "DC",
+    "name": "Sorel A",
+    "mark": "A",
     "base_price": 8,
     "base_origin_price": 8,
     "producer": "sorel",
-    "producers": ["sorel"],
+    "producers": [
+      "sorel"
+    ],
     "origin_node_id": "sorel",
     "size": 2,
     "mass": 2,
@@ -537,106 +649,126 @@
     "produce_max": 5,
     "consume_rate": 0.06,
     "category": "food",
-    "blurb": "Salt-flat bread from Sorel. It keeps. It does not forgive a dry mouth."
+    "edible": true,
+    "ration_yield": 1,
+    "blurb": "",
+    "letter": "A"
   },
   "reed_heart": {
     "id": "reed_heart",
-    "name": "Reed-heart",
-    "mark": "RH",
+    "name": "Sorel B",
+    "mark": "B",
     "base_price": 22,
     "base_origin_price": 22,
     "producer": "sorel",
-    "producers": ["sorel"],
+    "producers": [
+      "sorel"
+    ],
     "origin_node_id": "sorel",
     "size": 2,
     "mass": 2,
     "band": "industrial",
     "produce_min": 1,
     "produce_max": 3,
-    "consume_rate": 0.10,
+    "consume_rate": 0.1,
     "category": "craft",
-    "blurb": "Pith from the southern reeds. Wick, float, and a cheap filter for bad water."
+    "blurb": "",
+    "letter": "B"
   },
   "molt_ash": {
     "id": "molt_ash",
-    "name": "Molt-ash",
-    "mark": "MA",
+    "name": "Draven A",
+    "mark": "A",
     "base_price": 24,
     "base_origin_price": 24,
     "producer": "draven",
-    "producers": ["draven"],
+    "producers": [
+      "draven"
+    ],
     "origin_node_id": "draven",
     "size": 1,
     "mass": 1,
     "band": "industrial",
     "produce_min": 1,
     "produce_max": 3,
-    "consume_rate": 0.10,
+    "consume_rate": 0.1,
     "category": "craft",
-    "blurb": "Char from the foothill kilns. Flux, fuel, and a grey that gets into everything."
+    "blurb": "",
+    "letter": "A"
   },
   "echo_block": {
     "id": "echo_block",
-    "name": "Echo-block",
-    "mark": "EB",
+    "name": "Draven B",
+    "mark": "B",
     "base_price": 18,
     "base_origin_price": 18,
     "producer": "draven",
-    "producers": ["draven"],
+    "producers": [
+      "draven"
+    ],
     "origin_node_id": "draven",
     "size": 3,
     "mass": 3,
     "band": "industrial",
     "produce_min": 2,
     "produce_max": 3,
-    "consume_rate": 0.10,
+    "consume_rate": 0.1,
     "category": "material",
-    "blurb": "Cut stone that throws a voice. Watch-posts and cistern lids on the Thalor road."
+    "blurb": "",
+    "letter": "B"
   },
   "gritback_floss": {
     "id": "gritback_floss",
-    "name": "Gritback-floss",
-    "mark": "GF",
+    "name": "Moraq A",
+    "mark": "A",
     "base_price": 30,
     "base_origin_price": 30,
     "producer": "moraq",
-    "producers": ["moraq"],
+    "producers": [
+      "moraq"
+    ],
     "origin_node_id": "moraq",
     "size": 1,
     "mass": 1,
     "band": "industrial",
     "produce_min": 1,
     "produce_max": 2,
-    "consume_rate": 0.10,
+    "consume_rate": 0.1,
     "category": "craft",
-    "blurb": "Fibre from lake-beasts that graze the grit. Cordage that ignores salt."
+    "blurb": "",
+    "letter": "A"
   },
   "lake_tooth": {
     "id": "lake_tooth",
-    "name": "Lake-tooth",
-    "mark": "LT",
+    "name": "Moraq B",
+    "mark": "B",
     "base_price": 16,
     "base_origin_price": 16,
     "producer": "moraq",
-    "producers": ["moraq"],
+    "producers": [
+      "moraq"
+    ],
     "origin_node_id": "moraq",
     "size": 2,
     "mass": 2,
     "band": "industrial",
     "produce_min": 2,
     "produce_max": 4,
-    "consume_rate": 0.10,
+    "consume_rate": 0.1,
     "category": "material",
-    "blurb": "Bone and plate from the central lake. Tools for people who prefer not to answer."
+    "blurb": "",
+    "letter": "B"
   },
   "hopper_mash": {
     "id": "hopper_mash",
-    "name": "Hopper-mash",
-    "mark": "HM",
+    "name": "Torven A",
+    "mark": "A",
     "base_price": 7,
     "base_origin_price": 7,
     "producer": "torven",
-    "producers": ["torven"],
+    "producers": [
+      "torven"
+    ],
     "origin_node_id": "torven",
     "size": 2,
     "mass": 2,
@@ -645,34 +777,42 @@
     "produce_max": 6,
     "consume_rate": 0.06,
     "category": "food",
-    "blurb": "Crushed hopper from the Thalor tax-road. Fills a bowl. Fills a levy."
+    "edible": true,
+    "ration_yield": 1,
+    "blurb": "",
+    "letter": "A"
   },
   "nest_brick": {
     "id": "nest_brick",
-    "name": "Nest-brick",
-    "mark": "NK",
+    "name": "Torven B",
+    "mark": "B",
     "base_price": 16,
     "base_origin_price": 16,
     "producer": "torven",
-    "producers": ["torven"],
+    "producers": [
+      "torven"
+    ],
     "origin_node_id": "torven",
     "size": 2,
     "mass": 3,
     "band": "industrial",
     "produce_min": 2,
     "produce_max": 4,
-    "consume_rate": 0.10,
+    "consume_rate": 0.1,
     "category": "material",
-    "blurb": "Packed insect-nest fired for the high city. Light brick, ugly work."
+    "blurb": "",
+    "letter": "B"
   },
   "nerve_dust": {
     "id": "nerve_dust",
-    "name": "Nerve-dust",
-    "mark": "ND",
+    "name": "Ashar A",
+    "mark": "A",
     "base_price": 52,
     "base_origin_price": 52,
     "producer": "ashar",
-    "producers": ["ashar"],
+    "producers": [
+      "ashar"
+    ],
     "origin_node_id": "ashar",
     "size": 1,
     "mass": 1,
@@ -681,24 +821,28 @@
     "produce_max": 2,
     "consume_rate": 0.15,
     "category": "craft",
-    "blurb": "Ridge powder that wakes a failing limb. Ashar's dear export, and a bad habit."
+    "blurb": "",
+    "letter": "A"
   },
   "cairn_crystal": {
     "id": "cairn_crystal",
-    "name": "Cairn-crystal",
-    "mark": "CC",
+    "name": "Ashar B",
+    "mark": "B",
     "base_price": 24,
     "base_origin_price": 24,
     "producer": "ashar",
-    "producers": ["ashar"],
+    "producers": [
+      "ashar"
+    ],
     "origin_node_id": "ashar",
     "size": 2,
     "mass": 3,
     "band": "industrial",
     "produce_min": 1,
     "produce_max": 3,
-    "consume_rate": 0.10,
+    "consume_rate": 0.1,
     "category": "material",
-    "blurb": "Clear stone from the eastern cairns. Lenses, cutting edges, and a frontier tax."
+    "blurb": "",
+    "letter": "B"
   }
 }
