@@ -8,6 +8,7 @@
     "tags": ["industrial", "contracts", "scrubstone", "player_default"],
     "starting_house": true,
     "mark": "K",
+    "color": "#EBC35A",
     "available": true,
     "flavour": "Scrubstone, contracts, quiet leverage."
   },
@@ -20,6 +21,7 @@
     "tags": ["forest", "witching_rods", "pragmatic", "lake"],
     "starting_house": false,
     "mark": "Z",
+    "color": "#2F8F6D",
     "available": false,
     "flavour": "Forest, witching rods, pragmatic deals."
   },
@@ -32,6 +34,7 @@
     "tags": ["mountain", "proud", "dependent", "formal"],
     "starting_house": false,
     "mark": "T",
+    "color": "#5B84B0",
     "available": false,
     "flavour": "Proud, formal, dependent on the west."
   },
@@ -44,6 +47,7 @@
     "tags": ["isolationist", "militant", "agrarian", "self_reliant"],
     "starting_house": false,
     "mark": "V",
+    "color": "#B04A3C",
     "available": false,
     "flavour": "Isolationist, militant, agrarian."
   },
@@ -56,6 +60,7 @@
     "tags": ["neutral", "intrigue", "debts", "exiles"],
     "starting_house": false,
     "mark": "G",
+    "color": "#8A4A72",
     "available": false,
     "flavour": "Debts, secrets, second chances."
   }

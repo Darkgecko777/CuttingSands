@@ -14,11 +14,16 @@ const ZOOM_DEFAULT := 1.5
 const ZOOM_STEP := 0.1
 const GOLD := Color(0.92, 0.78, 0.45, 1)
 const INK := Color(0.85, 0.78, 0.66, 1)
+const CHIP := Vector2(12, 12)
+const CHIP_PLAYER := Vector2(14, 14)
+const CHIP_CAP := 4
+const CHIP_RING := Color(0.98, 0.93, 0.78, 1)
 
 var shell: Node
 var map_clip: Control
 var map_layer: Control
 var markers_layer: Control
+var chips_layer: Control
 var nodes: Dictionary = {}
 var paths: Dictionary = {}
 var max_path_len := 1.0
@@ -42,6 +47,7 @@ func setup(host: Node, clip: Control, layer: Control, markers: Control) -> void:
 	selected_id = GameState.PLAYER_CARAVAN_ID
 	nodes = _load_nodes()
 	_fit_plate()
+	_ensure_chips_layer()
 	_ingest_paths()
 	_build_markers()
 	_make_wagon()
@@ -98,6 +104,8 @@ func center_on_city(city_id: String) -> void:
 
 
 func show_atlas() -> void:
+	hide_wagon()
+	_show_chips(true)
 	var view := map_clip.size if map_clip.size.x >= 8.0 else VIEW_SIZE
 	if plate_size.x < 1.0 or plate_size.y < 1.0:
 		clamp_map()
@@ -105,6 +113,7 @@ func show_atlas() -> void:
 	var fit := minf(view.x / plate_size.x, view.y / plate_size.y)
 	zoom = clampf(fit * maxf(res_scale, 0.01), 0.2, ZOOM_MAX)
 	apply_zoom(Vector2.ZERO, false)
+	paint_chips()
 
 
 func clamp_map() -> void:
@@ -280,6 +289,7 @@ func pause_watch() -> void:
 
 
 func resume_watch() -> void:
+	_show_chips(false)
 	if wagon:
 		wagon.visible = GameState.is_on_road()
 	if GameState.is_on_road():
@@ -378,3 +388,132 @@ func paint_markers() -> void:
 		btn.add_theme_stylebox_override("normal", box)
 		btn.add_theme_stylebox_override("hover", box)
 		btn.add_theme_stylebox_override("pressed", box)
+	if chips_layer and chips_layer.visible:
+		paint_chips()
+
+
+func _ensure_chips_layer() -> void:
+	if chips_layer != null and is_instance_valid(chips_layer):
+		return
+	chips_layer = Control.new()
+	chips_layer.name = "Chips"
+	chips_layer.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	chips_layer.z_index = 8
+	chips_layer.visible = false
+	content.add_child(chips_layer)
+
+
+func _show_chips(on: bool) -> void:
+	_ensure_chips_layer()
+	chips_layer.visible = on
+	if on:
+		paint_chips()
+	elif chips_layer:
+		for child in chips_layer.get_children():
+			child.queue_free()
+
+
+func paint_chips() -> void:
+	_ensure_chips_layer()
+	for child in chips_layer.get_children():
+		child.queue_free()
+	if not chips_layer.visible:
+		return
+	var player_here := ""
+	if not GameState.is_on_road():
+		player_here = GameState.current_city_id
+	for city_id in nodes.keys():
+		_paint_town_chips(str(city_id), player_here == str(city_id))
+
+
+func _paint_town_chips(city_id: String, show_player: bool) -> void:
+	var npc_ids: Array = StringBook.ids_at(city_id)
+	if not show_player and npc_ids.is_empty():
+		return
+	var slots: Array = []
+	if show_player:
+		slots.append({"player": true, "house_id": GameState.selected_house_id, "chair": 0})
+	for token_id in npc_ids:
+		var token: Dictionary = GameState.string_tokens.get(token_id, {})
+		slots.append({"player": false, "house_id": str(token.get("house_id", "")), "chair": int(token.get("chair", 0))})
+	var extra := 0
+	if slots.size() > CHIP_CAP:
+		extra = slots.size() - (CHIP_CAP - 1)
+		slots.resize(CHIP_CAP - 1)
+	var row := Control.new()
+	row.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var x := 0.0
+	for slot in slots:
+		var player := bool(slot.get("player", false))
+		var chip := _make_chip(str(slot.get("house_id", "")), int(slot.get("chair", 0)), player)
+		chip.position = Vector2(x, 0)
+		row.add_child(chip)
+		x += (CHIP_PLAYER.x if player else CHIP.x) + 2.0
+	if extra > 0:
+		var more := _make_overflow(extra)
+		more.position = Vector2(x, 0)
+		row.add_child(more)
+		x += CHIP.x
+	elif x > 0.0:
+		x -= 2.0
+	row.position = _node_pos(city_id) + Vector2(-x * 0.5, 12.0)
+	chips_layer.add_child(row)
+
+
+func _make_chip(house_id: String, chair: int, player: bool) -> Control:
+	var size := CHIP_PLAYER if player else CHIP
+	var fill := WorldBook.house_color(house_id)
+	var root := ColorRect.new()
+	root.custom_minimum_size = size
+	root.size = size
+	root.clip_contents = true
+	root.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	if player:
+		root.color = CHIP_RING
+		var inner := ColorRect.new()
+		inner.color = fill
+		inner.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		inner.set_anchors_preset(Control.PRESET_FULL_RECT)
+		inner.offset_left = 1
+		inner.offset_top = 1
+		inner.offset_right = -1
+		inner.offset_bottom = -1
+		root.add_child(inner)
+	else:
+		root.color = fill
+	var lab := Label.new()
+	lab.text = "%s%d" % [WorldBook.house_mark(house_id), chair]
+	lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lab.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	lab.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	lab.clip_text = true
+	lab.add_theme_font_size_override("font_size", 8)
+	lab.add_theme_color_override("font_color", _chip_ink(fill))
+	lab.set_anchors_preset(Control.PRESET_FULL_RECT)
+	root.add_child(lab)
+	return root
+
+
+func _make_overflow(n: int) -> Control:
+	var chip := ColorRect.new()
+	chip.custom_minimum_size = CHIP
+	chip.size = CHIP
+	chip.color = Color(0.16, 0.11, 0.07, 0.92)
+	chip.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	var lab := Label.new()
+	lab.text = "+%d" % n
+	lab.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	lab.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
+	lab.mouse_filter = Control.MOUSE_FILTER_IGNORE
+	lab.add_theme_font_size_override("font_size", 8)
+	lab.add_theme_color_override("font_color", INK)
+	lab.set_anchors_preset(Control.PRESET_FULL_RECT)
+	chip.add_child(lab)
+	return chip
+
+
+func _chip_ink(fill: Color) -> Color:
+	var lum := fill.r * 0.3 + fill.g * 0.5 + fill.b * 0.2
+	if lum > 0.55:
+		return Color(0.12, 0.08, 0.04, 1)
+	return Color(0.95, 0.92, 0.86, 1)

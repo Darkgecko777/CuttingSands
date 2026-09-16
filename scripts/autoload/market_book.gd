@@ -16,17 +16,47 @@ static func seed_all() -> void:
 		var stocks: Dictionary = {}
 		for good_id in GameState.GOODS.keys():
 			var gid := str(good_id)
-			if can_mint(cid, gid):
-				stocks[gid] = int(floor(float(cap(cid, gid)) * 0.6))
-			else:
-				stocks[gid] = 0
+			stocks[gid] = _opening_stock(cid, gid)
 		GameState.market_stock[cid] = stocks
+
+
+static func _opening_stock(city_id: String, good_id: String) -> int:
+	if can_mint(city_id, good_id):
+		return int(floor(float(cap(city_id, good_id)) * 0.6))
+	if WorldBook.is_shared_good(good_id):
+		if str(GameState.CITIES.get(city_id, {}).get("type", "")) != "trading_post":
+			return 0
+		if not WorldBook.settlement_has_market(city_id) or market_size(city_id) <= 0:
+			return 0
+		return maxi(1, int(floor(float(cap(city_id, good_id)) * 0.40)))
+	if not WorldBook.settlement_has_market(city_id) or market_size(city_id) <= 0:
+		return 0
+	var origin := WorldBook.producer_id(good_id)
+	if origin.is_empty():
+		return 0
+	var hops := hops_between(origin, city_id)
+	var sliver := 0.0
+	if hops == 1:
+		sliver = 0.25
+	elif hops == 2:
+		sliver = 0.12
+	else:
+		return 0
+	return maxi(1, int(floor(float(cap(city_id, good_id)) * sliver)))
 
 
 static func tick_day() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
+	tick_produce(rng)
+	tick_consume(rng)
+
+
+static func tick_produce(rng: RandomNumberGenerator) -> void:
 	_produce_all(rng)
+
+
+static func tick_consume(rng: RandomNumberGenerator) -> void:
 	_consume_all(rng)
 
 

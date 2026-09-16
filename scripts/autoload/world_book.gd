@@ -5,12 +5,14 @@ const DATA_HOUSES := "res://data/world/houses.json"
 const DATA_GOODS := "res://data/world/goods.json"
 const DATA_SETTLEMENTS := "res://data/world/settlements.json"
 const DATA_ROUTES := "res://data/world/routes.json"
+const DATA_STRINGS := "res://data/world/strings.json"
 
 
 static func load_world() -> void:
 	GameState.HOUSES = _json_dict(DATA_HOUSES)
 	GameState.GOODS = _json_dict(DATA_GOODS)
 	GameState.CITIES = _json_dict(DATA_SETTLEMENTS)
+	GameState.STRING_ROSTER = _json_dict(DATA_STRINGS)
 	_load_routes(_json_dict(DATA_ROUTES).get("links", []))
 	RoadPressure.seed_pressures()
 	if GameState.HOUSES.is_empty():
@@ -93,6 +95,20 @@ static func settlement_name(city_id: String) -> String:
 
 static func house_name(house_id: String) -> String:
 	return str(GameState.HOUSES.get(house_id, {}).get("name", "Unknown House"))
+
+
+static func house_mark(house_id: String) -> String:
+	var mark := str(GameState.HOUSES.get(house_id, {}).get("mark", "")).strip_edges()
+	if mark.is_empty():
+		mark = house_name(house_id).substr(0, 1)
+	return mark
+
+
+static func house_color(house_id: String) -> Color:
+	var raw := str(GameState.HOUSES.get(house_id, {}).get("color", "")).strip_edges()
+	if raw.is_empty():
+		return Color(0.92, 0.78, 0.45, 1)
+	return Color.from_string(raw, Color(0.92, 0.78, 0.45, 1))
 
 
 static func good_letter(good_id: String) -> String:

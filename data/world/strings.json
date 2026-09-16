@@ -1,0 +1,24 @@
+{
+  "purse": 500,
+  "tokens": [
+    {"id": "house_kharun_1", "house_id": "house_kharun", "chair": 1, "node_id": "draven"},
+    {"id": "house_kharun_2", "house_id": "house_kharun", "chair": 2, "node_id": "kaleth"},
+    {"id": "house_kharun_3", "house_id": "house_kharun", "chair": 3, "node_id": "brineford"},
+    {"id": "house_zamath_0", "house_id": "house_zamath", "chair": 0, "node_id": "zamath"},
+    {"id": "house_zamath_1", "house_id": "house_zamath", "chair": 1, "node_id": "zamath"},
+    {"id": "house_zamath_2", "house_id": "house_zamath", "chair": 2, "node_id": "neth"},
+    {"id": "house_zamath_3", "house_id": "house_zamath", "chair": 3, "node_id": "sorel"},
+    {"id": "house_thalor_0", "house_id": "house_thalor", "chair": 0, "node_id": "thalor"},
+    {"id": "house_thalor_1", "house_id": "house_thalor", "chair": 1, "node_id": "thalor"},
+    {"id": "house_thalor_2", "house_id": "house_thalor", "chair": 2, "node_id": "torven"},
+    {"id": "house_thalor_3", "house_id": "house_thalor", "chair": 3, "node_id": "highmark"},
+    {"id": "house_veythar_0", "house_id": "house_veythar", "chair": 0, "node_id": "veythar"},
+    {"id": "house_veythar_1", "house_id": "house_veythar", "chair": 1, "node_id": "veythar"},
+    {"id": "house_veythar_2", "house_id": "house_veythar", "chair": 2, "node_id": "ghul"},
+    {"id": "house_veythar_3", "house_id": "house_veythar", "chair": 3, "node_id": "southmark"},
+    {"id": "house_ghorath_0", "house_id": "house_ghorath", "chair": 0, "node_id": "ghorath"},
+    {"id": "house_ghorath_1", "house_id": "house_ghorath", "chair": 1, "node_id": "ghorath"},
+    {"id": "house_ghorath_2", "house_id": "house_ghorath", "chair": 2, "node_id": "moraq"},
+    {"id": "house_ghorath_3", "house_id": "house_ghorath", "chair": 3, "node_id": "rukh"}
+  ]
+}

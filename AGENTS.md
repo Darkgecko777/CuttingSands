@@ -27,6 +27,7 @@ These rules apply when Grok Build is running **inside this Godot checkout**.
 | Economy | `scripts/autoload/cargo_hold.gd`, `market_book.gd`, `game_state.gd` |
 | World data | `scripts/autoload/world_book.gd` ← `data/world/*.json` |
 | Knowledge / rumours | `scripts/sight/` (`SightBook`, `WordBook`, `GoodCopy`) — engine names until a rename pass |
+| Rival tokens | `scripts/autoload/string_book.gd` ← `data/world/strings.json` |
 | Title / house / pause | `scripts/ui/title_screen.gd`, `house_select.gd`, `pause_menu.gd` |
 
 ## Leftovers (do not revive)
@@ -60,13 +61,13 @@ Start and arrival land in **Market**, no top tab open. Engine identifiers may st
 
 ## Slice now vs locked later
 
-**Shipped in this checkout:** one player wagon; JSON world; hop along adjacent roads; weather + heat *labels* at Outyard; auto tithe; arrival rumours; live prices only at the stall you stand; per-node warehouses that produce/consume on Clock B; cities/villages mint rations + water (posts do not; Sarn water only); price bands; stall ledger (lowest buy / highest sale + town); emergency edible → rations; Outyard Wait (one day); 16 cells + 36 mass.
+**Shipped in this checkout:** one player wagon; JSON world; hop along adjacent roads; weather + heat *labels* at Outyard; auto tithe; arrival rumours; live prices only at the stall you stand; per-node warehouses that produce/consume on Clock B; cities/villages mint rations + water (posts do not; Sarn water only); price bands; stall ledger (lowest buy / highest sale + town); emergency edible → rations; Outyard Wait (one day); 16 cells + 36 mass; 19 NPC tokens short-haul on Clock B (atlas chips).
 
 **Locked in the vision — do not implement until Derek asks:**
 
 - Socialize (spend a day, chance of a rumour, stars only)
-- Weather step on Wait; Wait as a rival-economic verb (strings walking in)
-- 19 rival strings, house rank, one-way intrigue
+- Weather step on Wait
+- House rank, one-way intrigue, personality traits on tokens
 - Interrupt travel events, salvage/lost-pool, ruin extraction
 - Stacked-in-cell cargo (vision 16 slots with stack limits); rack is 16 cells now — do not silently retune
 - Player daily eat of rations/water

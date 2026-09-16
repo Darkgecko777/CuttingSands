@@ -4,50 +4,44 @@ Handshake for Grok.com (creative) and Grok Build (implementation). Read this ins
 
 Keep **two** shipped tasks only. After each completed task: new work becomes **Current**, old Current becomes **Prior**, drop anything older. Spec files stay at repo root (`TASK_<name>.md`); this file is the outcome, not a recap of the spec.
 
-**HEAD:** `cd9f536` on `main` (15 Sep 2026)  
+**HEAD:** `cd9f536` on `main` (15 Sep 2026) · opening cellars + string roster are in the working tree, not committed  
 **Play:** Godot 4.7 · `scenes/map/field_shell.tscn` after house select · start in Market.
 
 ---
 
-## Current — `economy_revise`
+## Current — `string_roster`
 
-**When:** 15 Sep 2026 · `cd9f536` · spec `TASK_economy_revise.md`  
-**Vision:** *Live Economy — Cellars, Rations, Bands*
+**When:** 16 Sep 2026 · working tree · spec `TASK_string_roster.md`  
+**Vision:** Rival strings (presence / stall use only). Rank and intrigue stay off.
 
-Corrected the catalog and price shape on top of live warehouses. Do not re-spec this.
+19 NPC tokens share the stall. Uniform **short-haul**: one good, lot of 2, 1–2 hops, coin-per-hop, sell the morning after arrival. Personality later.
 
 **Shipped**
 
-- Cities mint **4** origin letters; villages **2**; posts **none**.
-- Cities and villages mint **rations** and **water** (authored `local_mint` in `data/world/settlements.json`). Posts mint neither. **Sarn** mints **water only**.
-- Price is still a cellar readout, then **clamped** to a per-node floor/ceiling (`0.70` / `1.45`). Origin letters use hops × gravity for the band mid; rations/water use authored per-node `base`.
-- Buy and sell share the same stall number.
-- Market tooltip ledger: **Lowest buy + town** / **Highest sale + town** (only goods the player has seen at a stall). Rumours do not write it.
-- Emergency convert: one smash of an `edible` unit → `ration_yield` rations; refuses if the rack cannot hold them. Player daily eat is **not** wired.
-- Warehouse tick, Clock B, and “player wagon is the only mover” stay as in Prior.
+- Five houses × four chairs. Player is Kharûn chair 0. The other 19 are authored in `data/world/strings.json` (cities thicker than posts; none on Sarn; start town is player only).
+- Purse **500**, empty rack, 16 cells / 36 mass. Same `local_price` as the player. No ledger, no rank.
+- Clock B: produce → each token (stable id) one act → consume. At dest with the trip good: sell and stay. Empty: buy 2 of the best trip and step. Mid-trip: step only. Idle: stay.
+- Map tab: `ColorRect` + `Label` chips under the glyph (house color, mark+chair). Player chip has a 1px ring. Cap 4, overflow `+N`. No chips on the hop watch; wagon icon stays on the watch only.
 
-**Where:** `data/world/goods.json`, `data/world/settlements.json`, `scripts/autoload/market_book.gd`, `world_book.gd`, `game_state.gd`, `cargo_hold.gd`, `scripts/sight/good_copy.gd`, Market / Cargo in `field_shell.gd`.
+**Where:** `scripts/autoload/string_book.gd`, `data/world/strings.json`, `data/world/houses.json` (colors), `world_book.gd`, `game_state.gd`, `market_book.gd` (`tick_day`), `scripts/map/map_well.gd`.
 
 ---
 
-## Prior — `live_economy`
+## Prior — `opening_cellars`
 
-**When:** 14 Sep 2026 · `024fec2` · spec `TASK_live_economy.md`
+**When:** 16 Sep 2026 · working tree · spec `TASK_opening_cellars.md`
 
-First live cellar. Superseded by Current where they disagree (water-only-at-Sarn as the player well; no rations row; no floor/ceiling; no tooltip ledger).
+Day-0 cellars are a frozen “the road already happened once.” Mint, bands, consume, and Clock B pulse are unchanged.
 
 **Shipped (still true)**
 
-- Per-node warehouse ticks on Clock B (hop day, Skip, Outyard **Wait** one day). No tick in a yard or while a top tab pauses a hop.
-- Origins produce to cap; every market consumes what it holds. Leave does not reset stock.
-- Price raw form: scarcity × hops-from-origin × corridor gravity. Weather is a hook only (`local` = 1).
-- Player wagon is the only mover. Strings do not buy, sell, or haul.
-- Rack **16 cells** / **36 mass**. Empty stall rows hide.
+- Mintable rows open at **60% of cap**. Origin letters at **1 hop** seed **25%**, **2 hops** **12%** (cities included; posts count as hops).
+- Posts get those leftovers plus a **40%** water/rations sip. Sarn water only, no stall.
 
 ---
 
 ## Do not implement until Derek asks
 
-Socialize; weather step / rival walk-in on Wait; 19 strings, house rank, intrigue; travel interrupts, salvage, ruins; stacked-in-cell cargo; player daily eat; skills, agents, save/options, other starting houses.
+Socialize; weather step on Wait; house rank / intrigue; personality traits; travel interrupts, salvage, ruins; stacked-in-cell cargo; player daily eat; skills, agents, save/options, other starting houses.
 
 Chrome and well layout are locked (see `AGENTS.md`). Play is one well. Do not revive `city_hub` / `world_map` / `main_game`.

@@ -38,6 +38,8 @@ var HOUSES: Dictionary = {}
 var CITIES: Dictionary = {}
 var GOODS: Dictionary = {}
 var ROUTES: Dictionary = {}
+var STRING_ROSTER: Dictionary = {}
+var string_tokens: Dictionary = {}
 var caravans: Dictionary = {}
 var pending_travel_to: String = ""
 var price_ledger: Dictionary = {}
@@ -47,6 +49,7 @@ func _ready() -> void:
 	WorldBook.load_world()
 	CargoHold.reset_player()
 	MarketBook.seed_all()
+	StringBook.seed_all()
 	CaravanLog.spawn_player(current_city_id)
 	WordBook.reset()
 	SightBook.reset()
@@ -65,6 +68,7 @@ func start_new_run(house_id: String) -> void:
 	RoadPressure.seed_pressures()
 	CargoHold.reset_player()
 	MarketBook.seed_all()
+	StringBook.seed_all()
 	day = 1
 	agents.clear()
 	price_ledger.clear()
@@ -133,7 +137,11 @@ func advance_days(n: int) -> void:
 	if n <= 0:
 		return
 	for _i in n:
-		MarketBook.tick_day()
+		var rng := RandomNumberGenerator.new()
+		rng.randomize()
+		MarketBook.tick_produce(rng)
+		StringBook.tick_all()
+		MarketBook.tick_consume(rng)
 		day += 1
 	inventory_changed.emit()
 
