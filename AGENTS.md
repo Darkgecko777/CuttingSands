@@ -26,7 +26,7 @@ They are not the Grok.com workspace rules.
 | Play shell | `scenes/map/field_shell.tscn`, `scripts/map/field_shell.gd` |
 | Map / hop watch | `scripts/map/map_well.gd`, `scenes/map/map.tscn` |
 | Market / cargo UI | `scripts/map/market_desk.gd`, `wagon_rack.gd`, `wagon_deal.gd`, `cargo_math.gd` |
-| Travel / tithe | `scripts/autoload/caravan_log.gd`, `scripts/map/road_pressure.gd` |
+| Travel / weather | `scripts/autoload/caravan_log.gd`, `scripts/map/road_pressure.gd` |
 | Economy | `scripts/autoload/cargo_hold.gd`, `market_book.gd`, `game_state.gd` |
 | World data | `scripts/autoload/world_book.gd` ← `data/world/*.json` |
 | Knowledge / rumours | `scripts/sight/` (`SightBook`, `WordBook`, `GoodCopy`) — engine names until a rename pass |
@@ -56,15 +56,15 @@ Start and arrival land in **Market**, no top tab open. Engine identifiers may st
 
 - Well: two panes, or one map surface. No side context column.
 - Top tabs: **Cargo | Map | Rumours**. Single-select and close.
-- Bottom yards: **House | Market | Outyard**. Dead on the road.
+- Bottom yards: **House | Market | Outyard**. House is drawn in cities and Ghorath. Villages and posts draw Market and Outyard only. All yards are dead on the road.
 - Map tab = letterboxed atlas (no fog of war on that chart).
 - Hop with no tab = zoomed travel watch. Opening a tab **pauses** the hop tween; close resumes.
-- Game clock: time runs on the watch, Skip, or explicit Wait. Time does not run in a yard except Wait.
+- Game clock: time runs on the watch, Skip, or explicit Wait. Wait is Outyard only. Time does not run in House or Market.
 - Title: Continue and Options stay visible but disabled until save / options exist. Title does not open PauseMenu for Options.
 
 ## Built vs gated
 
-**In this checkout now:** one player wagon; JSON world; hop along adjacent roads; weather + heat *labels* at Outyard; auto tithe; arrival rumours; live prices only at the stall you stand; per-node warehouses that produce/consume at Dawn; cities/villages mint rations + water (posts do not; Sarn water only); price bands; stall ledger (lowest buy / highest sale + town); emergency edible → rations; Wait 1 watch / half day / full day in House, Market, and Outyard; market watches 1–5; 16 cells + 36 mass; 19 NPC tokens short-haul on the game clock (town chips + enlarged road chips; Map tab frozen, travel watch live, hop zoom, no FoW).
+**In this checkout now:** one player wagon; JSON world; hop along adjacent roads; weather term at Outyard (Clear / Heat / Wind / Sandstorm; no Quiet / Watched / Active); region-pair term frozen at New Game (Heat/Wind +1 day, Sandstorm +2; arrival leak, no coin tithe); arrival rumours; live prices only at the stall you stand; per-node warehouses that produce/consume at Dawn; cities/villages mint rations + water (posts do not; Sarn is painted only — no mint, no dock); price bands; stall ledger (lowest buy / highest sale + town); emergency edible → rations; House in cities and Ghorath only; Outyard restock toward 2 water and 6 rations; Wait 1 watch / half day / full day in Outyard only; Market yard inactive on watches 6–8; 16 cells + 36 mass; 19 NPC tokens short-haul on the game clock (Map tab is the committed stamp; travel watch slides the current watch; hop zoom; no FoW).
 
 **Locked in the vision — do not implement until Derek asks:**
 

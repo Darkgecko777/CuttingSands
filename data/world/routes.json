@@ -1,6 +1,5 @@
 {
   "links": [
-    ["sarns_rest", "rukh"],
     ["rukh", "westmark"],
     ["kethra", "westmark"],
     ["westmark", "kharun"],

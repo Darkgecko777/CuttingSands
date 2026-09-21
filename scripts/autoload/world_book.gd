@@ -6,6 +6,7 @@ const DATA_GOODS := "res://data/world/goods.json"
 const DATA_SETTLEMENTS := "res://data/world/settlements.json"
 const DATA_ROUTES := "res://data/world/routes.json"
 const DATA_STRINGS := "res://data/world/strings.json"
+const DATA_COMMISSIONS := "res://data/world/commissions.json"
 
 
 static func load_world() -> void:
@@ -13,6 +14,7 @@ static func load_world() -> void:
 	GameState.GOODS = _json_dict(DATA_GOODS)
 	GameState.CITIES = _json_dict(DATA_SETTLEMENTS)
 	GameState.STRING_ROSTER = _json_dict(DATA_STRINGS)
+	GameState.COMMISSIONS = _json_dict(DATA_COMMISSIONS)
 	_load_routes(_json_dict(DATA_ROUTES).get("links", []))
 	RoadPressure.seed_pressures()
 	if GameState.HOUSES.is_empty():
@@ -75,6 +77,37 @@ static func settlement_has_market(city_id: String) -> bool:
 	if city.has("has_market"):
 		return bool(city["has_market"])
 	return city_id != "sarns_rest"
+
+
+static func settlement_is_dock(city_id: String) -> bool:
+	if city_id.is_empty():
+		return false
+	var city: Dictionary = GameState.CITIES.get(city_id, {})
+	if str(city.get("type", "")) == "oasis":
+		return false
+	if not settlement_has_market(city_id):
+		return false
+	return int(city.get("market_size", 0)) > 0
+
+
+static func settlement_is_fluid(city_id: String) -> bool:
+	var kind := str(GameState.CITIES.get(city_id, {}).get("type", ""))
+	return kind == "village" or kind == "trading_post"
+
+
+static func seat_house(city_id: String) -> String:
+	var raw: Variant = GameState.CITIES.get(city_id, {}).get("house", "")
+	if raw == null:
+		return ""
+	var seat := str(raw)
+	if seat.is_empty() or seat == "null" or seat == "<null>":
+		return ""
+	return seat
+
+
+static func house_home(house_id: String) -> String:
+	var house: Dictionary = GameState.HOUSES.get(house_id, {})
+	return str(house.get("home", house.get("home_city", "")))
 
 
 static func settlement_has_house_yard(city_id: String) -> bool:

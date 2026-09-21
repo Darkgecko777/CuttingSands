@@ -72,6 +72,8 @@ static func begin_hop_for(caravan_id: String, to_id: String) -> bool:
 	if wagon.is_empty() or str(wagon.get("status", "idle")) == "transit":
 		return false
 	var from_id := str(wagon.get("at", ""))
+	if not WorldBook.settlement_is_dock(to_id):
+		return false
 	var days := hop_days(from_id, to_id)
 	if days <= 0:
 		return false

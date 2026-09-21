@@ -125,9 +125,13 @@ static func hops_to_producer(city_id: String, good_id: String) -> int:
 
 static func local_price(good_id: String, city_id: String = "") -> int:
 	var cid := GameState.current_city_id if city_id.is_empty() else city_id
+	return local_price_at(good_id, cid, stock(good_id, cid))
+
+
+static func local_price_at(good_id: String, city_id: String, have: int) -> int:
+	var cid := city_id
 	var rec: Dictionary = GameState.GOODS.get(good_id, {})
 	var cellar := cap(cid, good_id)
-	var have := stock(good_id, cid)
 	var filled := 0.0 if cellar <= 0 else clampf(float(have) / float(cellar), 0.0, 1.0)
 	var scarcity := lerpf(1.35, 0.70, filled)
 	var quirk := _quirk(cid, good_id)

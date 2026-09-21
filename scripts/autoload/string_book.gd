@@ -21,7 +21,7 @@ static func seed_all() -> void:
 		if house_id == GameState.selected_house_id and chair == 0:
 			continue
 		var node_id := str(row.get("node_id", ""))
-		if not WorldBook.settlement_has_market(node_id) or MarketBook.market_size(node_id) <= 0:
+		if not WorldBook.settlement_is_dock(node_id):
 			continue
 		var token_id := str(row.get("id", ""))
 		if token_id.is_empty():
@@ -69,22 +69,28 @@ static func is_on_wire(token: Dictionary) -> bool:
 	return not str(token.get("to_id", "")).is_empty()
 
 
+static func stamp_done(token: Dictionary) -> float:
+	return float(int(token.get("hours_done", 0)))
+
+
 static func visual_done(token: Dictionary) -> float:
-	return float(int(token.get("hours_done", 0))) + float(GameState.pending_watch_hours) * GameState.watch_lerp
+	return stamp_done(token) + float(GameState.pending_watch_hours) * GameState.watch_lerp
+
+
+static func stamp_node(token: Dictionary) -> String:
+	return _node_for(token, stamp_done(token))
 
 
 static func visual_node(token: Dictionary) -> String:
-	if not is_on_wire(token):
-		return str(token.get("node_id", ""))
-	var total := float(maxi(1, int(token.get("hours_total", 1))))
-	if visual_done(token) >= total:
-		return str(token.get("to_id", ""))
-	return ""
+	return _node_for(token, visual_done(token))
+
+
+static func stamp_edge_t(token: Dictionary) -> float:
+	return _edge_t(token, stamp_done(token))
 
 
 static func visual_edge_t(token: Dictionary) -> float:
-	var total := float(maxi(1, int(token.get("hours_total", 1))))
-	return clampf(visual_done(token) / total, 0.0, 1.0)
+	return _edge_t(token, visual_done(token))
 
 
 static func ids_at(node_id: String) -> Array:
@@ -97,11 +103,34 @@ static func ids_at(node_id: String) -> Array:
 	return out
 
 
+static func ids_stamp_at(node_id: String) -> Array:
+	return _ids_placed(node_id, false)
+
+
 static func ids_visual_at(node_id: String) -> Array:
+	return _ids_placed(node_id, true)
+
+
+static func _node_for(token: Dictionary, done: float) -> String:
+	if not is_on_wire(token):
+		return str(token.get("node_id", ""))
+	var total := float(maxi(1, int(token.get("hours_total", 1))))
+	if done >= total:
+		return str(token.get("to_id", ""))
+	return ""
+
+
+static func _edge_t(token: Dictionary, done: float) -> float:
+	var total := float(maxi(1, int(token.get("hours_total", 1))))
+	return clampf(done / total, 0.0, 1.0)
+
+
+static func _ids_placed(node_id: String, live: bool) -> Array:
 	var out: Array = []
 	for token_id in GameState.string_tokens.keys():
 		var token: Dictionary = GameState.string_tokens[token_id]
-		if visual_node(token) == node_id:
+		var here := visual_node(token) if live else stamp_node(token)
+		if here == node_id:
 			out.append(str(token_id))
 	out.sort()
 	return out
@@ -109,7 +138,7 @@ static func ids_visual_at(node_id: String) -> Array:
 
 static func _dawn_one(token: Dictionary) -> void:
 	var here := str(token.get("node_id", ""))
-	if here.is_empty() or not WorldBook.settlement_has_market(here):
+	if here.is_empty() or not WorldBook.settlement_is_dock(here):
 		return
 	var bound_for := str(token.get("bound_for", ""))
 	var trip_good := str(token.get("trip_good", ""))
@@ -201,7 +230,7 @@ static func _max_buy(token: Dictionary, good_id: String, price: int, stock: int)
 
 static func _buy(token: Dictionary, good_id: String, units: int) -> bool:
 	var here := str(token.get("node_id", ""))
-	if units <= 0 or good_id.is_empty() or not WorldBook.settlement_has_market(here):
+	if units <= 0 or good_id.is_empty() or not WorldBook.settlement_is_dock(here):
 		return false
 	var price := MarketBook.local_price(good_id, here)
 	var cost := price * units
@@ -226,8 +255,9 @@ static func _sell(token: Dictionary, good_id: String, units: int) -> void:
 	var cargo: Dictionary = token.get("cargo", {})
 	var held := int(cargo.get(good_id, 0))
 	units = clampi(units, 0, held)
-	if units <= 0 or good_id.is_empty() or not WorldBook.settlement_has_market(here):
+	if units <= 0 or good_id.is_empty() or not WorldBook.settlement_is_dock(here):
 		return
+	DoorBook.stamp_sale(here, str(token.get("house_id", "")), good_id, units)
 	var price := MarketBook.local_price(good_id, here)
 	token["purse"] = int(token.get("purse", 0)) + price * units
 	cargo[good_id] = held - units
@@ -272,7 +302,7 @@ static func _next_node(here: String, dest: String) -> String:
 	var best_h := 99
 	for raw in GameState.neighbors_of(here):
 		var nxt := str(raw)
-		if not WorldBook.settlement_has_market(nxt) or MarketBook.market_size(nxt) <= 0:
+		if not WorldBook.settlement_is_dock(nxt):
 			continue
 		var hops := 0 if nxt == dest else MarketBook.hops_between(nxt, dest)
 		if hops < best_h or (hops == best_h and (best.is_empty() or nxt < best)):
@@ -298,7 +328,7 @@ static func _market_ids() -> Array:
 	var out: Array = []
 	for raw in GameState.CITIES.keys():
 		var city_id := str(raw)
-		if WorldBook.settlement_has_market(city_id) and MarketBook.market_size(city_id) > 0:
+		if WorldBook.settlement_is_dock(city_id):
 			out.append(city_id)
 	out.sort()
 	return out

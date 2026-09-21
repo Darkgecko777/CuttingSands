@@ -44,10 +44,13 @@ var watch_lerp: float = 0.0
 var pending_watch_hours: int = 0
 var agents: Array = []
 var reports: Array = []
+var rumours: Array = []
+var rumour_seq: int = 0
+var socialized_day: int = 0
+var exp: int = 0
 var memory: Dictionary = {}
 var LINK_DAYS: Dictionary = {}
 var LINK_WEATHER: Dictionary = {}
-var LINK_HEAT: Dictionary = {}
 var road_note: String = ""
 var transit: Dictionary = {}
 var inventory: Dictionary = {}
@@ -61,15 +64,21 @@ var string_tokens: Dictionary = {}
 var caravans: Dictionary = {}
 var pending_travel_to: String = ""
 var price_ledger: Dictionary = {}
+var standing: Dictionary = {}
+var presence: Dictionary = {}
+var door_hold: Dictionary = {}
+var COMMISSIONS: Dictionary = {}
 
 
 func _ready() -> void:
 	WorldBook.load_world()
 	CargoHold.reset_player()
 	MarketBook.seed_all()
+	DoorBook.seed()
 	StringBook.seed_all()
 	CaravanLog.spawn_player(current_city_id)
 	WordBook.reset()
+	RumourBook.reset()
 	SightBook.reset()
 
 
@@ -86,6 +95,7 @@ func start_new_run(house_id: String) -> void:
 	RoadPressure.seed_pressures()
 	CargoHold.reset_player()
 	MarketBook.seed_all()
+	DoorBook.seed()
 	StringBook.seed_all()
 	hours = 0
 	day = 1
@@ -94,6 +104,7 @@ func start_new_run(house_id: String) -> void:
 	agents.clear()
 	price_ledger.clear()
 	WordBook.reset()
+	RumourBook.reset()
 	CaravanLog.spawn_player(current_city_id)
 	SightBook.reset()
 	scrubstone_changed.emit(scrubstone)
@@ -218,6 +229,13 @@ func travel_slice_hours() -> int:
 	return mini(remainder_hours(), player_remaining_hours())
 
 
+func player_stamp_progress() -> float:
+	var wagon: Dictionary = get_caravan(PLAYER_CARAVAN_ID)
+	var total := float(maxi(1, int(wagon.get("hours_total", 1))))
+	var done := float(int(wagon.get("hours_done", 0)))
+	return clampf(done / total, 0.0, 1.0)
+
+
 func player_visual_progress() -> float:
 	var wagon: Dictionary = get_caravan(PLAYER_CARAVAN_ID)
 	var total := float(maxi(1, int(wagon.get("hours_total", 1))))
@@ -270,6 +288,8 @@ func sync_player_transit() -> void:
 func _dawn_pulse() -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.randomize()
+	RumourBook.expire()
+	DoorBook.decay()
 	MarketBook.tick_produce(rng)
 	StringBook.dawn_act()
 	MarketBook.tick_consume(rng)
@@ -317,6 +337,16 @@ func cargo_free() -> int:
 
 func get_house_name() -> String:
 	return WorldBook.house_name(selected_house_id)
+
+
+func home_city_id() -> String:
+	var house: Dictionary = HOUSES.get(selected_house_id, {})
+	return str(house.get("home", house.get("home_city", "")))
+
+
+func is_home_seat(city_id: String = "") -> bool:
+	var cid := current_city_id if city_id.is_empty() else city_id
+	return cid == home_city_id() and WorldBook.settlement_has_house_yard(cid)
 
 
 func get_city_name() -> String:
@@ -368,34 +398,37 @@ func get_market_stock(good_id: String, city_id: String = "") -> int:
 
 
 func get_local_price(good_id: String, city_id: String = "") -> int:
-	return MarketBook.local_price(good_id, city_id)
+	var cid := current_city_id if city_id.is_empty() else city_id
+	return DoorBook.apply_cut(MarketBook.local_price(good_id, cid), cid, true)
 
 
 func get_sell_price(good_id: String, city_id: String = "") -> int:
-	return MarketBook.sell_price(good_id, city_id)
+	var cid := current_city_id if city_id.is_empty() else city_id
+	return DoorBook.apply_cut(MarketBook.sell_price(good_id, cid), cid, false)
 
 
 func note_stall(good_id: String, city_id: String = "") -> void:
 	var cid := current_city_id if city_id.is_empty() else city_id
 	if good_id.is_empty() or cid.is_empty() or not settlement_has_market(cid) or is_on_road() or not stalls_open():
 		return
-	var price := get_local_price(good_id, cid)
-	if price <= 0:
+	var buy := get_local_price(good_id, cid)
+	var sell := get_sell_price(good_id, cid)
+	if buy <= 0 and sell <= 0:
 		return
 	if not price_ledger.has(good_id):
 		price_ledger[good_id] = {
-			"lowest_buy_price": price,
+			"lowest_buy_price": buy,
 			"lowest_buy_node_id": cid,
-			"highest_sell_price": price,
+			"highest_sell_price": sell,
 			"highest_sell_node_id": cid,
 		}
 		return
 	var row: Dictionary = price_ledger[good_id]
-	if price < int(row.get("lowest_buy_price", price)):
-		row["lowest_buy_price"] = price
+	if buy > 0 and buy < int(row.get("lowest_buy_price", buy)):
+		row["lowest_buy_price"] = buy
 		row["lowest_buy_node_id"] = cid
-	if price > int(row.get("highest_sell_price", 0)):
-		row["highest_sell_price"] = price
+	if sell > int(row.get("highest_sell_price", 0)):
+		row["highest_sell_price"] = sell
 		row["highest_sell_node_id"] = cid
 
 

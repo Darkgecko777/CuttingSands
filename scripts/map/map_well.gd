@@ -482,17 +482,18 @@ func paint_chips() -> void:
 	_clear_chips()
 	if not chips_layer.visible:
 		return
+	var live := chips_enlarged
 	var player_here := ""
 	var player_on_wire := GameState.is_on_road()
 	if not player_on_wire:
 		player_here = GameState.current_city_id
 	for city_id in nodes.keys():
-		_paint_town_chips(str(city_id), player_here == str(city_id))
-	_paint_road_chips(player_on_wire and not chips_enlarged)
+		_paint_town_chips(str(city_id), player_here == str(city_id), live)
+	_paint_road_chips(player_on_wire and not live, live)
 
 
-func _paint_town_chips(city_id: String, show_player: bool) -> void:
-	var npc_ids: Array = StringBook.ids_visual_at(city_id)
+func _paint_town_chips(city_id: String, show_player: bool, live: bool) -> void:
+	var npc_ids: Array = StringBook.ids_visual_at(city_id) if live else StringBook.ids_stamp_at(city_id)
 	if not show_player and npc_ids.is_empty():
 		return
 	var slots: Array = []
@@ -525,13 +526,14 @@ func _paint_town_chips(city_id: String, show_player: bool) -> void:
 	chips_layer.add_child(row)
 
 
-func _paint_road_chips(show_player: bool) -> void:
+func _paint_road_chips(show_player: bool, live: bool) -> void:
 	var groups: Dictionary = {}
 	for token_id in GameState.string_tokens.keys():
 		var token: Dictionary = GameState.string_tokens[token_id]
 		if token.is_empty() or not StringBook.is_on_wire(token):
 			continue
-		if not StringBook.visual_node(token).is_empty():
+		var parked := StringBook.visual_node(token) if live else StringBook.stamp_node(token)
+		if not parked.is_empty():
 			continue
 		var from_id := str(token.get("from_id", ""))
 		var to_id := str(token.get("to_id", ""))
@@ -544,7 +546,7 @@ func _paint_road_chips(show_player: bool) -> void:
 			"chair": int(token.get("chair", 0)),
 			"from": from_id,
 			"to": to_id,
-			"t": StringBook.visual_edge_t(token),
+			"t": StringBook.visual_edge_t(token) if live else StringBook.stamp_edge_t(token),
 		})
 	if show_player:
 		var from_id := str(GameState.transit.get("from", ""))
@@ -559,7 +561,7 @@ func _paint_road_chips(show_player: bool) -> void:
 				"chair": 0,
 				"from": from_id,
 				"to": to_id,
-				"t": GameState.player_visual_progress(),
+				"t": GameState.player_visual_progress() if live else GameState.player_stamp_progress(),
 			})
 	for key in groups.keys():
 		var slots: Array = groups[key]

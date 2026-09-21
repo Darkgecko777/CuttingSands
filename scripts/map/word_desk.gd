@@ -11,64 +11,54 @@ var on_pick: Callable = Callable()
 func render(box: VBoxContainer, title: Label, meta: Label, body: Label) -> void:
 	for child in box.get_children():
 		child.queue_free()
-	var rumours: Array = WordBook.all_rumours()
-	if rumours.is_empty():
+	var rows: Array = RumourBook.tickets()
+	if rows.is_empty():
 		title.text = "Rumours"
 		meta.text = ""
-		body.text = "No rumours yet. Walk a stall. Arrival notes collect here."
+		body.text = "No rumours yet. Socialize in the Outyard."
 		var note := Label.new()
 		note.text = "No rumours yet"
 		note.add_theme_color_override("font_color", MUTED)
 		box.add_child(note)
 		return
-	if selected_id.is_empty() or WordBook.rumour(selected_id).is_empty():
-		selected_id = str(rumours[0].get("id", ""))
+	if selected_id.is_empty() or RumourBook.ticket(selected_id).is_empty():
+		selected_id = str(rows[0].get("id", ""))
 	_paint_selected(title, meta, body)
 	var head := Label.new()
 	head.text = "Rumours"
 	head.add_theme_color_override("font_color", MUTED)
 	box.add_child(head)
-	for row in rumours:
+	for row in rows:
 		box.add_child(_row(row))
 
 
 func _paint_selected(title: Label, meta: Label, body: Label) -> void:
-	var rec := WordBook.rumour(selected_id)
+	var rec := RumourBook.ticket(selected_id)
 	if rec.is_empty():
 		title.text = "Rumours"
 		meta.text = ""
 		body.text = ""
 		return
-	var city_id := str(rec.get("city_id", ""))
-	var good_id := str(rec.get("good_id", ""))
-	title.text = WorldBook.settlement_name(city_id) if not city_id.is_empty() else "Rumours"
-	var bits: PackedStringArray = [WordBook.stars_text(int(rec.get("stars", 1)))]
-	bits.append(WordBook.age_text(int(rec.get("minted_day", GameState.day))))
-	if not good_id.is_empty():
-		bits.append(WorldBook.good_name(good_id))
-	meta.text = "  ·  ".join(bits)
-	body.text = str(rec.get("text", ""))
-	if not good_id.is_empty():
-		body.text += "\n\n" + GoodCopy.context_block(good_id, city_id)
+	var origin := str(rec.get("origin_id", ""))
+	var place := WorldBook.settlement_name(origin)
+	title.text = place
+	meta.text = "%s  ·  %s" % [RumourBook.stars_text(int(rec.get("stars", 1))), RumourBook.life_text(rec)]
+	body.text = "An expedition at %s. Walk it from that Outyard. The wagon stays in the yard." % place
 
 
 func _row(rec: Dictionary) -> Button:
 	var btn := Button.new()
-	var city_id := str(rec.get("city_id", ""))
-	var good_id := str(rec.get("good_id", ""))
-	var label := WorldBook.settlement_name(city_id)
-	if not good_id.is_empty():
-		label += "  ·  " + WorldBook.good_name(good_id)
-	btn.text = "%s  %s" % [WordBook.stars_text(int(rec.get("stars", 1))), label]
+	var place := WorldBook.settlement_name(str(rec.get("origin_id", "")))
+	btn.text = "%s  %s" % [RumourBook.stars_text(int(rec.get("stars", 1))), place]
 	btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	btn.add_theme_color_override("font_color", GOLD)
-	btn.tooltip_text = str(rec.get("text", ""))
-	var rumour_id := str(rec.get("id", ""))
-	btn.pressed.connect(_select.bind(rumour_id))
+	btn.tooltip_text = RumourBook.life_text(rec)
+	var ticket_id := str(rec.get("id", ""))
+	btn.pressed.connect(_select.bind(ticket_id))
 	return btn
 
 
-func _select(rumour_id: String) -> void:
-	selected_id = rumour_id
+func _select(ticket_id: String) -> void:
+	selected_id = ticket_id
 	if on_pick.is_valid():
-		on_pick.call(rumour_id)
+		on_pick.call(ticket_id)

@@ -2,6 +2,7 @@ extends Control
 
 const MUTED := Color(0.75, 0.62, 0.42, 1)
 const WordDeskScript = preload("res://scripts/map/word_desk.gd")
+const CardScript = preload("res://scripts/map/placeholder_card.gd")
 
 enum Mode { NONE, CARGO, MAP, WORD }
 enum Yard { NONE, HOUSE, MARKET, OUTYARD }
@@ -39,16 +40,26 @@ var _selected_kind: String = "caravan"
 var _selected_id: String = GameState.PLAYER_CARAVAN_ID
 var _inspect_good_id: String = ""
 var _outyard_dest: String = ""
+var _restock_note: String = ""
+var _commission_note: String = ""
 var _cat_buttons: Dictionary = {}
 var _map := MapWell.new()
 var _desk := MarketDesk.new()
 var _word = WordDeskScript.new()
+var _card: PlaceholderCard
+var _card_kind: String = ""
+var _card_ticket: String = ""
+var _card_step: int = 0
+var _card_steps: int = 0
 
 
 func _ready() -> void:
 	_desk.on_changed = _on_draft_changed
 	_desk.on_inspect = _inspect_good
 	_word.on_pick = _on_word_pick
+	_card = CardScript.new()
+	add_child(_card)
+	_card.picked.connect(_on_card_pick)
 	_map.setup(self, map_clip, map_layer, markers_layer)
 	smash_btn.pressed.connect(_on_smash_from_bar)
 	_wire_shell()
@@ -260,10 +271,6 @@ func _show_word() -> void:
 	rack_grid.visible = false
 	left_title.text = "Rumours"
 	_word.render(left_box, context_title, context_meta, context_body)
-	var rec := WordBook.rumour(_word.selected_id)
-	var city_id := str(rec.get("city_id", ""))
-	if not city_id.is_empty():
-		_map.center_on_city(city_id)
 
 
 func _on_word_pick(rumour_id: String) -> void:
@@ -308,6 +315,10 @@ func _show_caravan() -> void:
 		_yard = Yard.NONE
 		_show_transit_panel()
 		return
+	if not WorldBook.settlement_is_dock(GameState.current_city_id):
+		_yard = Yard.NONE
+		_show_landmark()
+		return
 	match _yard:
 		Yard.MARKET:
 			_show_market_yard()
@@ -337,12 +348,18 @@ func _refresh_place_bar() -> void:
 			_:
 				banner_caption.text = GameState.get_settlement_name(city_id)
 	place_banner.disabled = on_road
-	house_btn.disabled = on_road or not WorldBook.settlement_has_house_yard(city_id)
-	market_btn.disabled = on_road or not GameState.settlement_has_market(city_id) or not GameState.stalls_open()
-	outyard_btn.disabled = on_road
-	house_btn.set_pressed_no_signal(not on_road and _yard == Yard.HOUSE)
-	market_btn.set_pressed_no_signal(not on_road and _yard == Yard.MARKET)
-	outyard_btn.set_pressed_no_signal(not on_road and _yard == Yard.OUTYARD)
+	var dock := not on_road and WorldBook.settlement_is_dock(city_id)
+	var house_here := dock and WorldBook.settlement_has_house_yard(city_id)
+	var market_live := dock and GameState.stalls_open()
+	house_btn.visible = house_here or (on_road and WorldBook.settlement_has_house_yard(city_id))
+	market_btn.visible = on_road or dock
+	outyard_btn.visible = on_road or dock
+	house_btn.disabled = not house_here
+	market_btn.disabled = not market_live
+	outyard_btn.disabled = not dock
+	house_btn.set_pressed_no_signal(house_here and _yard == Yard.HOUSE)
+	market_btn.set_pressed_no_signal(market_live and _yard == Yard.MARKET)
+	outyard_btn.set_pressed_no_signal(dock and _yard == Yard.OUTYARD)
 	if on_road:
 		_ensure_skip()
 
@@ -352,7 +369,10 @@ func _show_city_yards() -> void:
 	rack_grid.visible = false
 	left_title.text = GameState.get_city_name()
 	var note := Label.new()
-	note.text = "House, Market, or Outyard."
+	if WorldBook.settlement_has_house_yard(GameState.caravan_city(GameState.PLAYER_CARAVAN_ID)):
+		note.text = "House, Market, or Outyard."
+	else:
+		note.text = "Market or Outyard."
 	note.add_theme_color_override("font_color", MUTED)
 	note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	left_box.add_child(note)
@@ -365,26 +385,32 @@ func _show_city_yards() -> void:
 		GameState.road_note = ""
 
 
+func _with_road_note(body: String) -> String:
+	if GameState.road_note.is_empty():
+		return body
+	return GameState.road_note + "\n\n" + body
+
+
 func _show_market_yard() -> void:
 	_clear_lists()
 	rack_grid.visible = true
 	left_title.text = "Cargo"
 	var city_id := GameState.caravan_city(GameState.PLAYER_CARAVAN_ID)
 	context_title.text = "Market"
-	context_meta.text = GameState.get_settlement_name(city_id)
+	var door_line := DoorBook.stall_line(city_id)
+	context_meta.text = door_line if not door_line.is_empty() else GameState.get_settlement_name(city_id)
 	if not GameState.settlement_has_market(city_id):
-		context_body.text = "No market at this stop."
+		context_body.text = _with_road_note("No market at this stop.")
 		_desk.empty_note(market_box, "No market at this stop.")
 	elif not GameState.stalls_open():
-		context_body.text = "Stalls closed until Dawn."
+		context_body.text = _with_road_note("Stalls closed until Dawn.")
 		_desk.empty_note(market_box, "Stalls closed until Dawn.")
 	else:
 		if _inspect_good_id.is_empty():
-			context_body.text = "Buy and sell against the hold."
+			context_body.text = _with_road_note("Buy and sell against the hold.")
 		else:
-			context_body.text = GoodCopy.context_block(_inspect_good_id, city_id)
+			context_body.text = _with_road_note(GoodCopy.context_block(_inspect_good_id, city_id))
 		_desk.render(market_box)
-	_add_wait_buttons(market_box)
 	_fill_rack()
 	_sync_convert(_inspect_good_id)
 
@@ -397,16 +423,36 @@ func _show_house_yard() -> void:
 		_yard = Yard.NONE
 		_show_city_yards()
 		return
-	left_title.text = "Desk"
-	var mark := Label.new()
-	mark.text = "House mark and letters wait here."
-	mark.add_theme_color_override("font_color", MUTED)
-	mark.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
-	left_box.add_child(mark)
-	context_title.text = "House %s" % GameState.get_house_name()
-	context_meta.text = GameState.get_settlement_name(city_id)
-	context_body.text = "Standing and letters wait. This desk is the mark, not the town."
-	_add_wait_buttons(market_box)
+	left_title.text = "Standing"
+	var seat := WorldBook.seat_house(city_id)
+	for raw in GameState.HOUSES.keys():
+		var house_id := str(raw)
+		var line := Label.new()
+		line.text = "%s  %d" % [DoorBook.short_name(house_id), DoorBook.standing_of(house_id)]
+		if house_id == GameState.selected_house_id:
+			line.text += "  ·  home"
+		line.add_theme_color_override("font_color", MUTED)
+		left_box.add_child(line)
+	if GameState.is_home_seat(city_id):
+		var apartment := Button.new()
+		apartment.text = "Apartment"
+		apartment.disabled = true
+		apartment.custom_minimum_size = Vector2(0, 48)
+		left_box.add_child(apartment)
+	context_title.text = WorldBook.house_name(seat)
+	context_meta.text = "standing %d" % DoorBook.standing_of(seat)
+	var body := "This board is closed."
+	if DoorBook.board_open(city_id):
+		var rows := DoorBook.jobs_at(city_id)
+		if rows.is_empty():
+			body = "No commissions posted."
+		else:
+			body = "The house keeps the lot and pays the wage."
+			_add_commission_buttons(market_box, city_id, rows)
+	if not _commission_note.is_empty():
+		body = _commission_note + "\n\n" + body
+		_commission_note = ""
+	context_body.text = body
 
 
 func _show_cargo_tab() -> void:
@@ -435,8 +481,12 @@ func _show_outyard() -> void:
 		context_body.text = GameState.road_note
 		GameState.road_note = ""
 	else:
-		context_body.text = "Weather and heat are what this yard can see, not a forecast."
-	var neighbors: Array = GameState.neighbors_of(city_id)
+		context_body.text = "Weather on the roads from here. Not a forecast."
+	var neighbors: Array = []
+	for raw_neighbor in GameState.neighbors_of(city_id):
+		var hop_dest := str(raw_neighbor)
+		if WorldBook.settlement_is_dock(hop_dest):
+			neighbors.append(hop_dest)
 	if neighbors.is_empty():
 		var none := Label.new()
 		none.text = "No marked road from this stop."
@@ -454,6 +504,11 @@ func _show_outyard() -> void:
 			road.pressed.connect(_pick_hop.bind(dest))
 			left_box.add_child(road)
 	_paint_hop_detail(city_id)
+	if not _restock_note.is_empty():
+		context_body.text = _restock_note + "\n\n" + context_body.text
+		_restock_note = ""
+	_add_restock(market_box)
+	_add_rumour_verbs(market_box)
 	_add_wait_buttons(market_box)
 
 
@@ -476,6 +531,16 @@ func _paint_hop_detail(city_id: String) -> void:
 
 
 func _enter_yard(yard: int) -> void:
+	if GameState.is_on_road():
+		return
+	var city_id := GameState.current_city_id
+	if yard != Yard.NONE and not WorldBook.settlement_is_dock(city_id):
+		return
+	if yard == Yard.HOUSE and not WorldBook.settlement_has_house_yard(city_id):
+		return
+	if yard == Yard.MARKET and not GameState.stalls_open():
+		return
+	GameState.road_note = ""
 	_yard = yard
 	_inspect_good_id = ""
 	if yard != Yard.MARKET:
@@ -515,6 +580,304 @@ func _show_empty() -> void:
 	context_body.text = ""
 
 
+func _show_landmark() -> void:
+	_clear_lists()
+	rack_grid.visible = false
+	var city_id := GameState.current_city_id
+	left_title.text = GameState.get_settlement_name(city_id)
+	context_title.text = GameState.get_settlement_name(city_id)
+	context_meta.text = "Landmark"
+	context_body.text = GameState.get_city_desc()
+
+
+func _add_restock(host: Node) -> void:
+	var plan := CargoHold.restock_plan()
+	var restock := Button.new()
+	restock.text = _restock_label(plan)
+	restock.custom_minimum_size = Vector2(0, 48)
+	var buying := int(plan.get("water", 0)) + int(plan.get("rations", 0))
+	restock.disabled = buying <= 0
+	if buying > 0:
+		restock.pressed.connect(_on_restock)
+	host.add_child(restock)
+
+
+func _restock_label(plan: Dictionary) -> String:
+	var buying := int(plan.get("water", 0)) + int(plan.get("rations", 0))
+	match str(plan.get("limit", "")):
+		"full":
+			return "Restock water and rations"
+		"thin":
+			return "Cellar is thin — buy what remains"
+		"coin":
+			if buying > 0:
+				return "Not enough coin — buy what you can"
+			return "Not enough coin."
+		"rack":
+			if buying > 0:
+				return "No room — buy what fits"
+			return "No room on the rack."
+		"empty":
+			return _empty_cellar_line(plan)
+		"stocked":
+			return "Water and rations are stocked."
+		_:
+			return "Restock water and rations"
+
+
+func _empty_cellar_line(plan: Dictionary) -> String:
+	var water_short := int(plan.get("water_need", 0)) > 0
+	var rations_short := int(plan.get("rations_need", 0)) > 0
+	if water_short and rations_short:
+		return "Cellar has no water or rations."
+	if water_short:
+		return "Cellar has no water."
+	return "Cellar has no rations."
+
+
+func _restock_bought_line(plan: Dictionary) -> String:
+	var water := int(plan.get("water", 0))
+	var rations := int(plan.get("rations", 0))
+	if water <= 0 and rations <= 0:
+		return ""
+	if water > 0 and rations > 0:
+		return "Bought %d water and %d rations." % [water, rations]
+	if water > 0:
+		return "Bought %d water." % water
+	return "Bought %d rations." % rations
+
+
+func _add_commission_buttons(host: Node, seat_id: String, rows: Array) -> void:
+	for index in rows.size():
+		if typeof(rows[index]) != TYPE_DICTIONARY:
+			continue
+		var job: Dictionary = rows[index]
+		var good_id := str(job.get("good", ""))
+		var qty := int(job.get("qty", 0))
+		if good_id.is_empty() or qty <= 0:
+			continue
+		var home := WorldBook.seat_house(seat_id) == GameState.selected_house_id
+		var wage := int(job.get("wage_home", 0)) if home else int(job.get("wage_rival", 0))
+		if wage <= 0:
+			wage = int(job.get("wage", 0))
+		var turn := Button.new()
+		turn.text = "Turn in %d %s  ·  %d" % [qty, GameState.get_good_name(good_id), wage]
+		turn.alignment = HORIZONTAL_ALIGNMENT_LEFT
+		turn.custom_minimum_size = Vector2(0, 48)
+		turn.disabled = int(GameState.inventory.get(good_id, 0)) < qty
+		if not turn.disabled:
+			turn.pressed.connect(_on_commission.bind(seat_id, index))
+		host.add_child(turn)
+
+
+func _on_commission(seat_id: String, index: int) -> void:
+	var paid := DoorBook.turn_in(seat_id, index)
+	if paid >= 0:
+		_commission_note = "Wage %d. The house kept the lot." % paid
+
+
+func _on_restock() -> void:
+	var plan := CargoHold.restock()
+	_restock_note = _restock_bought_line(plan)
+
+
+func _add_rumour_verbs(host: Node) -> void:
+	if GameState.is_on_road():
+		return
+	var social := Button.new()
+	social.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	social.custom_minimum_size = Vector2(0, 48)
+	if RumourBook.can_socialize():
+		social.text = "Socialize"
+		social.pressed.connect(_on_socialize)
+	else:
+		social.text = "Socialize  ·  used today"
+		social.disabled = true
+	host.add_child(social)
+	var rows := RumourBook.here_tickets(GameState.current_city_id)
+	var expedition := Button.new()
+	expedition.alignment = HORIZONTAL_ALIGNMENT_LEFT
+	expedition.custom_minimum_size = Vector2(0, 48)
+	if rows.is_empty():
+		expedition.text = "Expedition"
+		expedition.disabled = true
+	elif rows.size() == 1:
+		expedition.text = "Expedition  ·  %s" % RumourBook.stars_text(int(rows[0].get("stars", 1)))
+		expedition.pressed.connect(_on_expedition)
+	else:
+		expedition.text = "Expedition  ·  %d rumours" % rows.size()
+		expedition.pressed.connect(_on_expedition)
+	host.add_child(expedition)
+
+
+func _on_socialize() -> void:
+	if GameState.is_on_road() or not RumourBook.can_socialize() or _card.visible:
+		return
+	GameState.advance_hours(GameState.wait_span_hours(0))
+	RumourBook.spend_socialize()
+	_refresh_header()
+	_card_kind = "socialize"
+	var can_improve := RumourBook.has_improvable()
+	_card.present("Socialize", "Choose a new rumour, or raise the stars on one you already hold.", [
+		{"text": "New ticket", "id": "new"},
+		{"text": "Improve existing" if can_improve else "No ticket to improve", "id": "improve", "disabled": not can_improve},
+	])
+
+
+func _on_expedition() -> void:
+	if GameState.is_on_road() or _card.visible:
+		return
+	var rows := RumourBook.here_tickets(GameState.current_city_id)
+	if rows.is_empty():
+		return
+	if rows.size() == 1:
+		_begin_expedition(str(rows[0].get("id", "")))
+		return
+	_card_kind = "pick_expedition"
+	var choices: Array = []
+	for row in rows:
+		choices.append({
+			"text": "%s  ·  %s" % [RumourBook.stars_text(int(row.get("stars", 1))), RumourBook.life_text(row)],
+			"id": str(row.get("id", "")),
+		})
+	_card.present("Expedition", "More than one rumour names this yard.", choices)
+
+
+func _begin_expedition(ticket_id: String) -> void:
+	var rec := RumourBook.ticket(ticket_id)
+	if rec.is_empty():
+		return
+	_card_ticket = ticket_id
+	_card_steps = RumourBook.cards_for(int(rec.get("stars", 1)))
+	_card_step = 0
+	_card_kind = "expedition"
+	_show_expedition_step()
+
+
+func _show_expedition_step() -> void:
+	var rec := RumourBook.ticket(_card_ticket)
+	if rec.is_empty():
+		_close_card()
+		return
+	var place := WorldBook.settlement_name(str(rec.get("origin_id", "")))
+	var last := _card_step >= _card_steps - 1
+	var lead := ""
+	if _card_step == 0:
+		var term := RumourBook.country_term(str(rec.get("origin_id", ""))).to_lower()
+		lead = "You leave the wagon and walk. The country is %s." % term
+	if not last:
+		var title := "Further in"
+		var body := "The track keeps going."
+		if _card_step == 0:
+			title = "Out from %s" % place
+			body = lead
+		_card.present(title, body, [{"text": "Continue", "id": "ok"}])
+		return
+	var pay := RumourBook.grant(int(rec.get("stars", 1)))
+	RumourBook.burn(_card_ticket)
+	var body := _payoff_body(pay)
+	if not lead.is_empty():
+		body = lead + "\n\n" + body
+	var title := "What you carry back" if _card_steps > 1 else "Out from %s" % place
+	_card.present(title, body, [{"text": "Continue", "id": "ok"}])
+
+
+func _payoff_body(pay: Dictionary) -> String:
+	var lines: PackedStringArray = ["+%d Scrubstone." % int(pay.get("coin", 0))]
+	var good_id := str(pay.get("good_id", ""))
+	var name := WorldBook.good_name(good_id)
+	var kept := int(pay.get("kept", 0))
+	var lost := int(pay.get("lost", 0))
+	if kept > 0:
+		lines.append("%d %s." % [kept, name])
+	if lost > 0:
+		lines.append("%d %s would not fit." % [lost, name])
+	lines.append("Experience %d." % int(pay.get("exp", 0)))
+	return "\n".join(lines)
+
+
+func _on_card_pick(choice_id: String) -> void:
+	match _card_kind:
+		"socialize":
+			if choice_id == "improve":
+				_show_improve_picker()
+			else:
+				_show_minted(RumourBook.mint(GameState.current_city_id))
+		"improve":
+			_show_improved(RumourBook.improve(choice_id))
+		"pick_expedition":
+			_begin_expedition(choice_id)
+		"expedition":
+			if _card_step >= _card_steps - 1:
+				_finish_expedition()
+			else:
+				_card_step += 1
+				_show_expedition_step()
+		_:
+			_close_card()
+
+
+func _show_improve_picker() -> void:
+	var rows := RumourBook.improvable()
+	if rows.is_empty():
+		_close_card()
+		return
+	if rows.size() == 1:
+		var bumped := RumourBook.improve(str(rows[0].get("id", "")))
+		_show_improved(bumped)
+		return
+	_card_kind = "improve"
+	var choices: Array = []
+	for row in rows:
+		var place := WorldBook.settlement_name(str(row.get("origin_id", "")))
+		choices.append({
+			"text": "%s  ·  %s  ·  %s" % [place, RumourBook.stars_text(int(row.get("stars", 1))), RumourBook.life_text(row)],
+			"id": str(row.get("id", "")),
+		})
+	_card.present("Improve existing", "Pick a rumour. Stars rise. The life stays.", choices)
+
+
+func _show_minted(rec: Dictionary) -> void:
+	_card_kind = "note"
+	var place := WorldBook.settlement_name(str(rec.get("origin_id", "")))
+	_card.present(place, "%s\n%s" % [RumourBook.stars_text(int(rec.get("stars", 1))), RumourBook.life_text(rec)], [{"text": "Continue", "id": "ok"}])
+
+
+func _show_improved(rec: Dictionary) -> void:
+	_card_kind = "note"
+	var place := WorldBook.settlement_name(str(rec.get("origin_id", "")))
+	_card.present(place, "%s\nThe life is unchanged." % RumourBook.stars_text(int(rec.get("stars", 1))), [{"text": "Continue", "id": "ok"}])
+
+
+func _close_card() -> void:
+	_card.dismiss()
+	_card_kind = ""
+	_card_ticket = ""
+	_card_step = 0
+	_card_steps = 0
+	_refresh_header()
+	if _mode == Mode.WORD:
+		_show_word()
+	elif _mode == Mode.NONE and _yard == Yard.OUTYARD:
+		_show_outyard()
+
+
+func _finish_expedition() -> void:
+	var watches := _card_steps
+	_card.dismiss()
+	_card_kind = ""
+	_card_ticket = ""
+	_card_step = 0
+	_card_steps = 0
+	if watches > 0:
+		GameState.advance_hours(watches * GameState.HOURS_PER_WATCH)
+	_refresh_header()
+	_map.paint_markers()
+	_map.paint_chips()
+	if _mode == Mode.NONE and _yard == Yard.OUTYARD:
+		_show_outyard()
+
+
 func _add_wait_buttons(host: Node) -> void:
 	if GameState.is_on_road():
 		return
@@ -534,15 +897,18 @@ func _add_wait_buttons(host: Node) -> void:
 func _on_wait(span: int) -> void:
 	if GameState.is_on_road():
 		return
+	GameState.road_note = ""
 	_desk.clear()
 	GameState.advance_hours(GameState.wait_span_hours(span))
 	_refresh_header()
 	_show_caravan()
 	_map.paint_markers()
+	_map.paint_chips()
 
 
 func _on_travel(city_id: String) -> void:
 	if GameState.begin_hop(city_id):
+		GameState.road_note = ""
 		_desk.clear()
 		_yard = Yard.NONE
 		_inspect_good_id = ""
