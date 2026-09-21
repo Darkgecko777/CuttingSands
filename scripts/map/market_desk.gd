@@ -73,7 +73,7 @@ func sell_count() -> int:
 
 
 func can_stage_buy(good_id: String) -> bool:
-	if GameState.is_on_road() or not GameState.settlement_has_market(GameState.current_city_id):
+	if GameState.is_on_road() or not GameState.settlement_has_market(GameState.current_city_id) or not GameState.stalls_open():
 		return false
 	var staged: int = int(buy_draft.get(good_id, 0))
 	if GameState.get_market_stock(good_id) - staged <= 0:
@@ -86,7 +86,7 @@ func can_stage_buy(good_id: String) -> bool:
 
 
 func can_stage_sell(good_id: String) -> bool:
-	if GameState.is_on_road() or not GameState.settlement_has_market(GameState.current_city_id):
+	if GameState.is_on_road() or not GameState.settlement_has_market(GameState.current_city_id) or not GameState.stalls_open():
 		return false
 	return int(GameState.inventory.get(good_id, 0)) - int(sell_draft.get(good_id, 0)) > 0
 

@@ -1,9 +1,9 @@
 # Caravans of the Cutting Sands — Project Vision
 
-**Status:** Active direction (updated 14 September 2026; live economy / rations)  
+**Status:** Active direction (updated 21 September 2026; game clock in 3-hour watches; one map two modes; compound cell / house marks; one game, not a demo)  
 **Engine:** Godot 4.x  
 **Platform target:** Steam (using an existing paid slot)  
-**Primary goal:** A finishable, passion-aligned vertical slice that delivers the core trading + intrigue fantasy and serves as both revenue recovery and proof-of-concept for game design as a viable path.
+**Primary goal:** Ship *Caravans of the Cutting Sands* — a trading + intrigue game that delivers the marked-wagon fantasy. The project is the game. Systems arrive when they are built. There is no separate demo product, test slice, or “later real game” sitting behind this one.
 
 The working title was previously *Trader of the Cutting Sands*. The official name is **Caravans of the Cutting Sands**. Repo and some engine strings may still say CuttingSands / Trader until a rename pass.
 
@@ -81,7 +81,7 @@ Coins are soluble in concentrated salt water (their primary industrial function)
 
 Kharûn has no generous local water. It can plate a trickle so the street exists, but cheap bulk water does not belong to the mint city. **Sarn’s Rest** is the oasis anomaly: only **Rukh** has true access. Rukh hauls water (and its own village goods) to **Westmark**. Kharûn is merely the nearest seat on that chain, not the owner of the tap. Survival still runs through trade. The hostage is geography and desalination feedstock, not a Kharûn deed on Sarn.
 
-Scrubstone is produced and consumed at a relatively fixed rate. This imposes a soft ceiling on regional population and prosperity that functions as internal consistency for the designer. Populations of cities and villages are treated as fixed and are never presented as numbers or systems to the player. There is no formal population control in the setting, no fluff about family size, and no player-facing demographic simulation. High baseline mortality and periodic water-pressure events are sufficient to keep the constraint felt without explicit modeling. Growing settlements through trade volume is acknowledged as interesting for a larger project but is out of scope here.
+Scrubstone is produced and consumed at a relatively fixed rate. This imposes a soft ceiling on regional population and prosperity that functions as internal consistency for the designer. Populations of cities and villages are treated as fixed and are never presented as numbers or systems to the player. There is no formal population control in the setting, no fluff about family size, and no player-facing demographic simulation. High baseline mortality and periodic water-pressure events are sufficient to keep the constraint felt without explicit modeling. Growing settlements through trade volume is interesting as a thought experiment and is not part of this game.
 
 ### Merchant Houses — Origin, Pact, and Membership (Locked)
 
@@ -141,6 +141,32 @@ Mishaps, ambushes, and desert events still cost cargo, time, reputation, injury,
 - Combat, if it appears, is a rare tax on the road — not the reason the road exists. This is not *Tradesman: Deal to Dealer*.
 - Camera follows the selected catalog item. There is one wagon pin that matters.
 
+### Coin, Compound Cell, and Marks (Locked 18 September 2026)
+
+Three ledgers. Do not mix them.
+
+**Coin** spends on risk management only: wagon kit on the single pin (cells/mass in small steps, weather furniture, marked coffer, watch kit, a bunk that shortens a laid-up stay) and a banked reserve against tithe, delay, and ruin. Coin never buys house rank, a chair, civic status, or furnishings. Cosmetics and power do not share an SKU. No upgrade reads as 0% road risk. No second wagon.
+
+**Deeds** furnish the house compound cell. The house *assigns* the cell at the home seat when the player takes a chair. It is not a purchased townhouse and not nobility. Each Steam achievement has one corresponding object in that cell. The object names the read; the house names the grain. Objects never alter tariffs, stall access, or safe-conduct.
+
+**House rank** (the standing / experience track, not a shop) improves the *cell* — shelf, desk, light, a display rail other chairs may eventually see. Rank does not upgrade the souvenirs. A poor cell holding a real deed outranks a beautiful cell holding bought rugs.
+
+**Steam** only mirrors objects that already exist in the cell. Hidden until the object lands. No “earn N coin” plaques. Numeric grind is the wrong lure.
+
+**Five house capstones.** Each house is a different reason to keep a reserve and a different deed that hangs. All five belong to this game. Other starting houses remain gated as build order, not as a second product. Visitor objects (a deed earned while marked for another house) and chair capstones are different lists if both exist; the capstone is the house you serve.
+
+| House | Unique play | Capstone deed | Object in the cell |
+|---|---|---|---|
+| **Kharûn** | Coin, contracts, quiet leverage. Win by float and by not needing the tap. | Clear a loop while holding a reserve large enough that a tithe cannot empty you | A sealed pouch on a glove-peg, stamped but unopened |
+| **Zamath** | Scarce complementary goods, Shore pragmatism. Win by touching what other houses will not. | Profit a Shore-touched letter without dumping it to panic rations | A stoppered vial / wrapped length that still smells wrong |
+| **Thalor** | Proud dependent. Win by making the dependency look like dignity. | Sell a Thalor origin two hops out at a personal high, then bring a gift-good home | A folded cloth hung as if it were a banner, slightly too fine for the cell |
+| **Veythar** | Isolation until survival requires otherwise. Win by leaving late and leaving clean. | Complete a necessary foreign hop and return with the mark unstained (no dumped marked load) | A closed shutter-box; opened only after that return |
+| **Ghorath** | Debts, exiles, second chances, information. Win by being the place others have to stop. | Take a rescue rumour on the road and sell the story at Ghorath, not the cargo | A blank token on the desk — someone else’s mark, paid through you |
+
+Under the capstones sit smaller deed-objects any chair can earn (first two-hop origin sale, first extraction, first time a string takes the obvious stall). Those fill shelves. The capstone changes the character of the room.
+
+The cell lives in the existing House yard pane (desk stub). It is not a fourth top tab and not a decorating mode.
+
 ---
 
 ## Scope Boundaries
@@ -162,7 +188,7 @@ Mishaps, ambushes, and desert events still cost cargo, time, reputation, injury,
 - A large multi-scale, multi-biome world simulation.
 - A Crusader Kings-style dynasty or realm-management game.
 - A project that requires extensive procedural map generation or complex pathfinding as core pillars.
-- An open-ended “dream project” scope. This is a constrained, finishable expression of the same underlying fantasy.
+- An unbounded kitchen-sink scope. Constraints below are the game’s identity, not a temporary demo fence.
 - A game in which the player conquers cities or forcibly rewrites the economic geography.
 - A demographic or settlement-growth simulation. Populations are fixed and invisible; the soft desalination ceiling exists only for internal consistency.
 - A generic commodity list wearing desert labels, or a 60-SKU encyclopedia with crafting graphs. Neither is this brand.
@@ -190,7 +216,7 @@ The market is hollow if stalls only move when the player touches them. Rival hou
 
 A string is a pin: house, current node, bound-for, a blunt hold (one or two goods and units, not a 16-cell rack), and a house credit tap. No purse UI. No stars. No Socialize. No Disruption web. Ruined NPC strings dump into the same zone lost-pool as the player; the house respawns a fresh string from a seat after a delay. Houses persist. Strings are mortal. The player persists because they are the camera (extraction / safe-conduct already locked).
 
-**Near-sighted profit matrix.** When a string is idle and the world clock ticks (hop, Skip, or Wait — Clock B), it scores buy-here / sell-within-**1–2 hops** using this stall as it is now and structural or last-unloaded prices at candidate dests. Expected take minus road tax (days, weather, heat tithe). Pick the best score above a floor, load, leave, sell on arrival, think again. They chase the commodity rhyme the map already encodes. They miss rumour edges, 3-hop chains, spite dumps, and clever Waits. That gap is the player fantasy.
+**Near-sighted profit matrix.** When a string is idle and the game clock ticks a **day pulse**, it scores buy-here / sell-within-**1–2 hops** using this stall as it is now and structural or last-unloaded prices at candidate dests. Expected take minus road tax (days, weather, heat tithe). Pick the best score above a floor, load, leave, sell on arrival, think again. They chase the commodity rhyme the map already encodes. They miss rumour edges, 3-hop chains, spite dumps, and clever Waits. That gap is the player fantasy.
 
 NPC knowledge is wheels and house memory, not Rumours. They do not get rumours. They do not become smarter because the player planted an eye on them.
 
@@ -207,7 +233,7 @@ NPCs do **not** path to maximize rank. They path to profit. Rank emerges. A late
 
 NPCs never run those verbs at the player. Hostile pressure on the camera is **location weather**: city/village rank of houses that are cold to you weights the **common event deck** (customs, planted lie, house-backed tithe, colder stall, a letter). Same cards, different odds. You may obsess over one named string with an eye; the world answers as houses and places.
 
-**Agents, vision, and tokens (full-game rule; slice may stub the roster first).**
+**Agents, vision, and tokens.**
 
 - An agent’s `where` is a **settlement id**, the **player wagon**, or **any string id**.
 - Planted in a place: they grant a **range of live vision** scaled by skill — incoming and outgoing strings, and the local stall, inside that range. This is knowledge fog and pin visibility, not a second paint job on the atlas. The Map tab remains the no-FoW reference chart; live tokens and freshness live in Rumours, travel watch, and pins.
@@ -267,16 +293,16 @@ The player does not buy a rumour menu. They spend a day in a place that talks.
 **Desks that listen**
 
 - **House yard** (own compound / factor in the seat you are standing in). House-coloured talk. Standing matters here.
-- **Public meeting yard** of that settlement. First slice may use Market as the street. Later the same slot can be a well, gate, or hall. Not a new rail tab. Not a unique tavern scene.
+- **Public meeting yard** of that settlement. Market is the street until a well, gate, or hall exists as the same slot. Not a new rail tab. Not a unique tavern scene.
 
 Planted agents still mint rumours from their `where` without the player sitting the desk. Arrival rumours and road rescue remain. Socialize is the verb for the merchant’s own body.
 
 **Verb: Socialize**
 
 - Context action while idle in House or the public yard.
-- Spends a day (Clock B). Time-paused mash is not a source.
+- Spends a day (game clock, one day pulse). Time-paused mash is not a source.
 - Returns a *chance* of a rumour, not a rumour. Failure is a wasted afternoon and is legal.
-- One attempt per yard per day is enough for the slice.
+- One attempt per yard per day is enough.
 
 **Subject can be anywhere**
 
@@ -425,9 +451,13 @@ This supersedes the 31 August strip (left rail + right context column). That col
 
 Market hold and Cargo-tab hold are two loadouts of the same rack, not two inventories.
 
-**Two maps, one texture (locked 5 September 2026).**
-- **Map tab** = reference atlas. Full plate, uniform scale, black fill around it. No fog of war on this chart. Pins (rumours, later marks) live here. The plate is never viewed as a 1920×1080 window in this shell; letterbox until a new asset exists.
-- **Travel watch** = zoomed live plate, line of sight of this hop, wagon token moving. Weather animation belongs here later, not on the atlas.
+**One map, two modes (locked 21 September 2026; replaces “two maps, one texture”).**
+Same plate, same renderer, same tokens. Not two map systems. Scale and chrome change; the world does not.
+
+- **Map tab (paused).** The plate at the last process stamp: arrival, or the watch just Waited to. Nothing moves. No FoW. Rumour pins and mark positions are the stamp. In a yard this is the only map. On the road, opening Map (or Cargo / Rumours) freezes the game clock *and* switches to this paused plate. Letterboxed in the well until a fuller asset exists.
+- **Travel watch (live).** Hop, no top tab. Same plate, larger scale (full well, less chrome). Line of sight of this hop. Tokens and the weather mass move inside the current watch. Close the tab, resume from the stamp.
+
+Inventory / planning map is always the paused mode. Live movement exists only on the travel watch. Do not build a second map stack, a second fog system, or a second pin list.
 
 **Travel as a location (locked 5 September 2026).** The road owns the well like a yard. Opening Cargo, Map, or Rumours **pauses the hop clock** (the watch tween). Closing the tab resumes on current progress. Time does not run in town except explicit Wait / rest. Time runs on the watch, on Skip, or on Wait. House / Market / Outyard stay dead until arrival. Arrival lands in **Market** with no top tab open.
 
@@ -437,7 +467,7 @@ Market hold and Cargo-tab hold are two loadouts of the same rack, not two invent
 
 **Arrival (reserved):** a one-shot rumour after time away can still land in Rumours. Playtest may stay quiet. Do not open a top tab for the player on arrival.
 
-**Map events / route read:** weather and bandit heat are learned at the **Outyard**, as words on the selected road, and as a status pip only while that pressure is touching this hop. The atlas may show a hint. Never as a market row. Wait is an Outyard / later desk verb that advances Clock B. No fourth full-screen for the briefing.
+**Map events / route read:** weather and bandit heat are learned at the **Outyard**, as words on the selected road, and as a status pip only while that pressure is touching this hop. The atlas may show a hint. Never as a market row. Wait is a yard verb that advances the game clock (1 watch / half day / full day). No fourth full-screen for the briefing.
 
 ### Cargo and market staging (locked direction, visual pass later)
 
@@ -448,11 +478,55 @@ Two motions, never mixed:
 - Rearrange inside the wagon is free and instant.
 - Stall ↔ wagon is a **draft**. Left click stages +1 unit, right click peels 1 off the draft. Buy and Sell buttons commit. Clear dumps the draft. The draft dies when the wagon leaves the desk.
 
-Stall and hold will both be icon racks. This pass does **not** build that UI. Scaffold the rack cells and keep a temporary numeric stall list in the Market right pane so testers can still buy, travel, and sell. Goods icons are a later art pass.
+Stall and hold will both be icon racks. That UI is unbuilt. Scaffold the rack cells and keep a temporary numeric stall list in the Market right pane so buy, travel, and sell work. Goods icons are a later art pass.
 
-**Clock (locked): model B — time on the road, paused in town, paused on a tab.** Calendar days are the unit of travel and later aging. Time does not run while the player is in a yard or while a top tab is open — including mid-hop. Time runs when the watch is showing with no tab, when the player skips the watch, or when they explicitly Wait. The wall-clock tween is the watch; pausing it is pausing the hop.
+**Game clock (locked 21 September 2026).** One clock. No “Clock A / Clock B.” See **Game Clock** below. Time does not run in a yard except explicit Wait. Time does not run while a top tab is open mid-hop. Time runs on the travel watch with no tab, on Skip, or on Wait. The tween is interpolation inside a watch; pausing a tab pauses the hop.
 
 Layout chrome and hex palette remain open. Existing in-engine cues: title-screen sand, parchment map, hub brown `Color(0.12, 0.08, 0.05)`, gold labels around `Color(0.92, 0.78, 0.45)`.
+
+---
+
+## Game Clock (Locked 21 September 2026)
+
+One game clock. Do not say Clock A, Clock B, or “model B.”
+
+**Wire.** A **watch** is 3 hours. Eight watches make a calendar day. The sim stores a stamp (`day + watch index + hours into watch`, or hours-from-epoch). Caravans, the weather center, and event rolls step on watches. Visuals interpolate inside the watch (wagon on the path; weather mass as Perlin or similar around a moving center). Edges still read as discrete words (Clear / Heat / Wind / Sandstorm).
+
+Watch indices, player copy:
+
+| # | Name |
+|---|---|
+| 1 | Dawn |
+| 2 | Morning |
+| 3 | Heat |
+| 4 | Afternoon |
+| 5 | Dusk |
+| 6 | First night |
+| 7 | Deep night |
+| 8 | Predawn |
+
+Market open = Dawn through Dusk. Closed = the three night watches. Day pulse fires at Dawn (watch 1).
+
+**Day pulse.** Every 8 watches, at dawn: produce → string stall-act → consume. Spoil and rumour age ride the day pulse. Do not fire the cellar eight times a day.
+
+**Road vs yard.** Time runs on the travel watch with no top tab, on Skip, and on Wait. Yards freeze the stamp. Opening Cargo / Map / Rumours mid-hop freezes the stamp.
+
+**Arrival.** Dock writes the exact stamp and stops. Other tokens stay where that stamp left them. The remainder of the current watch is **not** flushed on arrival.
+
+**Wait (yard).** Player picks **1 watch**, **half day** (4 watches), or **full day** (8 watches). Options land on watch boundaries.
+
+- **1 watch** = advance only to the end of the current watch. Arrive one hour into a watch, choose 1 watch → two hours pass. That remainder is when other caravans and the weather center finish *this* watch.
+- **Half day / full day** = that many watches after the current boundary (remainder first, then 4 or 8).
+
+Wait is the only way a parked player lets the world catch up.
+
+**Market hours.** Stalls are open **watches 1–5** of each day (five of eight — more than half the day, 15 hours). Watches 6–8 are closed. Outside that window a caravan **parks** until watch 1 — player included. Arrival after close does not open Market; the wagon sits, then the open-watch flush runs as forced Wait. Same window on every dockable node unless a later quirk says otherwise.
+
+**ETA.** Outyard and the road line show estimated arrival as a stamp in watch names. Weather and events add hours; the label rewrites while the hop runs.
+
+**Pace and fatigue (direction, unbuilt).** Crew fatigue is why the player sometimes stays. Pace on a hop is a choice (crawl / march / push) that trades hours against fatigue. Push spends; crawl and parked watches recover. Night and Heat watches spend more on the wrong edge. Fatigue is not player-eat and is not this build’s task.
+
+**Events.** Same watch beat. Weights scaled so expected cards per hop stay ~one, not eight. Night / Heat are watch indices plus the existing edge flags, not a second deck.
 
 ---
 
@@ -484,9 +558,9 @@ Selecting that road fills the right pane (days, terms, confirm). Leave only on *
 | Weather | Clear, Heat, Wind, Sandstorm | `0–3` | The hop / the country that hop crosses |
 | Bandit heat | Quiet, Watched, Active | `0–2` | The road (artery), not the city |
 
-Sandstorm is the Wait test. Active is the long-quiet-vs-short-hot test. Do not add Fair, Haze, Held, or percents in this pass.
+Sandstorm is the Wait test. Active is the long-quiet-vs-short-hot test. Do not add Fair, Haze, Held, or percents until those labels are asked for.
 
-**What the ints do (slice defaults, tunable):**
+**What the ints do (defaults, tunable):**
 
 - Weather `0` Clear: base hop days. `1` Heat / `2` Wind: +1 day. `3` Sandstorm: +2 days and a heavier mishap weight.
 - Heat `0` Quiet: tithe rare. `1` Watched: tithe uncommon. `2` Active: tithe likely. Tithe size stays the flat percent of stake; heat changes *whether* it fires, not the rule.
@@ -505,7 +579,7 @@ Two first-class pressures. Weather is country/hop-scoped. Bandit heat is artery-
 
 The merchant is under mark. The wagon is the stake. Permanent death is already off the table (house extraction, safe-conduct, institutional recovery). Hits spend the currencies that make the *next* market decision worse.
 
-| Currency | Who uses it | Typical slice magnitude |
+| Currency | Who uses it | Typical magnitude |
 |---|---|---|
 | **Days** | Weather, camp, rescue, ruin recovery | +1–3 on a hop |
 | **Cargo** | Bandit tithe, rare bury/scatter | A **flat percent** of units on the rack, into the zone lost-pool |
@@ -517,7 +591,7 @@ The merchant is under mark. The wagon is the stake. Permanent death is already o
 
 Time is the weather weapon. Extra days are how grain sours and rumours go stale. Do not invent a separate “spoil event” when delay already does that job.
 
-**Not a hit in this slice:** player death, a combat screen, a full wipe presented as the normal bandit result, deletion of goods from the regional total (lost units enter the zone salvage pool).
+**Not a hit:** player death, a combat screen, a full wipe presented as the normal bandit result, deletion of goods from the regional total (lost units enter the zone salvage pool).
 
 Water and rations are traded goods and the player’s consumables. Daily eat from the rack is a reserved hook — wire the rows and the emergency convert first. Do not add a second hidden meter that bypasses the stall.
 
@@ -552,7 +626,7 @@ On the road, context stays Skip. An event interrupts Skip with one card:
 - A result line the player can trust (what changed)
 - Continue
 
-At most **one interrupt per hop** in the slice. Quiet roads can resolve with no event, or with a one-line “the road was kind” so silence still feels like the world.
+At most **one interrupt per hop**. Quiet roads can resolve with no event, or with a one-line “the road was kind” so silence still feels like the world.
 
 Branching choices (pay the tithe / risk a heavier hand; press the storm / make camp +1 day) are allowed later. Scaffold may auto-resolve so the table can be felt before verbs are built.
 
@@ -581,7 +655,7 @@ Copy names the goods that are actually on the rack when it can. “They took a c
 
 1. Read plate pressures (or, in scaffold, roll as if they were hidden).
 2. Apply weather day-modifier to the hop length.
-3. Run days (Clock B). Spoil tags and rumour age update as days pass.
+3. Run watches to the arrival stamp. Day pulse (produce / string stall-act / consume, spoil, rumour age) fires when the stamp crosses a dawn boundary.
 4. Roll at most one interrupt from the weighted table, biased by those pressures.
 5. Show the event. Apply cargo/coin/wagon deltas. Lost units go to the zone pool.
 6. Arrive, or extract to the recovery seat if ruined.
@@ -598,46 +672,50 @@ Copy names the goods that are actually on the rack when it can. “They took a c
 
 ## Production Philosophy
 
-- **Core loop first.** Prove the decision-and-risk fantasy feels good before expanding systems.
-- **True nouns before pretty icons.** Placeholder template goods drain the will to test. A short canonical list with setting names is part of the loop, not a content dessert. Unique art can wait; Iron/Spices/Cloth as the stall language cannot.
-- **Moody Blocks approach.** Prioritize a small set of high-feeling, reusable assets (goods icons *after* the names are right, caravan states, UI frames, city sigils, basic feedback) so the prototype carries atmosphere and juice early enough to sustain motivation.
+- **Core loop first.** The decision-and-risk fantasy has to feel good or nothing else will. Build in that order. Unbuilt systems are unbuilt; they are not “cut from the demo.”
+- **True nouns before pretty icons.** Placeholder template goods drain the will to play. A short canonical list with setting names is part of the loop, not a content dessert. Unique art can wait; Iron/Spices/Cloth as the stall language cannot.
+- **Moody Blocks approach.** Prioritize a small set of high-feeling, reusable assets (goods icons *after* the names are right, caravan states, UI frames, city sigils, basic feedback) so the game carries atmosphere while it is still incomplete.
 - **Asset confidence.** Lean into generated icons and supporting visuals where quality and consistency are now reliable.
-- **Map as support, not master.** A single visual map with nodes is acceptable and useful practice; it must remain in service of the trading/intrigue loop rather than becoming the primary time sink.
-- **Finishable by design.** Scope is deliberately smaller than the long-term dream project so that a polished, shippable version is realistic.
+- **Map as support, not master.** A single visual map with nodes is useful; it stays in service of the trading/intrigue loop rather than becoming the primary time sink.
+- **Identity is the constraint.** One wagon, merchant means only, no settlement-growth sim, no fleet layer. Those are what the game is. They are not a slice fence around a larger unwritten title.
 - **Settlements low-agency, player-and-rivals high-agency.** Complexity sits on the wagon, the rumours, and rival pressure — not on a fleet roster.
-- **Leave space, don’t build early.** Skill webs and full agent simulation are reserved, not built ahead of a working rumour + travel loop.
+- **Leave space, don’t build early.** Skill webs, full agent simulation, save/options, other starting houses, and the rest of State’s gated list stay gated until Derek asks. Gating is build order, not a second product.
 
 ---
 
-## Relationship to the Larger Vision
+## This is the game
 
-This project is a focused, constrained expression of the same core fantasy that has persisted for years. It is not a compromise that abandons the dream; it is a practical container that protects the passion while producing external proof and recovering investment. Lessons, systems, tone, and assets developed here can inform the larger vision later without requiring the larger vision to be built first.
+*Caravans of the Cutting Sands* is the project. Do not describe play, scope, or success as a vertical slice, demo, prototype-for-proof, or down-payment on a different title.
 
-The merchant-limited economic model (no conquest of the market, information as primary edge, one personal stake on the road) is a deliberate feature of this game. Larger projects may revisit fleets, settlement growth, or deeper demographic simulation; those questions are deferred.
+What is unbuilt is simply unbuilt. House rank, travel interrupts, Socialize, player eat, skills, agents, save/options, other starting houses, room furnishings, Steam plaques — these wait on a build order. They are part of the same game when they land.
+
+The merchant-limited economic model (no conquest of the market, information as primary edge, one personal stake on the road) is a deliberate feature of this game, not a temporary simplification. Fleets, settlement growth, and demographic simulation are not this game.
 
 ---
 
 ## Success Criteria
 
-- A playable vertical slice in which the core loop (knowledge → commitment → risk the journey → convert or lose the edge) creates real tension and satisfaction on a single wagon.
+- The core loop (knowledge → commitment → risk the journey → convert or lose the edge) creates real tension and satisfaction on a single wagon.
 - The stall and the rumours speak setting-native goods. A rumour about a load should sound like Uncanny Mercantile, not a template market.
 - Fog, rumours, and planted agents make information feel scarce and worth paying for.
 - Enough polish on feedback and atmosphere that the fantasy of being under the mark registers.
-- A version that can be iterated to a Steam-ready state without the project redefining itself into an unfinishable shape.
+- The game can reach Steam without renaming itself into a different genre or a second, larger title.
 - Rival houses and the intelligence layer feel active enough that the market is contested rather than a solitary puzzle.
 
 ---
 
 ## Open Items for Project Workspace
 
-- Exact city count and layout for the first vertical slice (recommended starting point: 4–5 major cities + limited outposts).
+- Exact city count and layout (recommended starting point: 4–5 major cities + limited outposts; scope list above still allows 8–9 majors plus support).
 - Catalog shape locked 14 Sep 2026: 4 letters per city, 2 per village, generic ids until named; rations + water as separate local rows. Sarn water via Rukh → Westmark. Player tooltip: cheapest buy + where, highest sale + where. Emergency edible → rations. Daily player eat reserved. First named samples (1 Sep) still valid as display names where they already exist.
 - First rumour verb and how stars are shown in Reports — **verb locked 2 Sep 2026:** Socialize in House yard or public meeting yard, spends a day, chance of a rumour. Stars only (no grade). Subject may be any node; local subject boosts stars. Stash/holdout amounts resolve at claim against free wagon capacity. Remaining: pip UI, exact chances, first salvage-claim verb.
 - Agent data stubs (`where`, role, rank) and catalog listing.
-- How rival houses prioritize goals and how visible their actions are through fog — **locked 8 Sep 2026:** 4 marks per house (player is one); 19 NPC strings on a 1–2 hop profit matrix; rank on every dockable node (cities clamped, villages volatile); player-only token sabotage; location-weighted common deck the other way; agent `where` = place / player wagon / string; live LoS instant. Remaining: string count on the first slice map, rank formula, matrix weights.
+- How rival houses prioritize goals and how visible their actions are through fog — **locked 8 Sep 2026:** 4 marks per house (player is one); 19 NPC strings on a 1–2 hop profit matrix; rank on every dockable node (cities clamped, villages volatile); player-only token sabotage; location-weighted common deck the other way; agent `where` = place / player wagon / string; live LoS instant. **21 Sep:** strings travel on the game clock (GB `TASK_game_clock.md`). Remaining: rank formula, matrix weights, personality.
+- Game clock — **locked 21 Sep 2026:** one clock, watch = 3 hours, 8 watches/day (Dawn … Predawn), day pulse at Dawn, Wait 1 watch / half day / full day with remainder, market watches 1–5, arrival freezes the stamp, ETA in watch names. Pace / fatigue / events / moving weather mass unbuilt.
+- Map — **locked 21 Sep 2026:** one plate, two modes. Map tab = paused stamp, no FoW. Travel watch = live LOS, same plate, larger scale. Replaces 5 Sep “two maps, one texture.”
 - Degree of map/node/zone complexity needed for travel, loss tracking, and salvage.
 - Visual identity pass (logo, UI color/type spec; play-frame shell locked 5 Sep 2026 — top tabs + well panes + bottom yards; hex palette and chrome still open).
 - Audio direction (Reason is already planned for sound design).
-- First vertical-slice event table and pressure types — **framework locked 2 Sep 2026**; **route read locked 2 Sep 2026** (no new screen; road line in context shows discrete weather + heat; hood ints 0–3 / 0–2; per-edge fields). Remaining: exact rates, table weights, spoil tags, weather step-on-Wait, plate glyphs.
+- Event table and pressure types — **framework locked 2 Sep 2026**; **route read locked 2 Sep 2026** (no new screen; road line in context shows discrete weather + heat; hood ints 0–3 / 0–2; per-edge fields). Remaining: exact rates, table weights, spoil tags, weather step-on-Wait, plate glyphs.
 - Starter skill nodes and experience sources (content deferred; data hooks to be reserved).
 - Engine/repo string rename from Trader → Caravans, Word → Rumours, and purge of *assay* / *slip* from player copy, when convenient.

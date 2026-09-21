@@ -6,8 +6,6 @@ const MAP_SCENE := "res://scenes/map/map.tscn"
 const CARAVAN_SPRITE := "res://Assets/sprites/prototype_caravan_icon.png"
 const REF_SIZE := Vector2(1920, 1080)
 const VIEW_SIZE := Vector2(1200, 800)
-const MAX_WATCH := 30.0
-const MIN_WATCH := 6.0
 const ZOOM_MIN := 1.0
 const ZOOM_MAX := 2.0
 const ZOOM_DEFAULT := 1.5
@@ -16,8 +14,11 @@ const GOLD := Color(0.92, 0.78, 0.45, 1)
 const INK := Color(0.85, 0.78, 0.66, 1)
 const CHIP := Vector2(12, 12)
 const CHIP_PLAYER := Vector2(14, 14)
+const CHIP_ROAD := Vector2(24, 24)
+const CHIP_ROAD_PLAYER := Vector2(26, 26)
 const CHIP_CAP := 4
 const CHIP_RING := Color(0.98, 0.93, 0.78, 1)
+const SLICE_SECS := 4.0
 
 var shell: Node
 var map_clip: Control
@@ -29,6 +30,9 @@ var paths: Dictionary = {}
 var max_path_len := 1.0
 var wagon: Sprite2D
 var hop_tween: Tween
+var chips_enlarged := false
+var hop_from := ""
+var hop_to := ""
 var zoom := ZOOM_DEFAULT
 var plate_size := REF_SIZE
 var res_scale := 1.0
@@ -87,7 +91,10 @@ func center_on_selected() -> void:
 	if selected_kind == "settlement":
 		center_on_city(selected_id)
 	elif selected_kind == "caravan":
-		center_on_city(GameState.caravan_city(selected_id))
+		if GameState.is_on_road():
+			focus_hop_mid()
+		else:
+			center_on_city(GameState.caravan_city(selected_id))
 
 
 func center_on_city(city_id: String) -> void:
@@ -104,6 +111,7 @@ func center_on_city(city_id: String) -> void:
 
 
 func show_atlas() -> void:
+	chips_enlarged = false
 	hide_wagon()
 	_show_chips(true)
 	var view := map_clip.size if map_clip.size.x >= 8.0 else VIEW_SIZE
@@ -251,17 +259,6 @@ func _route_for(a: String, b: String) -> Dictionary:
 	return record if typeof(record) == TYPE_DICTIONARY else {}
 
 
-func _watch_seconds(from_id: String, to_id: String) -> float:
-	var route := _route_for(from_id, to_id)
-	var path: Path2D = route.get("path") as Path2D
-	var length := 400.0
-	if path and path.curve:
-		length = path.curve.get_baked_length()
-	else:
-		length = _node_pos(from_id).distance_to(_node_pos(to_id))
-	return clampf(MAX_WATCH * (length / max_path_len), MIN_WATCH, MAX_WATCH)
-
-
 func _sample_route(from_id: String, to_id: String, progress: float) -> Vector2:
 	var route := _route_for(from_id, to_id)
 	var path: Path2D = route.get("path") as Path2D
@@ -280,7 +277,8 @@ func caravan_map_pos(caravan_id: String) -> Vector2:
 		return _node_pos(GameState.current_city_id)
 	if str(record.get("status", "idle")) != "transit":
 		return _node_pos(str(record.get("at", GameState.current_city_id)))
-	return _sample_route(str(record.get("from", "")), str(record.get("to", "")), float(record.get("progress", 0.0)))
+	var t := GameState.player_visual_progress() if caravan_id == GameState.PLAYER_CARAVAN_ID else float(record.get("progress", 0.0))
+	return _sample_route(str(record.get("from", "")), str(record.get("to", "")), t)
 
 
 func pause_watch() -> void:
@@ -289,18 +287,29 @@ func pause_watch() -> void:
 
 
 func resume_watch() -> void:
-	_show_chips(false)
+	chips_enlarged = true
+	_show_chips(true)
 	if wagon:
 		wagon.visible = GameState.is_on_road()
 	if GameState.is_on_road():
-		focus_watch()
+		focus_hop_mid()
+		wagon.position = caravan_map_pos(GameState.PLAYER_CARAVAN_ID)
 	if hop_tween and hop_tween.is_valid() and not hop_tween.is_running():
 		hop_tween.play()
 
 
-func focus_watch() -> void:
+func focus_hop_mid(from_id: String = "", to_id: String = "") -> void:
+	if not from_id.is_empty():
+		hop_from = from_id
+	if not to_id.is_empty():
+		hop_to = to_id
+	if hop_from.is_empty() or hop_to.is_empty():
+		hop_from = str(GameState.transit.get("from", hop_from))
+		hop_to = str(GameState.transit.get("to", hop_to))
+	if hop_from.is_empty() or hop_to.is_empty():
+		return
 	zoom = ZOOM_DEFAULT
-	var point := caravan_map_pos(GameState.PLAYER_CARAVAN_ID)
+	var point := _node_pos(hop_from).lerp(_node_pos(hop_to), 0.5)
 	var view := map_clip.size if map_clip.size.x >= 8.0 else VIEW_SIZE
 	var cam := _cam_scale()
 	map_layer.scale = Vector2(cam, cam)
@@ -311,31 +320,79 @@ func focus_watch() -> void:
 func play_hop(from_id: String, to_id: String) -> void:
 	if hop_tween:
 		hop_tween.kill()
+	chips_enlarged = true
 	wagon.visible = true
 	if wagon.get_parent() != content:
 		wagon.reparent(content)
-	GameState.set_caravan_progress(GameState.PLAYER_CARAVAN_ID, 0.0)
+	GameState.watch_lerp = 0.0
+	GameState.pending_watch_hours = 0
 	wagon.position = caravan_map_pos(GameState.PLAYER_CARAVAN_ID)
-	center_on_city(from_id)
-	hop_tween = shell.create_tween()
-	hop_tween.tween_method(_on_hop_progress, 0.0, 1.0, _watch_seconds(from_id, to_id))
-	hop_tween.finished.connect(shell._complete_hop)
-	shell._select_item("caravan", GameState.PLAYER_CARAVAN_ID)
+	focus_hop_mid(from_id, to_id)
+	_show_chips(true)
 	shell._show_transit_panel()
+	_run_watch_tween()
 
 
-func _on_hop_progress(progress: float) -> void:
-	GameState.set_caravan_progress(GameState.PLAYER_CARAVAN_ID, progress)
+func _run_watch_tween() -> void:
+	if hop_tween:
+		hop_tween.kill()
+	var slice := GameState.travel_slice_hours()
+	if slice <= 0:
+		shell._complete_hop()
+		return
+	GameState.pending_watch_hours = slice
+	GameState.watch_lerp = 0.0
+	wagon.visible = true
 	wagon.position = caravan_map_pos(GameState.PLAYER_CARAVAN_ID)
+	paint_chips()
+	hop_tween = shell.create_tween()
+	hop_tween.tween_method(_on_watch_progress, 0.0, 1.0, _slice_seconds(slice))
+	hop_tween.finished.connect(_on_watch_finished, CONNECT_ONE_SHOT)
+
+
+func _on_watch_progress(t: float) -> void:
+	GameState.watch_lerp = t
+	if wagon:
+		wagon.position = caravan_map_pos(GameState.PLAYER_CARAVAN_ID)
+	if chips_layer and chips_layer.visible:
+		paint_chips()
+
+
+func _on_watch_finished() -> void:
+	var slice := GameState.pending_watch_hours
+	GameState.advance_hours(slice)
+	if GameState.player_remaining_hours() <= 0:
+		shell._complete_hop()
+		return
+	_run_watch_tween()
+	shell._refresh_header()
 
 
 func skip_hop() -> void:
 	if hop_tween:
 		hop_tween.kill()
-	shell._complete_hop()
+	var slice := GameState.travel_slice_hours()
+	if slice <= 0:
+		shell._complete_hop()
+		return
+	GameState.advance_hours(slice)
+	if GameState.player_remaining_hours() <= 0:
+		shell._complete_hop()
+		return
+	_run_watch_tween()
+	if int(shell.get("_mode")) != 0:
+		pause_watch()
+		if int(shell.get("_mode")) == 2:
+			show_atlas()
+	shell._refresh_header()
+
+
+func _slice_seconds(h: int) -> float:
+	return clampf(SLICE_SECS * (float(h) / float(GameState.HOURS_PER_WATCH)), 1.5, 5.0)
 
 
 func hide_wagon() -> void:
+	chips_enlarged = false
 	if wagon:
 		wagon.visible = false
 
@@ -409,25 +466,33 @@ func _show_chips(on: bool) -> void:
 	if on:
 		paint_chips()
 	elif chips_layer:
-		for child in chips_layer.get_children():
-			child.queue_free()
+		_clear_chips()
+
+
+func _clear_chips() -> void:
+	if chips_layer == null:
+		return
+	for child in chips_layer.get_children():
+		chips_layer.remove_child(child)
+		child.free()
 
 
 func paint_chips() -> void:
 	_ensure_chips_layer()
-	for child in chips_layer.get_children():
-		child.queue_free()
+	_clear_chips()
 	if not chips_layer.visible:
 		return
 	var player_here := ""
-	if not GameState.is_on_road():
+	var player_on_wire := GameState.is_on_road()
+	if not player_on_wire:
 		player_here = GameState.current_city_id
 	for city_id in nodes.keys():
 		_paint_town_chips(str(city_id), player_here == str(city_id))
+	_paint_road_chips(player_on_wire and not chips_enlarged)
 
 
 func _paint_town_chips(city_id: String, show_player: bool) -> void:
-	var npc_ids: Array = StringBook.ids_at(city_id)
+	var npc_ids: Array = StringBook.ids_visual_at(city_id)
 	if not show_player and npc_ids.is_empty():
 		return
 	var slots: Array = []
@@ -445,7 +510,7 @@ func _paint_town_chips(city_id: String, show_player: bool) -> void:
 	var x := 0.0
 	for slot in slots:
 		var player := bool(slot.get("player", false))
-		var chip := _make_chip(str(slot.get("house_id", "")), int(slot.get("chair", 0)), player)
+		var chip := _make_chip(str(slot.get("house_id", "")), int(slot.get("chair", 0)), player, false)
 		chip.position = Vector2(x, 0)
 		row.add_child(chip)
 		x += (CHIP_PLAYER.x if player else CHIP.x) + 2.0
@@ -460,8 +525,77 @@ func _paint_town_chips(city_id: String, show_player: bool) -> void:
 	chips_layer.add_child(row)
 
 
-func _make_chip(house_id: String, chair: int, player: bool) -> Control:
+func _paint_road_chips(show_player: bool) -> void:
+	var groups: Dictionary = {}
+	for token_id in GameState.string_tokens.keys():
+		var token: Dictionary = GameState.string_tokens[token_id]
+		if token.is_empty() or not StringBook.is_on_wire(token):
+			continue
+		if not StringBook.visual_node(token).is_empty():
+			continue
+		var from_id := str(token.get("from_id", ""))
+		var to_id := str(token.get("to_id", ""))
+		var key := GameState._link_key(from_id, to_id)
+		if not groups.has(key):
+			groups[key] = []
+		groups[key].append({
+			"player": false,
+			"house_id": str(token.get("house_id", "")),
+			"chair": int(token.get("chair", 0)),
+			"from": from_id,
+			"to": to_id,
+			"t": StringBook.visual_edge_t(token),
+		})
+	if show_player:
+		var from_id := str(GameState.transit.get("from", ""))
+		var to_id := str(GameState.transit.get("to", ""))
+		if not from_id.is_empty() and not to_id.is_empty():
+			var key := GameState._link_key(from_id, to_id)
+			if not groups.has(key):
+				groups[key] = []
+			groups[key].append({
+				"player": true,
+				"house_id": GameState.selected_house_id,
+				"chair": 0,
+				"from": from_id,
+				"to": to_id,
+				"t": GameState.player_visual_progress(),
+			})
+	for key in groups.keys():
+		var slots: Array = groups[key]
+		for i in slots.size():
+			_place_road_chip(slots[i], i, slots.size())
+
+
+func _place_road_chip(slot: Dictionary, index: int, count: int) -> void:
+	var player := bool(slot.get("player", false))
+	var enlarged := chips_enlarged
+	var size := CHIP_ROAD_PLAYER if enlarged and player else (CHIP_ROAD if enlarged else (CHIP_PLAYER if player else CHIP))
+	var from_id := str(slot.get("from", ""))
+	var to_id := str(slot.get("to", ""))
+	var t := float(slot.get("t", 0.0))
+	var pos := _sample_route(from_id, to_id, t)
+	var nrm := _route_normal(from_id, to_id, t)
+	var spread := float(index) - float(count - 1) * 0.5
+	pos += nrm * spread * (size.x + 2.0)
+	var chip := _make_chip(str(slot.get("house_id", "")), int(slot.get("chair", 0)), player, enlarged)
+	chip.position = pos - size * 0.5
+	chips_layer.add_child(chip)
+
+
+func _route_normal(from_id: String, to_id: String, t: float) -> Vector2:
+	var a := _sample_route(from_id, to_id, clampf(t - 0.02, 0.0, 1.0))
+	var b := _sample_route(from_id, to_id, clampf(t + 0.02, 0.0, 1.0))
+	var tangent := b - a
+	if tangent.length_squared() < 0.0001:
+		return Vector2(0, 1)
+	return Vector2(-tangent.y, tangent.x).normalized()
+
+
+func _make_chip(house_id: String, chair: int, player: bool, enlarged: bool = false) -> Control:
 	var size := CHIP_PLAYER if player else CHIP
+	if enlarged:
+		size = CHIP_ROAD_PLAYER if player else CHIP_ROAD
 	var fill := WorldBook.house_color(house_id)
 	var root := ColorRect.new()
 	root.custom_minimum_size = size
@@ -487,7 +621,7 @@ func _make_chip(house_id: String, chair: int, player: bool) -> Control:
 	lab.vertical_alignment = VERTICAL_ALIGNMENT_CENTER
 	lab.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	lab.clip_text = true
-	lab.add_theme_font_size_override("font_size", 8)
+	lab.add_theme_font_size_override("font_size", 12 if enlarged else 8)
 	lab.add_theme_color_override("font_color", _chip_ink(fill))
 	lab.set_anchors_preset(Control.PRESET_FULL_RECT)
 	root.add_child(lab)

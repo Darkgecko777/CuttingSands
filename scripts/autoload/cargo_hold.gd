@@ -29,7 +29,7 @@ static func mass() -> int:
 
 
 static func can_buy(good_id: String, amount: int = 1) -> bool:
-	if amount <= 0 or not GameState.settlement_has_market(GameState.current_city_id) or GameState.is_on_road():
+	if amount <= 0 or not GameState.settlement_has_market(GameState.current_city_id) or GameState.is_on_road() or not GameState.stalls_open():
 		return false
 	if GameState.get_market_stock(good_id) < amount:
 		return false
@@ -53,7 +53,7 @@ static func buy(good_id: String, amount: int = 1) -> bool:
 
 
 static func can_sell(good_id: String, amount: int = 1) -> bool:
-	return amount > 0 and GameState.settlement_has_market(GameState.current_city_id) and not GameState.is_on_road() and GameState.inventory.get(good_id, 0) >= amount
+	return amount > 0 and GameState.settlement_has_market(GameState.current_city_id) and not GameState.is_on_road() and GameState.stalls_open() and GameState.inventory.get(good_id, 0) >= amount
 
 
 static func sell(good_id: String, amount: int = 1) -> bool:

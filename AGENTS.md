@@ -2,6 +2,8 @@
 
 These rules apply when Grok Build is running **inside this Godot checkout**.
 
+They are not the Grok.com workspace rules.
+
 ## Session start
 
 - Source of truth for *code* is **this working tree**, not GitHub memory and not a prior chat.
@@ -15,6 +17,7 @@ These rules apply when Grok Build is running **inside this Godot checkout**.
 - Official title: **Caravans of the Cutting Sands**.
 - Engine: **Godot 4.7**. Prefer typed GDScript, existing autoloads, existing scene trees.
 - Owner: Derek. Local playtest is the Godot project on disk. Do not assume a `git pull` is required for him to see edits.
+- This checkout **is the game**. Unbuilt systems are gated until Derek asks. Do not describe work as a demo, vertical slice, proof-of-concept, or down-payment on a different title.
 
 ## Live map (use these)
 
@@ -56,16 +59,16 @@ Start and arrival land in **Market**, no top tab open. Engine identifiers may st
 - Bottom yards: **House | Market | Outyard**. Dead on the road.
 - Map tab = letterboxed atlas (no fog of war on that chart).
 - Hop with no tab = zoomed travel watch. Opening a tab **pauses** the hop tween; close resumes.
-- Clock B: time runs on the watch, Skip, or explicit Wait. Time does not run in a yard.
-- Title: Continue and Options stay visible but disabled this slice.
+- Game clock: time runs on the watch, Skip, or explicit Wait. Time does not run in a yard except Wait.
+- Title: Continue and Options stay visible but disabled until save / options exist. Title does not open PauseMenu for Options.
 
-## Slice now vs locked later
+## Built vs gated
 
-**Shipped in this checkout:** one player wagon; JSON world; hop along adjacent roads; weather + heat *labels* at Outyard; auto tithe; arrival rumours; live prices only at the stall you stand; per-node warehouses that produce/consume on Clock B; cities/villages mint rations + water (posts do not; Sarn water only); price bands; stall ledger (lowest buy / highest sale + town); emergency edible → rations; Outyard Wait (one day); 16 cells + 36 mass; 19 NPC tokens short-haul on Clock B (atlas chips).
+**In this checkout now:** one player wagon; JSON world; hop along adjacent roads; weather + heat *labels* at Outyard; auto tithe; arrival rumours; live prices only at the stall you stand; per-node warehouses that produce/consume at Dawn; cities/villages mint rations + water (posts do not; Sarn water only); price bands; stall ledger (lowest buy / highest sale + town); emergency edible → rations; Wait 1 watch / half day / full day in House, Market, and Outyard; market watches 1–5; 16 cells + 36 mass; 19 NPC tokens short-haul on the game clock (town chips + enlarged road chips; Map tab frozen, travel watch live, hop zoom, no FoW).
 
 **Locked in the vision — do not implement until Derek asks:**
 
-- Socialize (spend a day, chance of a rumour, stars only)
+- Socialize (spend a day, chance of a rumour, stars only). Market is the public street until another public yard exists.
 - Weather step on Wait
 - House rank, one-way intrigue, personality traits on tokens
 - Interrupt travel events, salvage/lost-pool, ruin extraction
@@ -73,7 +76,7 @@ Start and arrival land in **Market**, no top tab open. Engine identifiers may st
 - Player daily eat of rations/water
 - Skill webs, agent roster, save/options, other starting houses
 
-When those land, follow the vision section for that lock. Short reminder: one wagon, no rumour shop, stars are P(true), Outyard is hop authority, never 0% road risk, bandits tithe (they do not murder the mark).
+When those land, follow the vision section for that lock. They are part of this game, not a later product. Short reminder: one wagon, no rumour shop, stars are P(true), Outyard is hop authority, never 0% road risk, bandits tithe (they do not murder the mark).
 
 ## How to work
 

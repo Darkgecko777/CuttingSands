@@ -16,6 +16,21 @@ const PRODUCER_STOCK_BONUS := 12
 const PLAYER_CARAVAN_ID := "player_caravan"
 const PLAYER_CARAVAN_NAME := "House Caravan"
 const CARAVAN_SPEED := 1.0
+const HOURS_PER_WATCH := 3
+const WATCHES_PER_DAY := 8
+const HOURS_PER_DAY := 24
+const MARKET_LAST_WATCH := 5
+const WATCH_NAMES: PackedStringArray = [
+	"",
+	"Dawn",
+	"Morning",
+	"Heat",
+	"Afternoon",
+	"Dusk",
+	"First night",
+	"Deep night",
+	"Predawn",
+]
 
 var selected_house_id: String = "house_kharun"
 var current_city_id: String = "kharun"
@@ -24,6 +39,9 @@ var scrubstone: int = STARTING_SCRUBSTONE
 var caravan_capacity: int = STARTING_CAPACITY
 var caravan_mass_capacity: int = STARTING_MASS
 var day: int = 1
+var hours: int = 0
+var watch_lerp: float = 0.0
+var pending_watch_hours: int = 0
 var agents: Array = []
 var reports: Array = []
 var memory: Dictionary = {}
@@ -69,7 +87,10 @@ func start_new_run(house_id: String) -> void:
 	CargoHold.reset_player()
 	MarketBook.seed_all()
 	StringBook.seed_all()
+	hours = 0
 	day = 1
+	watch_lerp = 0.0
+	pending_watch_hours = 0
 	agents.clear()
 	price_ledger.clear()
 	WordBook.reset()
@@ -129,21 +150,129 @@ func hop_days(from_id: String, to_id: String) -> int:
 	return CaravanLog.hop_days(from_id, to_id)
 
 
+func hop_hours(from_id: String, to_id: String) -> int:
+	return hop_days(from_id, to_id) * HOURS_PER_DAY
+
+
 func is_on_road() -> bool:
 	return caravan_status(PLAYER_CARAVAN_ID) == "transit" or not transit.is_empty()
+
+
+func watch_index() -> int:
+	return (hours % HOURS_PER_DAY) / HOURS_PER_WATCH + 1
+
+
+func hour_into_watch() -> int:
+	return hours % HOURS_PER_WATCH
+
+
+func watch_name(index: int = -1) -> String:
+	var w := watch_index() if index < 1 else clampi(index, 1, WATCHES_PER_DAY)
+	if w < 1 or w >= WATCH_NAMES.size():
+		return ""
+	return WATCH_NAMES[w]
+
+
+func stalls_open() -> bool:
+	return watch_index() <= MARKET_LAST_WATCH
+
+
+func clock_label() -> String:
+	return "Day %d · %s" % [day, watch_name()]
+
+
+func format_stamp(at_hours: int) -> String:
+	var h := maxi(0, at_hours)
+	var d := h / HOURS_PER_DAY + 1
+	var w := (h % HOURS_PER_DAY) / HOURS_PER_WATCH + 1
+	return "day %d · %s" % [d, watch_name(w)]
+
+
+func stamp_after(add_hours: int) -> String:
+	return format_stamp(hours + maxi(0, add_hours))
+
+
+func remainder_hours() -> int:
+	return HOURS_PER_WATCH - hour_into_watch()
+
+
+func wait_span_hours(span: int) -> int:
+	var extra := 0
+	if span == 1:
+		extra = 4 * HOURS_PER_WATCH
+	elif span == 2:
+		extra = 8 * HOURS_PER_WATCH
+	return remainder_hours() + extra
+
+
+func player_remaining_hours() -> int:
+	if not is_on_road():
+		return 0
+	var wagon: Dictionary = get_caravan(PLAYER_CARAVAN_ID)
+	return maxi(0, int(wagon.get("hours_total", 0)) - int(wagon.get("hours_done", 0)))
+
+
+func travel_slice_hours() -> int:
+	if not is_on_road():
+		return 0
+	return mini(remainder_hours(), player_remaining_hours())
+
+
+func player_visual_progress() -> float:
+	var wagon: Dictionary = get_caravan(PLAYER_CARAVAN_ID)
+	var total := float(maxi(1, int(wagon.get("hours_total", 1))))
+	var done := float(int(wagon.get("hours_done", 0))) + float(pending_watch_hours) * watch_lerp
+	return clampf(done / total, 0.0, 1.0)
+
+
+func eta_hours_left() -> int:
+	var left := float(player_remaining_hours()) - float(pending_watch_hours) * watch_lerp
+	return maxi(0, int(round(left)))
 
 
 func advance_days(n: int) -> void:
 	if n <= 0:
 		return
+	advance_hours(n * HOURS_PER_DAY)
+
+
+func advance_hours(n: int) -> void:
+	if n <= 0:
+		return
+	watch_lerp = 0.0
+	pending_watch_hours = 0
 	for _i in n:
-		var rng := RandomNumberGenerator.new()
-		rng.randomize()
-		MarketBook.tick_produce(rng)
-		StringBook.tick_all()
-		MarketBook.tick_consume(rng)
-		day += 1
+		hours += 1
+		StringBook.advance(1)
+		_advance_player_hour()
+		day = hours / HOURS_PER_DAY + 1
+		if hours > 0 and hours % HOURS_PER_DAY == 0:
+			_dawn_pulse()
 	inventory_changed.emit()
+
+
+func _advance_player_hour() -> void:
+	if not is_on_road():
+		return
+	var wagon: Dictionary = get_caravan(PLAYER_CARAVAN_ID)
+	if wagon.is_empty():
+		return
+	wagon["hours_done"] = int(wagon.get("hours_done", 0)) + 1
+	var total := maxi(1, int(wagon.get("hours_total", 1)))
+	wagon["progress"] = clampf(float(int(wagon.get("hours_done", 0))) / float(total), 0.0, 1.0)
+	sync_player_transit()
+
+
+func sync_player_transit() -> void:
+	CaravanLog.sync_player()
+
+
+func _dawn_pulse() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.randomize()
+	MarketBook.tick_produce(rng)
+	StringBook.dawn_act()
+	MarketBook.tick_consume(rng)
 
 
 func begin_hop(to_id: String) -> bool:
@@ -248,7 +377,7 @@ func get_sell_price(good_id: String, city_id: String = "") -> int:
 
 func note_stall(good_id: String, city_id: String = "") -> void:
 	var cid := current_city_id if city_id.is_empty() else city_id
-	if good_id.is_empty() or cid.is_empty() or not settlement_has_market(cid) or is_on_road():
+	if good_id.is_empty() or cid.is_empty() or not settlement_has_market(cid) or is_on_road() or not stalls_open():
 		return
 	var price := get_local_price(good_id, cid)
 	if price <= 0:

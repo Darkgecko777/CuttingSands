@@ -31,21 +31,60 @@ static func seed_all() -> void:
 			"house_id": house_id,
 			"chair": chair,
 			"node_id": node_id,
+			"from_id": "",
+			"to_id": "",
+			"hours_done": 0,
+			"hours_total": 0,
 			"purse": purse,
 			"cargo": _empty_cargo(),
 			"bound_for": "",
 			"trip_good": "",
 		}
+	dawn_act()
 
 
-static func tick_all() -> void:
+static func dawn_act() -> void:
 	var ids: Array = GameState.string_tokens.keys()
 	ids.sort()
 	for token_id in ids:
 		var token: Dictionary = GameState.string_tokens[token_id]
-		if token.is_empty():
+		if token.is_empty() or is_on_wire(token):
 			continue
-		_tick_one(token)
+		_dawn_one(token)
+
+
+static func advance(h: int) -> void:
+	if h <= 0:
+		return
+	for token_id in GameState.string_tokens.keys():
+		var token: Dictionary = GameState.string_tokens[token_id]
+		if token.is_empty() or not is_on_wire(token):
+			continue
+		token["hours_done"] = int(token.get("hours_done", 0)) + h
+		if int(token.get("hours_done", 0)) >= int(token.get("hours_total", 0)):
+			_dock(token)
+
+
+static func is_on_wire(token: Dictionary) -> bool:
+	return not str(token.get("to_id", "")).is_empty()
+
+
+static func visual_done(token: Dictionary) -> float:
+	return float(int(token.get("hours_done", 0))) + float(GameState.pending_watch_hours) * GameState.watch_lerp
+
+
+static func visual_node(token: Dictionary) -> String:
+	if not is_on_wire(token):
+		return str(token.get("node_id", ""))
+	var total := float(maxi(1, int(token.get("hours_total", 1))))
+	if visual_done(token) >= total:
+		return str(token.get("to_id", ""))
+	return ""
+
+
+static func visual_edge_t(token: Dictionary) -> float:
+	var total := float(maxi(1, int(token.get("hours_total", 1))))
+	return clampf(visual_done(token) / total, 0.0, 1.0)
 
 
 static func ids_at(node_id: String) -> Array:
@@ -58,7 +97,17 @@ static func ids_at(node_id: String) -> Array:
 	return out
 
 
-static func _tick_one(token: Dictionary) -> void:
+static func ids_visual_at(node_id: String) -> Array:
+	var out: Array = []
+	for token_id in GameState.string_tokens.keys():
+		var token: Dictionary = GameState.string_tokens[token_id]
+		if visual_node(token) == node_id:
+			out.append(str(token_id))
+	out.sort()
+	return out
+
+
+static func _dawn_one(token: Dictionary) -> void:
 	var here := str(token.get("node_id", ""))
 	if here.is_empty() or not WorldBook.settlement_has_market(here):
 		return
@@ -70,9 +119,8 @@ static func _tick_one(token: Dictionary) -> void:
 			_sell(token, trip_good, held)
 		token["bound_for"] = ""
 		token["trip_good"] = ""
-		return
-	if held > 0 and not bound_for.is_empty():
-		_step_toward(token, bound_for)
+	elif held > 0 and not bound_for.is_empty() and here != bound_for:
+		_depart(token, bound_for)
 		return
 	if CargoMath.cells_in(token.get("cargo", {})) > 0:
 		return
@@ -87,7 +135,7 @@ static func _tick_one(token: Dictionary) -> void:
 	token["trip_good"] = good_id
 	token["bound_for"] = dest
 	if dest != here:
-		_step_toward(token, dest)
+		_depart(token, dest)
 
 
 static func _best_trip(token: Dictionary, here: String) -> Dictionary:
@@ -192,10 +240,34 @@ static func _sell(token: Dictionary, good_id: String, units: int) -> void:
 	MarketBook.set_stock(good_id, here, stored)
 
 
-static func _step_toward(token: Dictionary, dest: String) -> void:
+static func _depart(token: Dictionary, dest: String) -> void:
 	var here := str(token.get("node_id", ""))
 	if here == dest or dest.is_empty():
 		return
+	var nxt := _next_node(here, dest)
+	if nxt.is_empty():
+		return
+	var edge_hours := GameState.hop_hours(here, nxt)
+	if edge_hours <= 0:
+		return
+	token["from_id"] = here
+	token["to_id"] = nxt
+	token["hours_done"] = 0
+	token["hours_total"] = edge_hours
+	token["node_id"] = ""
+
+
+static func _dock(token: Dictionary) -> void:
+	token["node_id"] = str(token.get("to_id", ""))
+	token["from_id"] = ""
+	token["to_id"] = ""
+	token["hours_done"] = 0
+	token["hours_total"] = 0
+
+
+static func _next_node(here: String, dest: String) -> String:
+	if here == dest or dest.is_empty():
+		return ""
 	var best := ""
 	var best_h := 99
 	for raw in GameState.neighbors_of(here):
@@ -206,8 +278,7 @@ static func _step_toward(token: Dictionary, dest: String) -> void:
 		if hops < best_h or (hops == best_h and (best.is_empty() or nxt < best)):
 			best_h = hops
 			best = nxt
-	if not best.is_empty():
-		token["node_id"] = best
+	return best
 
 
 static func _held(token: Dictionary, good_id: String) -> int:
