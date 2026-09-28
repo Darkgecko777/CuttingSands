@@ -1,10 +1,10 @@
 # UI layout
 
-How the play frame is divided, and what each part has to tell the player. This is the document for composition. The look of the pieces is `docs/UI_Visuals.md`. Placement is judged on the stage in `docs/UI_Review.md`.
+How the play frame is divided, and what each part has to tell the player. This is the document for composition. The look of the pieces is `docs/UI_Visuals.md`.
 
-The words on the controls are a string table. They will change. This document names roles. A label on the stage does not add a role, rename one, or decide what a feature is.
+The words on the controls are a string table. They will change. This document names roles. Naming a tag here does not add a role, rename one, or decide what a feature is.
 
-The live shell still wears the previous frame. This document is the working target. It reaches the shell when the staged screen is accepted whole.
+The live shell still wears its current plates. This document is the frame outside pictures are drawn for. Those pictures reach the shell in a later pass. This checkout does not keep a side scene to preview them.
 
 ## One frame
 
@@ -43,7 +43,7 @@ The name does not carry a second line. The open desk is the selected seal on the
 
 Each tag opens one body of work in the well and closes the others. Closing the open tag returns the well to the ground.
 
-The row covers what you carry, the chart, and what you have heard. The person, and the eyes you have posted, are on the stage so the row can be judged whole. They join play when they are built. So does any later feature of that kind. A new tag does not get its own band, a side column, or a destination screen.
+The row covers what you carry, the chart, and what you have heard. The person, and the eyes you have posted, are named so the row can be seen whole. They join play when they are built. So does any later feature of that kind. A new tag does not get its own band, a side column, or a destination screen.
 
 What you have heard is a list in its own tag. Those entries are not marks on the chart.
 
