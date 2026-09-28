@@ -1,0 +1,788 @@
+[gd_scene load_steps=24 format=3]
+
+[ext_resource type="Script" path="res://scripts/ui/prototype_well_test.gd" id="1_script"]
+[ext_resource type="FontFile" path="res://Assets/fonts/BonaNovaSC-Bold.ttf" id="2_bold"]
+[ext_resource type="FontFile" path="res://Assets/fonts/BonaNovaSC-Regular.ttf" id="3_reg"]
+[ext_resource type="Texture2D" path="res://Assets/UI/neon_sepia/plate_normal.png" id="4_lit"]
+[ext_resource type="Texture2D" path="res://Assets/UI/neon_sepia/plate_hover.png" id="5_hover"]
+[ext_resource type="Texture2D" path="res://Assets/UI/neon_sepia/plate_pressed.png" id="6_press"]
+[ext_resource type="Texture2D" path="res://Assets/UI/neon_sepia/plate_idle.png" id="7_idle"]
+[ext_resource type="Texture2D" path="res://Assets/UI/neon_sepia/frame_panel.png" id="8_frame"]
+[ext_resource type="Texture2D" path="res://Assets/UI/neon_sepia/slot_empty.png" id="9_slot"]
+[ext_resource type="Texture2D" path="res://Assets/UI/neon_sepia/banner_desert.png" id="10_banner"]
+[ext_resource type="Texture2D" path="res://Assets/UI/neon_sepia/icon_sun.png" id="11_sun"]
+[ext_resource type="Texture2D" path="res://Assets/UI/neon_sepia/icon_purse.png" id="12_purse"]
+[ext_resource type="Texture2D" path="res://Assets/UI/neon_sepia/icon_sack.png" id="13_sack"]
+[ext_resource type="Texture2D" path="res://Assets/UI/neon_sepia/icon_gear.png" id="14_gear"]
+[ext_resource type="Texture2D" path="res://Assets/UI/neon_sepia/icon_gate.png" id="15_gate"]
+[ext_resource type="Texture2D" path="res://Assets/UI/neon_sepia/icon_diamond.png" id="16_diamond"]
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_lit"]
+content_margin_left = 16.0
+content_margin_top = 4.0
+content_margin_right = 16.0
+content_margin_bottom = 4.0
+texture = ExtResource("4_lit")
+texture_margin_left = 16.0
+texture_margin_top = 16.0
+texture_margin_right = 16.0
+texture_margin_bottom = 16.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_hover"]
+content_margin_left = 16.0
+content_margin_top = 4.0
+content_margin_right = 16.0
+content_margin_bottom = 4.0
+texture = ExtResource("5_hover")
+texture_margin_left = 16.0
+texture_margin_top = 16.0
+texture_margin_right = 16.0
+texture_margin_bottom = 16.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_press"]
+content_margin_left = 16.0
+content_margin_top = 6.0
+content_margin_right = 16.0
+content_margin_bottom = 2.0
+texture = ExtResource("6_press")
+texture_margin_left = 16.0
+texture_margin_top = 16.0
+texture_margin_right = 16.0
+texture_margin_bottom = 16.0
+
+[sub_resource type="StyleBoxTexture" id="StyleBoxTexture_idle"]
+content_margin_left = 16.0
+content_margin_top = 4.0
+content_margin_right = 16.0
+content_margin_bottom = 4.0
+texture = ExtResource("7_idle")
+texture_margin_left = 16.0
+texture_margin_top = 16.0
+texture_margin_right = 16.0
+texture_margin_bottom = 16.0
+
+[sub_resource type="StyleBoxEmpty" id="StyleBoxEmpty_focus"]
+
+[sub_resource type="Gradient" id="Gradient_fade"]
+offsets = PackedFloat32Array(0, 0.45, 1)
+colors = PackedColorArray(0.07, 0.045, 0.03, 0, 0.07, 0.045, 0.03, 0.35, 0.07, 0.045, 0.03, 0.55)
+
+[sub_resource type="GradientTexture2D" id="GradientTexture2D_fade"]
+gradient = SubResource("Gradient_fade")
+width = 8
+height = 256
+fill_from = Vector2(0.5, 0)
+fill_to = Vector2(0.5, 1)
+
+[node name="PrototypeWellTest" type="Control"]
+layout_mode = 3
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+script = ExtResource("1_script")
+
+[node name="Ground" type="ColorRect" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+color = Color(0.07, 0.045, 0.03, 1)
+
+[node name="Banner" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -360.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+texture = ExtResource("10_banner")
+expand_mode = 1
+stretch_mode = 6
+
+[node name="BannerFade" type="TextureRect" parent="."]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_top = -360.0
+grow_horizontal = 2
+grow_vertical = 0
+mouse_filter = 2
+texture = SubResource("GradientTexture2D_fade")
+expand_mode = 1
+stretch_mode = 1
+
+[node name="Margin" type="MarginContainer" parent="."]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/margin_left = 22
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 22
+theme_override_constants/margin_bottom = 16
+
+[node name="Column" type="VBoxContainer" parent="Margin"]
+layout_mode = 2
+theme_override_constants/separation = 8
+
+[node name="Header" type="NinePatchRect" parent="Margin/Column"]
+custom_minimum_size = Vector2(0, 56)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("4_lit")
+patch_margin_left = 16
+patch_margin_top = 16
+patch_margin_right = 16
+patch_margin_bottom = 16
+
+[node name="HeaderRow" type="HBoxContainer" parent="Margin/Column/Header"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 18.0
+offset_top = 8.0
+offset_right = -14.0
+offset_bottom = -8.0
+grow_horizontal = 2
+grow_vertical = 2
+theme_override_constants/separation = 18
+alignment = 1
+
+[node name="Gate" type="TextureRect" parent="Margin/Column/Header/HeaderRow"]
+custom_minimum_size = Vector2(32, 32)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("15_gate")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="DayCluster" type="HBoxContainer" parent="Margin/Column/Header/HeaderRow"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="Sun" type="TextureRect" parent="Margin/Column/Header/HeaderRow/DayCluster"]
+custom_minimum_size = Vector2(22, 22)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("11_sun")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="DayLabel" type="Label" parent="Margin/Column/Header/HeaderRow/DayCluster"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.93, 0.86, 0.72, 1)
+theme_override_fonts/font = ExtResource("2_bold")
+theme_override_font_sizes/font_size = 18
+text = "Day 47"
+
+[node name="CoinCluster" type="HBoxContainer" parent="Margin/Column/Header/HeaderRow"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="Purse" type="TextureRect" parent="Margin/Column/Header/HeaderRow/CoinCluster"]
+custom_minimum_size = Vector2(22, 22)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("12_purse")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CoinLabel" type="Label" parent="Margin/Column/Header/HeaderRow/CoinCluster"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.82, 0.42, 1)
+theme_override_fonts/font = ExtResource("2_bold")
+theme_override_font_sizes/font_size = 18
+text = "128 Scrubstone"
+
+[node name="CargoCluster" type="HBoxContainer" parent="Margin/Column/Header/HeaderRow"]
+layout_mode = 2
+theme_override_constants/separation = 8
+alignment = 1
+
+[node name="Sack" type="TextureRect" parent="Margin/Column/Header/HeaderRow/CargoCluster"]
+custom_minimum_size = Vector2(22, 22)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("13_sack")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="CargoLabel" type="Label" parent="Margin/Column/Header/HeaderRow/CargoCluster"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.93, 0.86, 0.72, 1)
+theme_override_fonts/font = ExtResource("2_bold")
+theme_override_font_sizes/font_size = 18
+text = "Cargo 6/16"
+
+[node name="HeaderGap" type="Control" parent="Margin/Column/Header/HeaderRow"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="GearButton" type="Button" parent="Margin/Column/Header/HeaderRow"]
+custom_minimum_size = Vector2(44, 40)
+layout_mode = 2
+focus_mode = 2
+theme_override_styles/normal = SubResource("StyleBoxTexture_idle")
+theme_override_styles/hover = SubResource("StyleBoxTexture_hover")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_press")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+
+[node name="Gear" type="TextureRect" parent="Margin/Column/Header/HeaderRow/GearButton"]
+layout_mode = 1
+anchors_preset = 8
+anchor_left = 0.5
+anchor_top = 0.5
+anchor_right = 0.5
+anchor_bottom = 0.5
+offset_left = -11.0
+offset_top = -11.0
+offset_right = 11.0
+offset_bottom = 11.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+texture = ExtResource("14_gear")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Tabs" type="HBoxContainer" parent="Margin/Column"]
+layout_mode = 2
+theme_override_constants/separation = 6
+
+[node name="CargoTab" type="Button" parent="Margin/Column/Tabs"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(168, 44)
+layout_mode = 2
+focus_mode = 2
+theme_override_colors/font_color = Color(1, 0.82, 0.42, 1)
+theme_override_colors/font_hover_color = Color(1, 0.92, 0.7, 1)
+theme_override_colors/font_pressed_color = Color(0.85, 0.72, 0.45, 1)
+theme_override_fonts/font = ExtResource("2_bold")
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxTexture_lit")
+theme_override_styles/hover = SubResource("StyleBoxTexture_hover")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_press")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+text = "Cargo"
+
+[node name="MapTab" type="Button" parent="Margin/Column/Tabs"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(168, 44)
+layout_mode = 2
+focus_mode = 2
+theme_override_colors/font_color = Color(0.93, 0.86, 0.72, 1)
+theme_override_colors/font_hover_color = Color(1, 0.92, 0.7, 1)
+theme_override_colors/font_pressed_color = Color(0.85, 0.72, 0.45, 1)
+theme_override_fonts/font = ExtResource("2_bold")
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxTexture_idle")
+theme_override_styles/hover = SubResource("StyleBoxTexture_hover")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_press")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+text = "Map"
+
+[node name="RumoursTab" type="Button" parent="Margin/Column/Tabs"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(168, 44)
+layout_mode = 2
+focus_mode = 2
+theme_override_colors/font_color = Color(0.93, 0.86, 0.72, 1)
+theme_override_colors/font_hover_color = Color(1, 0.92, 0.7, 1)
+theme_override_colors/font_pressed_color = Color(0.85, 0.72, 0.45, 1)
+theme_override_fonts/font = ExtResource("2_bold")
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxTexture_idle")
+theme_override_styles/hover = SubResource("StyleBoxTexture_hover")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_press")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+text = "Rumours"
+
+[node name="TabGap" type="Control" parent="Margin/Column/Tabs"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="Body" type="HBoxContainer" parent="Margin/Column"]
+layout_mode = 2
+size_flags_vertical = 3
+theme_override_constants/separation = 12
+
+[node name="CargoFrame" type="NinePatchRect" parent="Margin/Column/Body"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+texture = ExtResource("8_frame")
+patch_margin_left = 32
+patch_margin_top = 32
+patch_margin_right = 32
+patch_margin_bottom = 32
+
+[node name="CargoPad" type="MarginContainer" parent="Margin/Column/Body/CargoFrame"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 18
+theme_override_constants/margin_top = 16
+theme_override_constants/margin_right = 18
+theme_override_constants/margin_bottom = 16
+
+[node name="Grid" type="GridContainer" parent="Margin/Column/Body/CargoFrame/CargoPad"]
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+theme_override_constants/h_separation = 8
+theme_override_constants/v_separation = 8
+columns = 4
+
+[node name="SlotSpear" type="TextureRect" parent="Margin/Column/Body/CargoFrame/CargoPad/Grid"]
+custom_minimum_size = Vector2(112, 88)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+texture = ExtResource("9_slot")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Caption" type="Label" parent="Margin/Column/Body/CargoFrame/CargoPad/Grid/SlotSpear"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = -42.0
+offset_right = -8.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.93, 0.86, 0.72, 1)
+theme_override_fonts/font = ExtResource("3_reg")
+theme_override_font_sizes/font_size = 13
+text = "Speargrain"
+horizontal_alignment = 1
+
+[node name="SlotEmptyA" type="TextureRect" parent="Margin/Column/Body/CargoFrame/CargoPad/Grid"]
+custom_minimum_size = Vector2(112, 88)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+texture = ExtResource("9_slot")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SlotStone" type="TextureRect" parent="Margin/Column/Body/CargoFrame/CargoPad/Grid"]
+custom_minimum_size = Vector2(112, 88)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+texture = ExtResource("9_slot")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Caption" type="Label" parent="Margin/Column/Body/CargoFrame/CargoPad/Grid/SlotStone"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = -42.0
+offset_right = -8.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.93, 0.86, 0.72, 1)
+theme_override_fonts/font = ExtResource("3_reg")
+theme_override_font_sizes/font_size = 13
+text = "Scrubstone"
+horizontal_alignment = 1
+
+[node name="SlotEmptyB" type="TextureRect" parent="Margin/Column/Body/CargoFrame/CargoPad/Grid"]
+custom_minimum_size = Vector2(112, 88)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+texture = ExtResource("9_slot")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SlotCloth" type="TextureRect" parent="Margin/Column/Body/CargoFrame/CargoPad/Grid"]
+custom_minimum_size = Vector2(112, 88)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+texture = ExtResource("9_slot")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Caption" type="Label" parent="Margin/Column/Body/CargoFrame/CargoPad/Grid/SlotCloth"]
+layout_mode = 1
+anchors_preset = 12
+anchor_top = 1.0
+anchor_right = 1.0
+anchor_bottom = 1.0
+offset_left = 8.0
+offset_top = -42.0
+offset_right = -8.0
+offset_bottom = -20.0
+grow_horizontal = 2
+grow_vertical = 0
+theme_override_colors/font_color = Color(0.93, 0.86, 0.72, 1)
+theme_override_fonts/font = ExtResource("3_reg")
+theme_override_font_sizes/font_size = 13
+text = "Insect cloth"
+horizontal_alignment = 1
+
+[node name="SlotEmptyC" type="TextureRect" parent="Margin/Column/Body/CargoFrame/CargoPad/Grid"]
+custom_minimum_size = Vector2(112, 88)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+texture = ExtResource("9_slot")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SlotEmptyD" type="TextureRect" parent="Margin/Column/Body/CargoFrame/CargoPad/Grid"]
+custom_minimum_size = Vector2(112, 88)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+texture = ExtResource("9_slot")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SlotEmptyE" type="TextureRect" parent="Margin/Column/Body/CargoFrame/CargoPad/Grid"]
+custom_minimum_size = Vector2(112, 88)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+texture = ExtResource("9_slot")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SlotEmptyF" type="TextureRect" parent="Margin/Column/Body/CargoFrame/CargoPad/Grid"]
+custom_minimum_size = Vector2(112, 88)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+texture = ExtResource("9_slot")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SlotEmptyG" type="TextureRect" parent="Margin/Column/Body/CargoFrame/CargoPad/Grid"]
+custom_minimum_size = Vector2(112, 88)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+texture = ExtResource("9_slot")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SlotEmptyH" type="TextureRect" parent="Margin/Column/Body/CargoFrame/CargoPad/Grid"]
+custom_minimum_size = Vector2(112, 88)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+texture = ExtResource("9_slot")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="SlotEmptyI" type="TextureRect" parent="Margin/Column/Body/CargoFrame/CargoPad/Grid"]
+custom_minimum_size = Vector2(112, 88)
+layout_mode = 2
+size_flags_horizontal = 3
+size_flags_vertical = 3
+mouse_filter = 2
+texture = ExtResource("9_slot")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NotesFrame" type="NinePatchRect" parent="Margin/Column/Body"]
+custom_minimum_size = Vector2(340, 0)
+layout_mode = 2
+size_flags_vertical = 3
+mouse_filter = 2
+texture = ExtResource("8_frame")
+patch_margin_left = 32
+patch_margin_top = 32
+patch_margin_right = 32
+patch_margin_bottom = 32
+
+[node name="NotesPad" type="MarginContainer" parent="Margin/Column/Body/NotesFrame"]
+layout_mode = 1
+anchors_preset = 15
+anchor_right = 1.0
+anchor_bottom = 1.0
+grow_horizontal = 2
+grow_vertical = 2
+mouse_filter = 2
+theme_override_constants/margin_left = 22
+theme_override_constants/margin_top = 18
+theme_override_constants/margin_right = 22
+theme_override_constants/margin_bottom = 18
+
+[node name="Notes" type="VBoxContainer" parent="Margin/Column/Body/NotesFrame/NotesPad"]
+layout_mode = 2
+size_flags_horizontal = 3
+theme_override_constants/separation = 10
+
+[node name="NotesTitle" type="Label" parent="Margin/Column/Body/NotesFrame/NotesPad/Notes"]
+layout_mode = 2
+theme_override_colors/font_color = Color(1, 0.82, 0.42, 1)
+theme_override_fonts/font = ExtResource("2_bold")
+theme_override_font_sizes/font_size = 16
+text = "Stall draft notes"
+horizontal_alignment = 1
+
+[node name="Rule" type="TextureRect" parent="Margin/Column/Body/NotesFrame/NotesPad/Notes"]
+custom_minimum_size = Vector2(22, 22)
+layout_mode = 2
+size_flags_horizontal = 4
+mouse_filter = 2
+texture = ExtResource("16_diamond")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="NoteFree" type="Label" parent="Margin/Column/Body/NotesFrame/NotesPad/Notes"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.93, 0.86, 0.72, 1)
+theme_override_fonts/font = ExtResource("3_reg")
+theme_override_font_sizes/font_size = 15
+text = "Rearrange is free."
+horizontal_alignment = 1
+
+[node name="NoteCommit" type="Label" parent="Margin/Column/Body/NotesFrame/NotesPad/Notes"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.93, 0.86, 0.72, 1)
+theme_override_fonts/font = ExtResource("3_reg")
+theme_override_font_sizes/font_size = 15
+text = "Buy and Sell commit."
+horizontal_alignment = 1
+
+[node name="NoteGap" type="Control" parent="Margin/Column/Body/NotesFrame/NotesPad/Notes"]
+custom_minimum_size = Vector2(0, 8)
+layout_mode = 2
+
+[node name="MoveButton" type="Button" parent="Margin/Column/Body/NotesFrame/NotesPad/Notes"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+focus_mode = 2
+theme_override_colors/font_color = Color(0.93, 0.86, 0.72, 1)
+theme_override_colors/font_hover_color = Color(1, 0.92, 0.7, 1)
+theme_override_colors/font_pressed_color = Color(0.85, 0.72, 0.45, 1)
+theme_override_fonts/font = ExtResource("2_bold")
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxTexture_idle")
+theme_override_styles/hover = SubResource("StyleBoxTexture_hover")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_press")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+text = "Move"
+
+[node name="RemoveButton" type="Button" parent="Margin/Column/Body/NotesFrame/NotesPad/Notes"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+focus_mode = 2
+theme_override_colors/font_color = Color(0.93, 0.86, 0.72, 1)
+theme_override_colors/font_hover_color = Color(1, 0.92, 0.7, 1)
+theme_override_colors/font_pressed_color = Color(0.85, 0.72, 0.45, 1)
+theme_override_fonts/font = ExtResource("2_bold")
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxTexture_idle")
+theme_override_styles/hover = SubResource("StyleBoxTexture_hover")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_press")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+text = "Remove"
+
+[node name="BuyButton" type="Button" parent="Margin/Column/Body/NotesFrame/NotesPad/Notes"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+focus_mode = 2
+theme_override_colors/font_color = Color(0.93, 0.86, 0.72, 1)
+theme_override_colors/font_hover_color = Color(1, 0.92, 0.7, 1)
+theme_override_colors/font_pressed_color = Color(0.85, 0.72, 0.45, 1)
+theme_override_fonts/font = ExtResource("2_bold")
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxTexture_idle")
+theme_override_styles/hover = SubResource("StyleBoxTexture_hover")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_press")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+text = "Buy"
+
+[node name="SellButton" type="Button" parent="Margin/Column/Body/NotesFrame/NotesPad/Notes"]
+custom_minimum_size = Vector2(0, 40)
+layout_mode = 2
+focus_mode = 2
+theme_override_colors/font_color = Color(0.93, 0.86, 0.72, 1)
+theme_override_colors/font_hover_color = Color(1, 0.92, 0.7, 1)
+theme_override_colors/font_pressed_color = Color(0.85, 0.72, 0.45, 1)
+theme_override_fonts/font = ExtResource("2_bold")
+theme_override_font_sizes/font_size = 15
+theme_override_styles/normal = SubResource("StyleBoxTexture_idle")
+theme_override_styles/hover = SubResource("StyleBoxTexture_hover")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_press")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+text = "Sell"
+
+[node name="Bottom" type="HBoxContainer" parent="Margin/Column"]
+custom_minimum_size = Vector2(0, 96)
+layout_mode = 2
+theme_override_constants/separation = 16
+alignment = 1
+
+[node name="Place" type="VBoxContainer" parent="Margin/Column/Bottom"]
+layout_mode = 2
+theme_override_constants/separation = 0
+
+[node name="PlaceName" type="Label" parent="Margin/Column/Bottom/Place"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.96, 0.86, 0.55, 1)
+theme_override_colors/font_shadow_color = Color(0.05, 0.03, 0.02, 0.85)
+theme_override_constants/shadow_offset_x = 2
+theme_override_constants/shadow_offset_y = 2
+theme_override_fonts/font = ExtResource("2_bold")
+theme_override_font_sizes/font_size = 42
+text = "KHARÛN"
+
+[node name="YardLine" type="Label" parent="Margin/Column/Bottom/Place"]
+unique_name_in_owner = true
+layout_mode = 2
+theme_override_colors/font_color = Color(0.93, 0.86, 0.72, 1)
+theme_override_colors/font_shadow_color = Color(0.05, 0.03, 0.02, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_fonts/font = ExtResource("3_reg")
+theme_override_font_sizes/font_size = 18
+text = "Market"
+
+[node name="BottomGap" type="Control" parent="Margin/Column/Bottom"]
+layout_mode = 2
+size_flags_horizontal = 3
+mouse_filter = 2
+
+[node name="HouseYard" type="Button" parent="Margin/Column/Bottom"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(148, 44)
+layout_mode = 2
+focus_mode = 2
+theme_override_colors/font_color = Color(0.93, 0.86, 0.72, 1)
+theme_override_colors/font_hover_color = Color(1, 0.92, 0.7, 1)
+theme_override_colors/font_pressed_color = Color(0.85, 0.72, 0.45, 1)
+theme_override_fonts/font = ExtResource("2_bold")
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxTexture_idle")
+theme_override_styles/hover = SubResource("StyleBoxTexture_hover")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_press")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+text = "House"
+
+[node name="MarketYard" type="Button" parent="Margin/Column/Bottom"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(148, 44)
+layout_mode = 2
+focus_mode = 2
+theme_override_colors/font_color = Color(1, 0.82, 0.42, 1)
+theme_override_colors/font_hover_color = Color(1, 0.92, 0.7, 1)
+theme_override_colors/font_pressed_color = Color(0.85, 0.72, 0.45, 1)
+theme_override_fonts/font = ExtResource("2_bold")
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxTexture_lit")
+theme_override_styles/hover = SubResource("StyleBoxTexture_hover")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_press")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+text = "Market"
+
+[node name="OutyardYard" type="Button" parent="Margin/Column/Bottom"]
+unique_name_in_owner = true
+custom_minimum_size = Vector2(148, 44)
+layout_mode = 2
+focus_mode = 2
+theme_override_colors/font_color = Color(0.93, 0.86, 0.72, 1)
+theme_override_colors/font_hover_color = Color(1, 0.92, 0.7, 1)
+theme_override_colors/font_pressed_color = Color(0.85, 0.72, 0.45, 1)
+theme_override_fonts/font = ExtResource("2_bold")
+theme_override_font_sizes/font_size = 16
+theme_override_styles/normal = SubResource("StyleBoxTexture_idle")
+theme_override_styles/hover = SubResource("StyleBoxTexture_hover")
+theme_override_styles/pressed = SubResource("StyleBoxTexture_press")
+theme_override_styles/focus = SubResource("StyleBoxEmpty_focus")
+text = "Outyard"
+
+[node name="HopCluster" type="HBoxContainer" parent="Margin/Column/Bottom"]
+layout_mode = 2
+theme_override_constants/separation = 4
+alignment = 1
+
+[node name="HopLabel" type="Label" parent="Margin/Column/Bottom/HopCluster"]
+layout_mode = 2
+theme_override_colors/font_color = Color(0.93, 0.86, 0.72, 1)
+theme_override_colors/font_shadow_color = Color(0.05, 0.03, 0.02, 0.75)
+theme_override_constants/shadow_offset_x = 1
+theme_override_constants/shadow_offset_y = 1
+theme_override_fonts/font = ExtResource("3_reg")
+theme_override_font_sizes/font_size = 15
+text = "4 hops"
+
+[node name="Pip1" type="TextureRect" parent="Margin/Column/Bottom/HopCluster"]
+custom_minimum_size = Vector2(14, 14)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("16_diamond")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Pip2" type="TextureRect" parent="Margin/Column/Bottom/HopCluster"]
+custom_minimum_size = Vector2(14, 14)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("16_diamond")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Pip3" type="TextureRect" parent="Margin/Column/Bottom/HopCluster"]
+custom_minimum_size = Vector2(14, 14)
+layout_mode = 2
+mouse_filter = 2
+texture = ExtResource("16_diamond")
+expand_mode = 1
+stretch_mode = 5
+
+[node name="Pip4" type="TextureRect" parent="Margin/Column/Bottom/HopCluster"]
+custom_minimum_size = Vector2(14, 14)
+layout_mode = 2
+modulate = Color(0.55, 0.45, 0.28, 0.85)
+mouse_filter = 2
+texture = ExtResource("16_diamond")
+expand_mode = 1
+stretch_mode = 5

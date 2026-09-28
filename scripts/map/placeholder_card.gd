@@ -32,28 +32,19 @@ func _ready() -> void:
 	_fit_screen()
 	_panel = PanelContainer.new()
 	_panel.custom_minimum_size = Vector2(440, 0)
-	var style := StyleBoxFlat.new()
-	style.bg_color = Color(0.12, 0.08, 0.05, 1)
-	style.border_color = GOLD
-	style.set_border_width_all(2)
-	style.content_margin_left = 28
-	style.content_margin_right = 28
-	style.content_margin_top = 24
-	style.content_margin_bottom = 24
-	_panel.add_theme_stylebox_override("panel", style)
+	_panel.add_theme_stylebox_override("panel", InstrumentStyle.frame())
 	_center.add_child(_panel)
 	var col := VBoxContainer.new()
 	col.add_theme_constant_override("separation", 16)
 	_panel.add_child(col)
 	_title = Label.new()
 	_title.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_title.add_theme_font_size_override("font_size", 22)
-	_title.add_theme_color_override("font_color", GOLD)
+	InstrumentStyle.face(_title, true, 22)
 	_title.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	col.add_child(_title)
 	_body = Label.new()
 	_body.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
-	_body.add_theme_font_size_override("font_size", 20)
+	InstrumentStyle.face(_body, false, 18)
 	_body.add_theme_color_override("font_color", INK)
 	_body.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	col.add_child(_body)
@@ -78,9 +69,8 @@ func present(title: String, body: String, choices: Array) -> void:
 		btn.text = str(choice.get("text", "Continue"))
 		btn.disabled = disabled
 		btn.alignment = HORIZONTAL_ALIGNMENT_CENTER
-		btn.custom_minimum_size = Vector2(0, 48)
-		btn.add_theme_color_override("font_color", GOLD)
-		btn.add_theme_color_override("font_disabled_color", Color(0.55, 0.45, 0.32, 1))
+		btn.custom_minimum_size = Vector2(0, 56)
+		InstrumentStyle.action(btn)
 		if not disabled:
 			btn.pressed.connect(_pick.bind(str(choice.get("id", ""))))
 		_box.add_child(btn)

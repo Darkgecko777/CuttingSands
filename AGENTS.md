@@ -32,6 +32,9 @@ They are not the Grok.com workspace rules.
 | Knowledge / rumours | `scripts/sight/` (`SightBook`, `WordBook`, `GoodCopy`) — engine names until a rename pass |
 | Rival tokens | `scripts/autoload/string_book.gd` ← `data/world/strings.json` |
 | Title / house / pause | `scripts/ui/title_screen.gd`, `house_select.gd`, `pause_menu.gd` |
+| Location block | `scenes/ui/screen_stage.tscn` — F6, primitives, not part of play |
+| Location sample | `scenes/ui/screen_sample.tscn` — F6, generated pictures, not part of play |
+| Picture gallery | `scenes/ui/component_gallery.tscn` — F6, one picture, not part of play |
 
 ## Leftovers (do not revive)
 
@@ -54,13 +57,22 @@ Start and arrival land in **Market**, no top tab open. Engine identifiers may st
 
 ## UI lock (keep; do not rebuild)
 
-- Well: two panes, or one map surface. No side context column.
-- Top tabs: **Cargo | Map | Rumours**. Single-select and close.
-- Bottom yards: **House | Market | Outyard**. House is drawn in cities and Ghorath. Villages and posts draw Market and Outyard only. All yards are dead on the road.
-- Map tab = letterboxed atlas (no fog of war on that chart).
-- Hop with no tab = zoomed travel watch. Opening a tab **pauses** the hop tween; close resumes.
+The working picture of the location screen is `docs/UI_Layout.md` and `docs/UI_Visuals.md`. Placement is blocked on `scenes/ui/screen_stage.tscn`. Generated pictures are sampled on `scenes/ui/screen_sample.tscn` and alone in `scenes/ui/component_gallery.tscn`. Do not restyle `field_shell` until Derek accepts that screen. Play still uses the gilt frame.
+
+- One frame. Top paper banner, book with leather tags, borderless well, bottom paper banner.
+- Feature tags, one open at a time, and each can close. Play draws **Cargo | Map | Rumours**. Character and Agents are on the stage until those systems exist.
+- Bottom banner: **House | Market | Outyard**. House is drawn in cities and Ghorath. Villages and posts draw Market and Outyard only. All of them are dead on the road.
+- Map tag shows the existing chart, letterboxed, inside the well. No fog of war on that chart.
+- Each stop has its own full-bleed ground. The road has its own ground. Until the stage is accepted, a hop with no tab is still the zoomed chart. Opening a tab **pauses** the hop tween; close resumes.
 - Game clock: time runs on the watch, Skip, or explicit Wait. Wait is Outyard only. Time does not run in House or Market.
 - Title: Continue and Options stay visible but disabled until save / options exist. Title does not open PauseMenu for Options.
+
+## UI contact
+
+- Roles, and what the frame must tell the player: `docs/UI_Layout.md`.
+- Look of the components, and the only brief for new art: `docs/UI_Visuals.md`.
+- The whole location screen: `docs/UI_Review.md`. Pictures go in `Assets/UI/stage/` under the filename in that list. The block stage stays primitives. Derek judges a picture alone in `scenes/ui/component_gallery.tscn`, then in place on `scenes/ui/screen_sample.tscn`. The shell loads only `Assets/UI/instrument/` until he accepts the screen. Do not restyle the shell to judge a picture. `Samples/` is mood, not a slot.
+- The words on the controls are a string table. The chrome table above is what this build says today. Neither UI document renames those words or freezes them.
 
 ## Built vs gated
 
@@ -86,7 +98,7 @@ When those land, follow the vision section for that lock. They are part of this 
 - Leave `.uid` files to Godot; do not hand-edit them.
 - Do not invent unique art, extra SKUs, a second wagon, a fleet screen, or a second economy unless asked.
 - After each completed task, update `docs/State.md`: the new task becomes **Current**, the old Current becomes **Prior**, drop anything older. Keep the file to those two entries.
-- Do not add README / extra scaffolding “for the agent.” `AGENTS.md`, `docs/State.md`, and `docs/worklog.md` are the exceptions.
+- Do not add README / extra scaffolding “for the agent.” `AGENTS.md`, `docs/State.md`, `docs/worklog.md`, `docs/UI_Layout.md`, `docs/UI_Visuals.md`, and `docs/UI_Review.md` are the exceptions.
 - Do not read bulk media unless the task is art/audio: `.godot/`, `*.import`, `Assets/map/`, `Assets/audio/`, large title/menu frames. See `.grokignore`. Honor that list even if a tool still lists the files.
 
 ## Git

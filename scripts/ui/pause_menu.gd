@@ -31,6 +31,12 @@ func _ready() -> void:
 	quit_button.pressed.connect(_on_quit)
 	options_button.disabled = true
 	options_button.tooltip_text = "Not in this slice"
+	var panel := get_node("Center/Panel") as PanelContainer
+	panel.add_theme_stylebox_override("panel", InstrumentStyle.frame())
+	InstrumentStyle.face(get_node("Center/Panel/Margin/Column/Title"), true, 22)
+	InstrumentStyle.face(get_node("Center/Panel/Margin/Column/Hint"), false, 14)
+	for button in [resume_button, options_button, title_button, quit_button]:
+		InstrumentStyle.action(button)
 
 
 func _unhandled_input(event: InputEvent) -> void:

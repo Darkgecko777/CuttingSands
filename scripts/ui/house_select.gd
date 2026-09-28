@@ -22,6 +22,7 @@ func _ready() -> void:
 
 	confirm_button.pressed.connect(_on_confirm_pressed)
 	back_button.pressed.connect(_on_back_pressed)
+	InstrumentStyle.action(back_button)
 	confirm_button.disabled = true
 
 
@@ -76,6 +77,7 @@ func _make_house_card(house: Dictionary) -> Button:
 	status.mouse_filter = Control.MOUSE_FILTER_IGNORE
 	vbox.add_child(status)
 
+	InstrumentStyle.toggle(btn)
 	if available:
 		btn.pressed.connect(_on_card_pressed.bind(house.id, btn))
 	else:

@@ -77,6 +77,7 @@ func _wire_shell() -> void:
 		_cat_buttons[mode].toggle_mode = true
 		_cat_buttons[mode].pressed.connect(_toggle_mode.bind(mode))
 	gear_button.pressed.connect(_on_gear)
+	_dress_shell()
 	place_banner.pressed.connect(_enter_yard.bind(Yard.NONE))
 	house_btn.pressed.connect(_enter_yard.bind(Yard.HOUSE))
 	market_btn.pressed.connect(_enter_yard.bind(Yard.MARKET))
@@ -84,6 +85,54 @@ func _wire_shell() -> void:
 	var pause := get_node_or_null("/root/PauseMenu")
 	if pause and pause.has_node("%GearButton"):
 		pause.get_node("%GearButton").visible = false
+
+
+func _dress_shell() -> void:
+	var top := house_label.get_parent() as HBoxContainer
+	if top and top.get_node_or_null("Crest") == null:
+		var mark := TextureRect.new()
+		mark.name = "Crest"
+		mark.texture = InstrumentStyle.crest()
+		mark.custom_minimum_size = Vector2(28, 28)
+		mark.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
+		mark.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
+		mark.mouse_filter = Control.MOUSE_FILTER_IGNORE
+		top.add_child(mark)
+		top.move_child(mark, 0)
+	for label in [house_label, place_label, day_label, weather_pip]:
+		InstrumentStyle.face(label, false, 16)
+	InstrumentStyle.face(status_label, false, 16)
+	InstrumentStyle.face(left_title, true, 18)
+	InstrumentStyle.face(context_title, true, 18)
+	InstrumentStyle.face(context_meta, false, 14)
+	InstrumentStyle.face(banner_caption, false, 18)
+	house_label.add_theme_color_override("font_color", InstrumentStyle.AMBER)
+	var top_bar := top.get_parent().get_parent() as PanelContainer
+	if top_bar:
+		top_bar.add_theme_stylebox_override("panel", InstrumentStyle.bar())
+	var bottom := place_banner.get_parent().get_parent() as PanelContainer
+	if bottom:
+		bottom.add_theme_stylebox_override("panel", InstrumentStyle.bar())
+	for button in _cat_buttons.values():
+		button.custom_minimum_size = Vector2(112, 56)
+		InstrumentStyle.toggle(button)
+	InstrumentStyle.place(place_banner)
+	place_banner.add_theme_font_size_override("font_size", 26)
+	place_banner.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	for button in [house_btn, market_btn, outyard_btn]:
+		InstrumentStyle.toggle(button)
+	smash_btn.custom_minimum_size.y = 56
+	InstrumentStyle.action(smash_btn)
+	gear_button.text = ""
+	gear_button.icon = InstrumentStyle.gear()
+	gear_button.expand_icon = true
+	gear_button.custom_minimum_size = Vector2(56, 56)
+	InstrumentStyle.action(gear_button)
+
+
+func _mark_toggle(btn: Button) -> void:
+	var hot := btn.button_pressed and not btn.disabled
+	btn.add_theme_color_override("font_color", InstrumentStyle.AMBER if hot else InstrumentStyle.BONE)
 
 
 func _on_gear() -> void:
@@ -201,6 +250,7 @@ func _set_mode(mode: int) -> void:
 	_mode = mode
 	for key in _cat_buttons.keys():
 		_cat_buttons[key].set_pressed_no_signal(key == mode)
+		_mark_toggle(_cat_buttons[key])
 	_apply_well()
 	if mode == Mode.CARGO:
 		_select_item("caravan", GameState.PLAYER_CARAVAN_ID)
@@ -360,6 +410,9 @@ func _refresh_place_bar() -> void:
 	house_btn.set_pressed_no_signal(house_here and _yard == Yard.HOUSE)
 	market_btn.set_pressed_no_signal(market_live and _yard == Yard.MARKET)
 	outyard_btn.set_pressed_no_signal(dock and _yard == Yard.OUTYARD)
+	_mark_toggle(house_btn)
+	_mark_toggle(market_btn)
+	_mark_toggle(outyard_btn)
 	if on_road:
 		_ensure_skip()
 
@@ -437,7 +490,8 @@ func _show_house_yard() -> void:
 		var apartment := Button.new()
 		apartment.text = "Apartment"
 		apartment.disabled = true
-		apartment.custom_minimum_size = Vector2(0, 48)
+		apartment.custom_minimum_size = Vector2(0, 56)
+		InstrumentStyle.action(apartment)
 		left_box.add_child(apartment)
 	context_title.text = WorldBook.house_name(seat)
 	context_meta.text = "standing %d" % DoorBook.standing_of(seat)
@@ -501,6 +555,8 @@ func _show_outyard() -> void:
 			road.custom_minimum_size = Vector2(0, 56)
 			road.toggle_mode = true
 			road.button_pressed = dest == _outyard_dest
+			InstrumentStyle.toggle(road)
+			_mark_toggle(road)
 			road.pressed.connect(_pick_hop.bind(dest))
 			left_box.add_child(road)
 	_paint_hop_detail(city_id)
@@ -525,7 +581,8 @@ func _paint_hop_detail(city_id: String) -> void:
 	context_body.text = "Leave only when you confirm this road."
 	var go := Button.new()
 	go.text = "Take the road"
-	go.custom_minimum_size = Vector2(0, 48)
+	go.custom_minimum_size = Vector2(0, 56)
+	InstrumentStyle.action(go)
 	go.pressed.connect(_on_travel.bind(_outyard_dest))
 	market_box.add_child(go)
 
@@ -594,7 +651,8 @@ func _add_restock(host: Node) -> void:
 	var plan := CargoHold.restock_plan()
 	var restock := Button.new()
 	restock.text = _restock_label(plan)
-	restock.custom_minimum_size = Vector2(0, 48)
+	restock.custom_minimum_size = Vector2(0, 56)
+	InstrumentStyle.action(restock)
 	var buying := int(plan.get("water", 0)) + int(plan.get("rations", 0))
 	restock.disabled = buying <= 0
 	if buying > 0:
@@ -663,7 +721,8 @@ func _add_commission_buttons(host: Node, seat_id: String, rows: Array) -> void:
 		var turn := Button.new()
 		turn.text = "Turn in %d %s  ·  %d" % [qty, GameState.get_good_name(good_id), wage]
 		turn.alignment = HORIZONTAL_ALIGNMENT_LEFT
-		turn.custom_minimum_size = Vector2(0, 48)
+		turn.custom_minimum_size = Vector2(0, 56)
+		InstrumentStyle.action(turn)
 		turn.disabled = int(GameState.inventory.get(good_id, 0)) < qty
 		if not turn.disabled:
 			turn.pressed.connect(_on_commission.bind(seat_id, index))
@@ -686,7 +745,8 @@ func _add_rumour_verbs(host: Node) -> void:
 		return
 	var social := Button.new()
 	social.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	social.custom_minimum_size = Vector2(0, 48)
+	social.custom_minimum_size = Vector2(0, 56)
+	InstrumentStyle.action(social)
 	if RumourBook.can_socialize():
 		social.text = "Socialize"
 		social.pressed.connect(_on_socialize)
@@ -697,7 +757,8 @@ func _add_rumour_verbs(host: Node) -> void:
 	var rows := RumourBook.here_tickets(GameState.current_city_id)
 	var expedition := Button.new()
 	expedition.alignment = HORIZONTAL_ALIGNMENT_LEFT
-	expedition.custom_minimum_size = Vector2(0, 48)
+	expedition.custom_minimum_size = Vector2(0, 56)
+	InstrumentStyle.action(expedition)
 	if rows.is_empty():
 		expedition.text = "Expedition"
 		expedition.disabled = true
@@ -887,8 +948,9 @@ func _add_wait_buttons(host: Node) -> void:
 	for i in labels.size():
 		var wait := Button.new()
 		wait.text = labels[i]
-		wait.custom_minimum_size = Vector2(0, 40)
+		wait.custom_minimum_size = Vector2(0, 56)
 		wait.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+		InstrumentStyle.action(wait)
 		wait.pressed.connect(_on_wait.bind(i))
 		row.add_child(wait)
 	host.add_child(row)
@@ -936,7 +998,8 @@ func _ensure_skip() -> void:
 			return
 	var skip := Button.new()
 	skip.text = "Skip"
-	skip.custom_minimum_size = Vector2(120, 40)
+	skip.custom_minimum_size = Vector2(120, 56)
+	InstrumentStyle.action(skip)
 	skip.pressed.connect(_map.skip_hop)
 	context_actions.add_child(skip)
 

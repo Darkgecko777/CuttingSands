@@ -110,7 +110,7 @@ Three ledgers. Do not mix them.
 - Village and post **doors** (tariffs) as the house-influence layer. Cities do not flip.
 - Commissions at house seats.
 - Travel with visible weather mass, abstract cargo leak, and event cards.
-- 8–9 major cities plus villages and posts, or the smaller recommended start; plate decides.
+- 5 major cities plus villages and posts.
 
 ### What this game is deliberately not
 
@@ -119,8 +119,6 @@ Three ledgers. Do not mix them.
 - Settlement growth or demographics.
 - Sabotage / murder intrigue.
 - A closed cargo-conservation sim (lost-pool, salvage-as-bookkeeping).
-- Sarn as a system.
-- Authored event table and live DCs *in the next GB tasks* — future pass. Implementations that need a check show **placeholder cards** only. Four check names are locked (Face, Ken, Knack, Steel).
 
 ---
 
@@ -128,7 +126,7 @@ Three ledgers. Do not mix them.
 
 ### Settlements
 
-**Cities** — clamp. Four origin letters + local rations/water mint. House seats. House tab exists. Influence / door tariff **does not apply**. A city stall has no flipping owner. A small fixed home-house cut at the player’s own seat is allowed as patronage, not as a contest.
+**Cities** — clamp. Four origin letters (placeholder until full goods and lore pass) + local rations/water mint. House seats. House tab exists. Influence / door tariff **does not apply**. A city stall has no flipping owner. A small fixed home-house cut at the player’s own seat is allowed as patronage, not as a contest.
 
 **Villages** — fluid doors. Two origin letters + local rations/water mint. Market + Outyard only.
 

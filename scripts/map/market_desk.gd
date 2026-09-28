@@ -201,6 +201,7 @@ func _stock_row(good_id: String) -> Button:
 	row.text = "%s    %ds    M%d%s" % [GameState.get_good_name(good_id), GameState.get_local_price(good_id), GameState.get_market_stock(good_id) - staged_buy, ghost]
 	var can_buy := can_stage_buy(good_id)
 	var color := GHOST if staged_buy > 0 else (GOLD if can_buy else MUTED)
+	InstrumentStyle.row(row, staged_buy > 0)
 	row.add_theme_color_override("font_color", color)
 	row.add_theme_color_override("font_hover_color", Color(1, 0.92, 0.7, 1))
 	row.pressed.connect(stage_buy.bind(good_id))

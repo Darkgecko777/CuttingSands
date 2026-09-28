@@ -431,17 +431,17 @@ func paint_markers() -> void:
 		box.set_corner_radius_all(11)
 		box.set_border_width_all(2)
 		if here:
-			box.bg_color = Color(0.72, 0.52, 0.18, 0.95)
-			box.border_color = Color(0.95, 0.82, 0.40, 1)
+			box.bg_color = Color(0.78, 0.58, 0.28, 0.95)
+			box.border_color = Color(0.95, 0.82, 0.45, 1)
 			btn.add_theme_color_override("font_color", Color(0.12, 0.08, 0.04, 1))
 		elif selected:
-			box.bg_color = Color(0.28, 0.20, 0.10, 0.95)
-			box.border_color = GOLD
-			btn.add_theme_color_override("font_color", GOLD)
+			box.bg_color = Color(0.28, 0.18, 0.09, 0.95)
+			box.border_color = Color(0.85, 0.64, 0.32, 1)
+			btn.add_theme_color_override("font_color", Color(0.96, 0.86, 0.55, 1))
 		else:
-			box.bg_color = Color(0.16, 0.11, 0.07, 0.88)
+			box.bg_color = Color(0.12, 0.08, 0.05, 0.9)
 			box.border_color = Color(0.55, 0.42, 0.24, 1)
-			btn.add_theme_color_override("font_color", INK)
+			btn.add_theme_color_override("font_color", Color(0.93, 0.86, 0.72, 1))
 		btn.add_theme_stylebox_override("normal", box)
 		btn.add_theme_stylebox_override("hover", box)
 		btn.add_theme_stylebox_override("pressed", box)

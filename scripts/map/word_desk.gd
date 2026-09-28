@@ -49,11 +49,13 @@ func _paint_selected(title: Label, meta: Label, body: Label) -> void:
 func _row(rec: Dictionary) -> Button:
 	var btn := Button.new()
 	var place := WorldBook.settlement_name(str(rec.get("origin_id", "")))
+	var ticket_id := str(rec.get("id", ""))
 	btn.text = "%s  %s" % [RumourBook.stars_text(int(rec.get("stars", 1))), place]
 	btn.alignment = HORIZONTAL_ALIGNMENT_LEFT
 	btn.add_theme_color_override("font_color", GOLD)
+	btn.custom_minimum_size = Vector2(0, 40)
+	InstrumentStyle.row(btn, ticket_id == selected_id)
 	btn.tooltip_text = RumourBook.life_text(rec)
-	var ticket_id := str(rec.get("id", ""))
 	btn.pressed.connect(_select.bind(ticket_id))
 	return btn
 
